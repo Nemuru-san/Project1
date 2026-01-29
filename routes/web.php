@@ -10,4 +10,8 @@ Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-require __DIR__.'/settings.php';
+Route::get('supplier-categories', function () {
+    return view('pages.purchase.supplierCategory');
+})->name('supplier=categories');
+
+require __DIR__ . '/settings.php';
