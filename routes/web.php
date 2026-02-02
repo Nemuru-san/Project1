@@ -10,16 +10,16 @@ Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-Route::get('supplier-categories', function () {
+Route::get('purchases/master/supplier-categories', function () {
     return view('pages.purchase.supplierCategory');
-})->name('supplier-categories');
+})->name('purchases.master.supplier-categories');
 
-Route::get('supplier-categories-add', function () {
+Route::get('purchases/master/supplier-categories-add', function () {
     return view('pages.purchase.supplierCategoryAdd');
-})->name('supplier-categories-add');
+})->name('purchases.master.supplier-categories-add');
 
 Route::get('supplier', function () {
     return view('pages.purchase.supplier');
-})->name('supplier');
+})->name('purchases.master.supplier');
 
 require __DIR__ . '/settings.php';

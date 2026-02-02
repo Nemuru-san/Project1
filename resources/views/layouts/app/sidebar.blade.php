@@ -22,10 +22,17 @@
             </flux:sidebar.group> --}}
 
             {{-- purchasing --}}
-            <flux:sidebar.group icon="credit-card" href="#" expandable heading="Purchasing" class="grid">
-                <flux:sidebar.group href="#" expandable heading="Master" class="grid">
-                    <flux:sidebar.item href="{{ route('supplier-categories') }}">Suplier Category</flux:sidebar.item>
-                    <flux:sidebar.item href="{{ route('supplier') }}">Supplier</flux:sidebar.item>
+            <flux:sidebar.group icon="credit-card" href="#" expandable heading="Purchasing" class="grid"
+                :expanded="request()->routeIs('purchases.*')">
+                <flux:sidebar.group href="#" expandable heading="Master" class="grid"
+                    :expanded="request()->routeIs('purchases.master.*')">
+                    <flux:sidebar.item href="{{ route('purchases.master.supplier-categories') }}"
+                        :current="request()->routeIs('purchases.master.supplier-categories')" wire:navigate>Suplier
+                        Category
+                    </flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('purchases.master.supplier') }}"
+                        :current="request()->routeIs('purchases.master.supplier')" wire:navigate>Supplier
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Transaction" class="grid">
@@ -41,7 +48,8 @@
             </flux:sidebar.group>
 
             {{-- inventory --}}
-            <flux:sidebar.group icon="rectangle-stack" href="#" expandable heading="Inventory" class="grid">
+            <flux:sidebar.group icon="rectangle-stack" href="#" expandable heading="Inventory" class="grid"
+                :expanded="request()->routeIs('inventory.*')">
                 <flux:sidebar.group href="#" expandable heading="Master Security" class="grid">
                     <flux:sidebar.item href="#">Warehouse</flux:sidebar.item>
                     <flux:sidebar.item href="#">Rack</flux:sidebar.item>
@@ -56,7 +64,8 @@
                     <flux:sidebar.item href="#">Sales Price</flux:sidebar.item>
                 </flux:sidebar.group>
 
-                <flux:sidebar.group href="#" expandable heading="Inventory Transaction" class="grid">
+                <flux:sidebar.group artisan migratelux:sidebar.group href="#" expandable
+                    heading="Inventory Transaction" class="grid">
                     <flux:sidebar.item href="#">Transfer Stock</flux:sidebar.item>
                     <flux:sidebar.item href="#">Adjustment In</flux:sidebar.item>
                     <flux:sidebar.item href="#">Adjustment Out</flux:sidebar.item>
@@ -83,7 +92,8 @@
             </flux:sidebar.group>
 
             {{-- sales --}}
-            <flux:sidebar.group icon="presentation-chart-line" href="#" expandable heading="Sales" class="grid">
+            <flux:sidebar.group icon="presentation-chart-line" href="#" expandable heading="Sales" class="grid"
+                :expanded="request()->routeIs('sales.*')">
                 <flux:sidebar.group href="#" expandable heading="Master" class="grid">
                     <flux:sidebar.item href="#">Suplier Category</flux:sidebar.item>
                     <flux:sidebar.item href="#">Supplier</flux:sidebar.item>

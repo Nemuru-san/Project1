@@ -49,10 +49,10 @@
                     </p>
                 </div>
 
-                <div class="flex flex-col sm:flex-row items-center justify-end gap-4">
+                {{-- <div class="flex flex-col sm:flex-row items-center justify-end gap-4">
                     <button type="button"
                         class="text-white bg-[#0f1419] hover:bg-[#0f1419]/90 focus:ring-4 focus:outline-none focus:ring-[#0f1419]/50 box-border border border-transparent font-medium leading-5 rounded-base text-sm px-4 py-2.5 text-center inline-flex items-center justify-center gap-2 dark:hover:bg-[#24292F] dark:focus:ring-[#24292F]/55 w-full sm:w-42"
-                        onclick="location.href='{{ Route('supplier-categories-add') }}'">
+                        onclick="location.href='{{ Route('purchasesupplier-categories-add') }}'">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -69,7 +69,7 @@
                         </svg>
                         Refresh
                     </button>
-                </div>
+                </div> --}}
             </div>
 
             {{-- form --}}
