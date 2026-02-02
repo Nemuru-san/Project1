@@ -24,8 +24,8 @@
             {{-- purchasing --}}
             <flux:sidebar.group icon="credit-card" href="#" expandable heading="Purchasing" class="grid">
                 <flux:sidebar.group href="#" expandable heading="Master" class="grid">
-                    <flux:sidebar.item href="{{ Route('supplier=categories') }}">Suplier Category</flux:sidebar.item>
-                    <flux:sidebar.item href="#">Supplier</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('supplier-categories') }}">Suplier Category</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('supplier') }}">Supplier</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Transaction" class="grid">

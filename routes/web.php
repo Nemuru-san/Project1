@@ -12,6 +12,14 @@ Route::view('dashboard', 'dashboard')
 
 Route::get('supplier-categories', function () {
     return view('pages.purchase.supplierCategory');
-})->name('supplier=categories');
+})->name('supplier-categories');
+
+Route::get('supplier-categories-add', function () {
+    return view('pages.purchase.supplierCategoryAdd');
+})->name('supplier-categories-add');
+
+Route::get('supplier', function () {
+    return view('pages.purchase.supplier');
+})->name('supplier');
 
 require __DIR__ . '/settings.php';

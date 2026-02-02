@@ -1,4 +1,4 @@
-<x-layouts::app :title="__('Supplier Categories')">
+<x-layouts::app :title="__('Supplier')">
 
     <div class="container flex flex-col items-center justify-between min-h-full gap-6">
         {{-- content --}}
@@ -36,13 +36,13 @@
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="m9 5 7 7-7 7" />
                                     </svg>
-                                    <span class="inline-flex items-center text-sm font-medium">Supplier Category</span>
+                                    <span class="inline-flex items-center text-sm font-medium">Supplier</span>
                                 </div>
                             </li>
                         </ol>
                     </nav>
 
-                    <p class="lg:text-2xl font-bold">Supplier Categories</p>
+                    <p class="lg:text-2xl font-bold">Supplier</p>
                     <p class="font-light text-body-subtle">Atur kategori supplier agar data lebih rapi, mudah dicari,
                         dan
                         terkelola dengan baik.
@@ -52,7 +52,7 @@
                 <div class="flex flex-col sm:flex-row items-center justify-end gap-4">
                     <button type="button"
                         class="text-white bg-[#0f1419] hover:bg-[#0f1419]/90 focus:ring-4 focus:outline-none focus:ring-[#0f1419]/50 box-border border border-transparent font-medium leading-5 rounded-base text-sm px-4 py-2.5 text-center inline-flex items-center justify-center gap-2 dark:hover:bg-[#24292F] dark:focus:ring-[#24292F]/55 w-full sm:w-42"
-                        onclick="location.href='{{ Route('supplier-categories-add') }}'">
+                        onclick="location.href='{{ Route('supplier') }}'">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
