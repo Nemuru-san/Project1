@@ -18,8 +18,20 @@ Route::get('purchases/master/supplier-categories-add', function () {
     return view('pages.purchase.supplierCategoryAdd');
 })->name('purchases.master.supplier-categories-add');
 
-Route::get('supplier', function () {
+Route::get('purchases/master/supplier', function () {
     return view('pages.purchase.supplier');
 })->name('purchases.master.supplier');
+
+Route::get('purchases/master/supplier-add', function () {
+    return view('pages.purchase.supplierAdd');
+})->name('purchases.master.supplier-add');
+
+Route::get('purchases/transaction/purchase-order', function () {
+    return view('pages.purchase.purchaseOrder');
+})->name('purchases.transaction.purchase-order');
+
+Route::get('purchases/transaction/purchase-order-add', function () {
+    return view('pages.purchase.purchaseOrderAdd');
+})->name('purchases.transaction.purchase-order-add');
 
 require __DIR__ . '/settings.php';

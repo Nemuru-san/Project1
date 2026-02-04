@@ -5,7 +5,7 @@
     @include('partials.head')
 </head>
 
-<body class="min-h-screen bg-white dark:bg-zinc-800">
+<body class="min-h-screen bg-white dark:bg-zinc-950">
     <flux:sidebar sticky collapsible="mobile"
         class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 border lg:w-80">
         <flux:sidebar.header>
@@ -35,8 +35,10 @@
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
-                <flux:sidebar.group href="#" expandable heading="Transaction" class="grid">
-                    <flux:sidebar.item href="#">Purchase Order</flux:sidebar.item>
+                <flux:sidebar.group href="#" expandable heading="Transaction" class="grid"
+                    :expanded="request()->routeIs('purchases.transaction.*')">
+                    <flux:sidebar.item href="{{ route('purchases.transaction.purchase-order') }}" wire:navigate>Purchase
+                        Order</flux:sidebar.item>
                     <flux:sidebar.item href="#">Good Receive</flux:sidebar.item>
                     <flux:sidebar.item href="#">Purchase Invoice</flux:sidebar.item>
                 </flux:sidebar.group>

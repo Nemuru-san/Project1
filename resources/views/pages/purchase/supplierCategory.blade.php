@@ -50,25 +50,25 @@
                 </div>
 
                 <div class="flex flex-col sm:flex-row items-center justify-end gap-4">
-                    <button type="button"
-                        class="text-white bg-[#0f1419] hover:bg-[#0f1419]/90 focus:ring-4 focus:outline-none focus:ring-[#0f1419]/50 box-border border border-transparent font-medium leading-5 rounded-base text-sm px-4 py-2.5 text-center inline-flex items-center justify-center gap-2 dark:hover:bg-[#24292F] dark:focus:ring-[#24292F]/55 w-full sm:w-42"
-                        onclick="location.href='{{ Route('purchases.master.supplier-categories-add') }}'">
+                    <a href="{{ route('purchases.master.supplier-categories-add') }}"
+                        :current="request()->routeIs('purchases.master.supplier-categories-add')" wire:navigate
+                        class="inline-flex items-center text-white bg-[#0f1419] hover:bg-[#0f1419]/90 focus:ring-4 focus:outline-none focus:ring-[#0f1419]/50 box-border border border-transparent font-medium leading-5 rounded-base text-sm px-4 py-3 text-center justify-center gap-2 dark:hover:bg-[#24292F] dark:focus:ring-[#24292F]/55 w-full sm:w-42">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
                         Create New
-                    </button>
+                    </a>
 
-                    <button type="button"
-                        class="text-white bg-[#0f1419] hover:bg-[#0f1419]/90 focus:ring-4 focus:outline-none focus:ring-[#0f1419]/50 box-border border border-transparent font-medium leading-5 rounded-base text-sm px-4 py-2.5 text-center inline-flex items-center justify-center gap-2 dark:hover:bg-[#24292F] dark:focus:ring-[#24292F]/55 w-full sm:w-42">
+                    <a href="#"
+                        class="inline-flex items-center text-white bg-[#0f1419] hover:bg-[#0f1419]/90 focus:ring-4 focus:outline-none focus:ring-[#0f1419]/50 box-border border border-transparent font-medium leading-5 rounded-base text-sm px-4 py-3 text-center justify-center gap-2 dark:hover:bg-[#24292F] dark:focus:ring-[#24292F]/55 w-full sm:w-42">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-6">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                         </svg>
                         Refresh
-                    </button>
+                    </a>
                 </div>
             </div>
 
@@ -95,7 +95,7 @@
                                         </svg>
                                     </div>
                                     <input type="text" id="simple-search"
-                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                        class="bg-zinc-800 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                         placeholder="Search" required="">
                                 </div>
                             </form>
@@ -104,7 +104,7 @@
                     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
                         <table class="w-full text-md text-left text-gray-500 dark:text-gray-400 mt-4">
                             <thead
-                                class="text-md font-bold text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                                class="text-md font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                                 <tr>
                                     <th scope="col" class="px-4 py-4">Code</th>
                                     <th scope="col" class="px-4 py-4">Name</th>
@@ -114,8 +114,8 @@
                                     <th scope="col" class="px-4 py-4">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <tbody class="dark:bg-zinc-950">
+                                <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800">
                                     <th scope="row"
                                         class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                         LKL</th>
@@ -157,7 +157,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                                <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800">
                                     <th scope="row"
                                         class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                         INT</th>

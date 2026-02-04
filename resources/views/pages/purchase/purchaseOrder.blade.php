@@ -1,4 +1,4 @@
-<x-layouts::app :title="__('Supplier')">
+<x-layouts::app :title="__('Purchase Order')">
 
     <div class="container flex flex-col items-center justify-between min-h-full gap-6">
         {{-- content --}}
@@ -25,7 +25,7 @@
                                             stroke-width="2" d="m9 5 7 7-7 7" />
                                     </svg>
                                     <a href="#"
-                                        class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Master</a>
+                                        class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Transaction</a>
                                 </div>
                             </li>
                             <li aria-current="page">
@@ -36,21 +36,21 @@
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                             stroke-width="2" d="m9 5 7 7-7 7" />
                                     </svg>
-                                    <span class="inline-flex items-center text-sm font-medium">Supplier</span>
+                                    <span class="inline-flex items-center text-sm font-medium">Purchase Order</span>
                                 </div>
                             </li>
                         </ol>
                     </nav>
 
-                    <p class="lg:text-2xl font-bold">Supplier</p>
+                    <p class="lg:text-2xl font-bold">Purchase Order</p>
                     <p class="font-light text-body-subtle">Kelola data supplier secara terpusat untuk mendukung proses
                         operasional dan pencatatan yang rapi.
                     </p>
                 </div>
 
                 <div class="flex flex-col sm:flex-row items-center justify-end gap-4">
-                    <a href="{{ route('purchases.master.supplier-add') }}"
-                        :current="request()->routeIs('purchases.master.supplier-add')" wire:navigate
+                    <a href="{{ route('purchases.transaction.purchase-order-add') }}"
+                        :current="request()->routeIs('purchases.transaction.purchase-order-add')" wire:navigate
                         class="inline-flex items-center text-white bg-[#0f1419] hover:bg-[#0f1419]/90 focus:ring-4 focus:outline-none focus:ring-[#0f1419]/50 box-border border border-transparent font-medium leading-5 rounded-base text-sm px-4 py-3 text-center justify-center gap-2 dark:hover:bg-[#24292F] dark:focus:ring-[#24292F]/55 w-full sm:w-42">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-6">
@@ -80,9 +80,9 @@
                     class="bg-white relative shadow-md sm:rounded-lg overflow-hidden dark:border-zinc-700 dark:bg-zinc-900">
                     <div
                         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4 dark:border-zinc-700 dark:bg-zinc-900">
-                        <p class="font-normal text-white">Data tabel Supplier</p>
-                        <div class="w-full md:w-1/2">
-                            <form class="flex items-center">
+                        <p class="font-normal text-white">Data Tabel Purchase Order</p>
+                        <div class="flex items-center gap-4 w-full md:w-auto">
+                            <form class="flex items-center w-full">
                                 <label for="simple-search" class="sr-only">Search</label>
                                 <div class="relative w-full">
                                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -94,10 +94,20 @@
                                         </svg>
                                     </div>
                                     <input type="text" id="simple-search"
-                                        class="bg-zinc-800 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                        class="bg-zinc-800 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full md:w-xl pl-10 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                         placeholder="Search" required="">
                                 </div>
                             </form>
+
+                            <button type="button"
+                                class="inline-flex items-center justify-center  text-fg-brand bg-neutral-primary border border-brand hover:bg-brand hover:text-white focus:ring-4 focus:ring-brand-subtle rounded-sm w-12 h-9 focus:outline-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
+                                </svg>
+                                <span class="sr-only">Icon description</span>
+                            </button>
                         </div>
                     </div>
                     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
@@ -105,30 +115,26 @@
                             <thead
                                 class="text-md font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                                 <tr>
-                                    <th scope="col" class="px-4 py-4">Code</th>
-                                    <th scope="col" class="px-4 py-4">Name</th>
-                                    <th scope="col" class="px-4 py-4">Type</th>
-                                    <th scope="col" class="px-4 py-4">Date</th>
-                                    <th scope="col" class="px-4 py-4">Email</th>
+                                    <th scope="col" class="px-4 py-4">PO No</th>
+                                    <th scope="col" class="px-4 py-4">PO Date</th>
+                                    <th scope="col" class="px-4 py-4">Supplier</th>
+                                    <th scope="col" class="px-4 py-4">Created By</th>
                                     <th scope="col" class="px-4 py-4">Status</th>
-                                    <th scope="col" class="px-4 py-4">Created_By</th>
-                                    <th scope="col" class="px-4 py-4">Actions</th>
+                                    <th scope="col" class="px-4 py-4">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="dark:bg-zinc-950">
                                 <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800">
                                     <th scope="row"
-                                        class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white uppercase">
-                                        sup-01</th>
-                                    <td class="px-4 py-4 uppercase">PT Sumber Makmur Abadi</td>
-                                    <td class="px-4 py-4">Lokal</td>
+                                        class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        PO-0125-00001</th>
                                     <td class="px-4 py-4">26/01/2025</td>
-                                    <td class="px-4 py-4">info@sumbermakmur.co.id</td>
+                                    <td class="px-4 py-4">PT Sumber Makmur Abadi</td>
+                                    <td class="px-4 py-4">Admin</td>
                                     <td class="px-4 py-4">
                                         <span
-                                            class="bg-primary-100 text-primary-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-success dark:text-white">Active</span>
+                                            class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-blue-600 dark:text-white">Proceed</span>
                                     </td>
-                                    <td class="px-4 py-4">Admin</td>
                                     <td class="px-4 py-4 flex items-center justify-start">
                                         <button id="PT-Sumber-Makmur-Abadi-button"
                                             data-dropdown-toggle="PT-Sumber-Makmur-Abadi-dropdown"
@@ -152,6 +158,10 @@
                                                     <a href="#"
                                                         class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Edit</a>
                                                 </li>
+                                                <li>
+                                                    <a href="#"
+                                                        class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Print</a>
+                                                </li>
                                             </ul>
                                             <div class="py-1">
                                                 <a href="#"
@@ -163,17 +173,156 @@
 
                                 <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800">
                                     <th scope="row"
-                                        class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white uppercase">
-                                        sup-02</th>
-                                    <td class="px-4 py-4 uppercase">PT Berkah Jaya Sentosa</td>
-                                    <td class="px-4 py-4">Interasional</td>
-                                    <td class="px-4 py-4">26/01/2025</td>
-                                    <td class="px-4 py-4">admin@berkahjaya.co.id</td>
+                                        class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        PO-0125-00004</th>
+                                    <td class="px-4 py-4">29/01/2025</td>
+                                    <td class="px-4 py-4">PT Citra Utama</td>
+                                    <td class="px-4 py-4">Admin</td>
                                     <td class="px-4 py-4">
                                         <span
-                                            class="bg-primary-100 text-primary-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-danger dark:text-white">Inactive</span>
+                                            class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-yellow-600 dark:text-white">Invoice</span>
                                     </td>
+                                    <td class="px-4 py-4 flex items-center justify-start">
+                                        <button id="PT-Citra-Utama-button"
+                                            data-dropdown-toggle="PT-Citra-Utama-dropdown"
+                                            class="inline-flex items-center p-0.5 text-sm font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
+                                            type="button">
+                                            <svg class="w-5 h-5" aria-hidden="true" fill="currentColor"
+                                                viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                <path
+                                                    d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                                            </svg>
+                                        </button>
+                                        <div id="PT-Citra-Utama-dropdown"
+                                            class="hidden z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
+                                            <ul class="py-1 text-sm text-gray-700 dark:text-gray-200"
+                                                aria-labelledby="PT-Citra-Utama-button">
+                                                <li>
+                                                    <a href="#"
+                                                        class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Show</a>
+                                                </li>
+                                                <li>
+                                                    <a href="#"
+                                                        class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Edit</a>
+                                                </li>
+                                                <li>
+                                                    <a href="#"
+                                                        class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Print</a>
+                                                </li>
+                                            </ul>
+                                            <div class="py-1">
+                                                <a href="#"
+                                                    class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Delete</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                                    <th scope="row"
+                                        class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        PO-0125-00005</th>
+                                    <td class="px-4 py-4">30/01/2025</td>
+                                    <td class="px-4 py-4">PT Sinar Jaya</td>
                                     <td class="px-4 py-4">Admin</td>
+                                    <td class="px-4 py-4">
+                                        <span
+                                            class="bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-red-600 dark:text-white">Canceled</span>
+                                    </td>
+                                    <td class="px-4 py-4 flex items-center justify-start">
+                                        <button id="PT-Sinar-Jaya-button"
+                                            data-dropdown-toggle="PT-Sinar-Jaya-dropdown"
+                                            class="inline-flex items-center p-0.5 text-sm font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
+                                            type="button">
+                                            <svg class="w-5 h-5" aria-hidden="true" fill="currentColor"
+                                                viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                <path
+                                                    d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                                            </svg>
+                                        </button>
+                                        <div id="PT-Sinar-Jaya-dropdown"
+                                            class="hidden z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
+                                            <ul class="py-1 text-sm text-gray-700 dark:text-gray-200"
+                                                aria-labelledby="PT-Sinar-Jaya-button">
+                                                <li>
+                                                    <a href="#"
+                                                        class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Show</a>
+                                                </li>
+                                                <li>
+                                                    <a href="#"
+                                                        class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Edit</a>
+                                                </li>
+                                                <li>
+                                                    <a href="#"
+                                                        class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Print</a>
+                                                </li>
+                                            </ul>
+                                            <div class="py-1">
+                                                <a href="#"
+                                                    class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Delete</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                                    <th scope="row"
+                                        class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        PO-0125-00006</th>
+                                    <td class="px-4 py-4">31/01/2025</td>
+                                    <td class="px-4 py-4">PT Mandiri Sejati</td>
+                                    <td class="px-4 py-4">Admin</td>
+                                    <td class="px-4 py-4">
+                                        <span
+                                            class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-blue-600 dark:text-white">Proceed</span>
+                                    </td>
+                                    <td class="px-4 py-4 flex items-center justify-start">
+                                        <button id="PT-Mandiri-Sejati-button"
+                                            data-dropdown-toggle="PT-Mandiri-Sejati-dropdown"
+                                            class="inline-flex items-center p-0.5 text-sm font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
+                                            type="button">
+                                            <svg class="w-5 h-5" aria-hidden="true" fill="currentColor"
+                                                viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                <path
+                                                    d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                                            </svg>
+                                        </button>
+                                        <div id="PT-Mandiri-Sejati-dropdown"
+                                            class="hidden z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
+                                            <ul class="py-1 text-sm text-gray-700 dark:text-gray-200"
+                                                aria-labelledby="PT-Mandiri-Sejati-button">
+                                                <li>
+                                                    <a href="#"
+                                                        class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Show</a>
+                                                </li>
+                                                <li>
+                                                    <a href="#"
+                                                        class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Edit</a>
+                                                </li>
+                                                <li>
+                                                    <a href="#"
+                                                        class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Print</a>
+                                                </li>
+                                            </ul>
+                                            <div class="py-1">
+                                                <a href="#"
+                                                    class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Delete</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                                    <th scope="row"
+                                        class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        PO-0125-00006</th>
+                                    <td class="px-4 py-4">27/01/2025</td>
+                                    <td class="px-4 py-4">PT Berkah Jaya Sentosa</td>
+                                    <td class="px-4 py-4">Admin</td>
+                                    <td class="px-4 py-4">
+                                        <span
+                                            class="bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-green-600 dark:text-white">Confirmed</span>
+                                    </td>
                                     <td class="px-4 py-4 flex items-center justify-start">
                                         <button id="PT-Berkah-Jaya-Sentosa-button"
                                             data-dropdown-toggle="PT-Berkah-Jaya-Sentosa-dropdown"
@@ -197,6 +346,10 @@
                                                     <a href="#"
                                                         class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Edit</a>
                                                 </li>
+                                                <li>
+                                                    <a href="#"
+                                                        class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Print</a>
+                                                </li>
                                             </ul>
                                             <div class="py-1">
                                                 <a href="#"
@@ -208,17 +361,15 @@
 
                                 <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800">
                                     <th scope="row"
-                                        class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white uppercase">
-                                        sup-03</th>
-                                    <td class="px-4 py-4 uppercase">CV Mitra Sejahtera</td>
-                                    <td class="px-4 py-4">Lokal</td>
-                                    <td class="px-4 py-4">26/01/2025</td>
-                                    <td class="px-4 py-4">contact@mitrasejahtera.id</td>
+                                        class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        PO-0125-00003</th>
+                                    <td class="px-4 py-4">28/01/2025</td>
+                                    <td class="px-4 py-4">CV Mitra Sejahtera</td>
+                                    <td class="px-4 py-4">Admin</td>
                                     <td class="px-4 py-4">
                                         <span
-                                            class="bg-primary-100 text-primary-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-success dark:text-white">Active</span>
+                                            class="bg-purple-100 text-purple-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-purple-600 dark:text-white">Receive</span>
                                     </td>
-                                    <td class="px-4 py-4">Admin</td>
                                     <td class="px-4 py-4 flex items-center justify-start">
                                         <button id="apple-imac-27-dropdown-button"
                                             data-dropdown-toggle="apple-imac-27-dropdown"
@@ -241,6 +392,10 @@
                                                 <li>
                                                     <a href="#"
                                                         class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Edit</a>
+                                                </li>
+                                                <li>
+                                                    <a href="#"
+                                                        class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Print</a>
                                                 </li>
                                             </ul>
                                             <div class="py-1">
