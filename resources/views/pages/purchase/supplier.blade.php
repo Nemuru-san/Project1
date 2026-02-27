@@ -1,56 +1,44 @@
 <x-layouts::app :title="__('Supplier')">
 
-    <div class="container flex flex-col items-center justify-between min-h-full gap-6">
+    <div class="flex flex-col items-center justify-between min-h-full gap-6 w-full">
         {{-- content --}}
         <div class="flex flex-col gap-6 w-full">
             {{-- header --}}
-            <div
-                class="grid sm:grid-cols-1 lg:grid-cols-2 w-full overflow-hidden rounded-md dark:border bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 p-4 items-center justify-between gap-4">
-                <div class="flex flex-col gap-2">
-                    <nav class="flex" aria-label="Breadcrumb">
-                        <ol
-                            class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse text-sm font-light text-body-subtle">
-                            <li class="inline-flex items-center">
-                                <a href="#"
-                                    class="inline-flex items-center text-sm font-medium hover:text-fg-brand">
-                                    Purchasing
-                                </a>
-                            </li>
-                            <li>
-                                <div class="flex items-center space-x-1.5">
-                                    <svg class="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true"
-                                        xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-                                        viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                            stroke-width="2" d="m9 5 7 7-7 7" />
-                                    </svg>
-                                    <a href="#"
-                                        class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Master</a>
-                                </div>
-                            </li>
-                            <li aria-current="page">
-                                <div class="flex items-center space-x-1.5">
-                                    <svg class="w-3.5 h-3.5 rtl:rotate-180 " aria-hidden="true"
-                                        xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-                                        viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                            stroke-width="2" d="m9 5 7 7-7 7" />
-                                    </svg>
-                                    <span class="inline-flex items-center text-sm font-medium">Supplier</span>
-                                </div>
-                            </li>
-                        </ol>
-                    </nav>
+            <x-layouts::page-header :title="__('Supplier')"
+                description="Kelola data supplier secara terpusat untuk mendukung proses operasional dan pencatatan yang rapi.">
+                <x-slot:breadcrumbs>
+                    <li class="inline-flex items-center">
+                        <a href="#" class="inline-flex items-center text-sm font-medium hover:text-fg-brand">
+                            Purchasing
+                        </a>
+                    </li>
+                    <li>
+                        <div class="flex items-center space-x-1.5">
+                            <svg class="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2" d="m9 5 7 7-7 7" />
+                            </svg>
+                            <a href="#"
+                                class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Master</a>
+                        </div>
+                    </li>
+                    <li aria-current="page">
+                        <div class="flex items-center space-x-1.5">
+                            <svg class="w-3.5 h-3.5 rtl:rotate-180 " aria-hidden="true"
+                                xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+                                viewBox="0 0 24 24">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="2" d="m9 5 7 7-7 7" />
+                            </svg>
+                            <span class="inline-flex items-center text-sm font-medium">Supplier</span>
+                        </div>
+                    </li>
+                </x-slot:breadcrumbs>
 
-                    <p class="lg:text-2xl font-bold">Supplier</p>
-                    <p class="font-light text-body-subtle">Kelola data supplier secara terpusat untuk mendukung proses
-                        operasional dan pencatatan yang rapi.
-                    </p>
-                </div>
-
-                <div class="flex flex-col sm:flex-row items-center justify-end gap-4">
+                <x-slot:actions>
                     <a href="{{ route('purchases.master.supplier-add') }}"
-                        :current="request()->routeIs('purchases.master.supplier-add')" wire:navigate
+                        :current="request()->routeIs('purchases.transaction.purchase-order-add')" wire:navigate
                         class="inline-flex items-center text-white bg-[#0f1419] hover:bg-[#0f1419]/90 focus:ring-4 focus:outline-none focus:ring-[#0f1419]/50 box-border border border-transparent font-medium leading-5 rounded-base text-sm px-4 py-3 text-center justify-center gap-2 dark:hover:bg-[#24292F] dark:focus:ring-[#24292F]/55 w-full sm:w-42">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-6">
@@ -68,8 +56,8 @@
                         </svg>
                         Refresh
                     </a>
-                </div>
-            </div>
+                </x-slot:actions>
+            </x-layouts::page-header>
 
             {{-- content --}}
             <div
@@ -79,8 +67,8 @@
                 <div
                     class="bg-white relative shadow-md sm:rounded-lg overflow-hidden dark:border-zinc-700 dark:bg-zinc-900">
                     <div
-                        class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4 dark:border-zinc-700 dark:bg-zinc-900">
-                        <p class="font-normal text-white">Data tabel Supplier</p>
+                        class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 mb-4 dark:border-zinc-700 dark:bg-zinc-900">
+                        <p class="text-white text-lg font-semibold">Data tabel Supplier</p>
                         <div class="w-full md:w-1/2">
                             <form class="flex items-center">
                                 <label for="simple-search" class="sr-only">Search</label>
@@ -101,9 +89,9 @@
                         </div>
                     </div>
                     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-                        <table class="w-full text-md text-left text-gray-500 dark:text-gray-400 mt-4">
+                        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
                             <thead
-                                class="text-md font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+                                class="text-lg font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                                 <tr>
                                     <th scope="col" class="px-4 py-4">Code</th>
                                     <th scope="col" class="px-4 py-4">Name</th>
@@ -115,7 +103,7 @@
                                     <th scope="col" class="px-4 py-4">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody class="dark:bg-zinc-950">
+                            <tbody class="dark:bg-zinc-950 text-base">
                                 <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800">
                                     <th scope="row"
                                         class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white uppercase">

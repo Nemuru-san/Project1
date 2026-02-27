@@ -34,4 +34,12 @@ Route::get('purchases/transaction/purchase-order-add', function () {
     return view('pages.purchase.purchaseOrderAdd');
 })->name('purchases.transaction.purchase-order-add');
 
+Route::get('purchases/transaction/good-receive', function () {
+    return view('pages.purchase.goodReceive');
+})->name('purchases.transaction.good-receive');
+
+Route::get('purchases/transaction/good-receive-add', function () {
+    return view('pages.purchase.goodReceiveAdd');
+})->name('purchases.transaction.good-receive-add');
+
 require __DIR__ . '/settings.php';

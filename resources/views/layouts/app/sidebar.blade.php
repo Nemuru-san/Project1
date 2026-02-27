@@ -39,7 +39,8 @@
                     :expanded="request()->routeIs('purchases.transaction.*')">
                     <flux:sidebar.item href="{{ route('purchases.transaction.purchase-order') }}" wire:navigate>Purchase
                         Order</flux:sidebar.item>
-                    <flux:sidebar.item href="#">Good Receive</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('purchases.transaction.good-receive') }}" wire:navigate>Good
+                        Receive</flux:sidebar.item>
                     <flux:sidebar.item href="#">Purchase Invoice</flux:sidebar.item>
                 </flux:sidebar.group>
 

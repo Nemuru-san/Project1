@@ -1,43 +1,56 @@
 <x-layouts::app :title="__('Purchase Order')">
-    <div class="flex flex-col items-center justify-between min-h-full gap-6 w-full">
+    <div class="container flex flex-col items-center justify-between min-h-full gap-6">
         {{-- content --}}
         <div class="flex flex-col gap-6 w-full">
-            <x-layouts::page-header :title="__('Purchase Order')"
-                description="Kelola data supplier secara terpusat untuk mendukung proses operasional dan pencatatan yang rapi.">
-                <x-slot:breadcrumbs>
-                    <li class="inline-flex items-center">
-                        <a href="#" class="inline-flex items-center text-base font-medium hover:text-fg-brand">
-                            Purchasing
-                        </a>
-                    </li>
-                    <li>
-                        <div class="flex items-center space-x-1.5">
-                            <svg class="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                    stroke-width="2" d="m9 5 7 7-7 7" />
-                            </svg>
-                            <a href="#"
-                                class="inline-flex items-center text-base font-medium hover:text-fg-brand">Transaction</a>
-                        </div>
-                    </li>
-                    <li aria-current="page">
-                        <div class="flex items-center space-x-1.5">
-                            <svg class="w-3.5 h-3.5 rtl:rotate-180 " aria-hidden="true"
-                                xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-                                viewBox="0 0 24 24">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                    stroke-width="2" d="m9 5 7 7-7 7" />
-                            </svg>
-                            <span class="inline-flex items-center text-base font-medium">Purchase Order</span>
-                        </div>
-                    </li>
-                </x-slot:breadcrumbs>
+            {{-- header --}}
+            <div
+                class="grid sm:grid-cols-1 lg:grid-cols-2 w-full overflow-hidden rounded-md dark:border bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 p-4 items-center justify-between gap-4">
+                <div class="flex flex-col gap-2">
+                    <nav class="flex" aria-label="Breadcrumb">
+                        <ol
+                            class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse text-sm font-light text-body-subtle">
+                            <li class="inline-flex items-center">
+                                <a href="#"
+                                    class="inline-flex items-center text-sm font-medium hover:text-fg-brand">
+                                    Purchasing
+                                </a>
+                            </li>
+                            <li>
+                                <div class="flex items-center space-x-1.5">
+                                    <svg class="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+                                        viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2" d="m9 5 7 7-7 7" />
+                                    </svg>
+                                    <a href="#"
+                                        class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Transaction</a>
+                                </div>
+                            </li>
+                            <li aria-current="page">
+                                <div class="flex items-center space-x-1.5">
+                                    <svg class="w-3.5 h-3.5 rtl:rotate-180 " aria-hidden="true"
+                                        xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+                                        viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                            stroke-width="2" d="m9 5 7 7-7 7" />
+                                    </svg>
+                                    <span class="inline-flex items-center text-sm font-medium">Good Receive</span>
+                                </div>
+                            </li>
+                        </ol>
+                    </nav>
 
-                <x-slot:actions>
-                    <a href="{{ route('purchases.transaction.purchase-order-add') }}"
-                        :current="request()->routeIs('purchases.transaction.purchase-order-add')" wire:navigate
-                        class="inline-flex items-center text-white bg-[#0f1419] hover:bg-[#0f1419]/90 focus:ring-4 focus:outline-none focus:ring-[#0f1419]/50 box-border border border-transparent font-medium leading-5 rounded-base text-base px-4 py-3 text-center justify-center gap-2 dark:hover:bg-[#24292F] dark:focus:ring-[#24292F]/55 w-full sm:w-42">
+                    <p class="lg:text-2xl font-bold">Purchase Order</p>
+                    <p class="font-light text-body-subtle">Kelola data supplier secara terpusat untuk mendukung proses
+                        operasional dan pencatatan yang rapi.
+                    </p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-end gap-4">
+                    <a href="{{ route('purchases.transaction.good-receive-add') }}"
+                        :current="request()->routeIs('purchases.transaction.good-receive-add')" wire:navigate
+                        class="inline-flex items-center text-white bg-[#0f1419] hover:bg-[#0f1419]/90 focus:ring-4 focus:outline-none focus:ring-[#0f1419]/50 box-border border border-transparent font-medium leading-5 rounded-base text-sm px-4 py-3 text-center justify-center gap-2 dark:hover:bg-[#24292F] dark:focus:ring-[#24292F]/55 w-full sm:w-42">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -46,7 +59,7 @@
                     </a>
 
                     <a href="#"
-                        class="inline-flex items-center text-white bg-[#0f1419] hover:bg-[#0f1419]/90 focus:ring-4 focus:outline-none focus:ring-[#0f1419]/50 box-border border border-transparent font-medium leading-5 rounded-base text-base px-4 py-3 text-center justify-center gap-2 dark:hover:bg-[#24292F] dark:focus:ring-[#24292F]/55 w-full sm:w-42">
+                        class="inline-flex items-center text-white bg-[#0f1419] hover:bg-[#0f1419]/90 focus:ring-4 focus:outline-none focus:ring-[#0f1419]/50 box-border border border-transparent font-medium leading-5 rounded-base text-sm px-4 py-3 text-center justify-center gap-2 dark:hover:bg-[#24292F] dark:focus:ring-[#24292F]/55 w-full sm:w-42">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-6">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -54,8 +67,8 @@
                         </svg>
                         Refresh
                     </a>
-                </x-slot:actions>
-            </x-layouts::page-header>
+                </div>
+            </div>
 
             {{-- content --}}
             <div
@@ -65,8 +78,8 @@
                 <div
                     class="bg-white relative shadow-md sm:rounded-lg overflow-hidden dark:border-zinc-700 dark:bg-zinc-900">
                     <div
-                        class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:border-zinc-700 dark:bg-zinc-900">
-                        <p class="font-semibold text-white text-xl">Data Tabel Purchase Order</p>
+                        class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                        <p class="font-normal text-white">Data Tabel Good Receive</p>
                         <div class="flex items-center gap-4 w-full md:w-auto">
                             <form class="flex items-center w-full">
                                 <label for="simple-search" class="sr-only">Search</label>
@@ -80,7 +93,7 @@
                                         </svg>
                                     </div>
                                     <input type="text" id="simple-search"
-                                        class="bg-zinc-800 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full md:w-xl pl-10 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                        class="bg-zinc-800 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full md:w-xl pl-10 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                         placeholder="Search" required="">
                                 </div>
                             </form>
@@ -99,13 +112,13 @@
                     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
                         <table class="w-full text-md text-left text-gray-500 dark:text-gray-400 mt-4">
                             <thead
-                                class="text-lg font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+                                class="text-md font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                                 <tr>
                                     <th scope="col" class="px-4 py-4">No</th>
-                                    <th scope="col" class="px-4 py-4">PO No</th>
-                                    <th scope="col" class="px-4 py-4">PO Date</th>
+                                    <th scope="col" class="px-4 py-4">GR No</th>
+                                    <th scope="col" class="px-4 py-4">Date</th>
                                     <th scope="col" class="px-4 py-4">Supplier</th>
-                                    <th scope="col" class="px-4 py-4">Created By</th>
+                                    <th scope="col" class="px-4 py-4">Warehouse</th>
                                     <th scope="col" class="px-4 py-4">Status</th>
                                     <th scope="col" class="px-4 py-4">Action</th>
                                 </tr>
@@ -115,10 +128,10 @@
                                     <td class="px-4 py-4">1</td>
                                     <th scope="row"
                                         class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                        PO-0125-00001</th>
+                                        GR-0125-00001</th>
                                     <td class="px-4 py-4">26/01/2025</td>
                                     <td class="px-4 py-4">PT Sumber Makmur Abadi</td>
-                                    <td class="px-4 py-4">Admin</td>
+                                    <td class="px-4 py-4">WH-01</td>
                                     <td class="px-4 py-4">
                                         <span
                                             class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-blue-600 dark:text-white">Proceed</span>
@@ -126,7 +139,7 @@
                                     <td class="px-4 py-4 flex items-center justify-start">
                                         <button id="PT-Sumber-Makmur-Abadi-button"
                                             data-dropdown-toggle="PT-Sumber-Makmur-Abadi-dropdown"
-                                            class="inline-flex items-center p-0.5 text-base font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
+                                            class="inline-flex items-center p-0.5 text-sm font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
                                             type="button">
                                             <svg class="w-5 h-5" aria-hidden="true" fill="currentColor"
                                                 viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -136,7 +149,7 @@
                                         </button>
                                         <div id="PT-Sumber-Makmur-Abadi-dropdown"
                                             class="hidden z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
-                                            <ul class="py-1 text-base text-gray-700 dark:text-gray-200"
+                                            <ul class="py-1 text-sm text-gray-700 dark:text-gray-200"
                                                 aria-labelledby="PT-Sumber-Makmur-Abadi-button">
                                                 <li>
                                                     <a href="#"
@@ -153,7 +166,7 @@
                                             </ul>
                                             <div class="py-1">
                                                 <a href="#"
-                                                    class="block py-2 px-4 text-base text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Delete</a>
+                                                    class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Delete</a>
                                             </div>
                                         </div>
                                     </td>
@@ -163,18 +176,18 @@
                                     <td class="px-4 py-4">2</td>
                                     <th scope="row"
                                         class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                        PO-0125-00004</th>
+                                        GR-0125-00002</th>
                                     <td class="px-4 py-4">29/01/2025</td>
                                     <td class="px-4 py-4">PT Citra Utama</td>
-                                    <td class="px-4 py-4">Admin</td>
+                                    <td class="px-4 py-4">WH-02</td>
                                     <td class="px-4 py-4">
                                         <span
-                                            class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-yellow-600 dark:text-white">Invoice</span>
+                                            class="bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-red-600 dark:text-white">Cancel</span>
                                     </td>
                                     <td class="px-4 py-4 flex items-center justify-start">
                                         <button id="PT-Citra-Utama-button"
                                             data-dropdown-toggle="PT-Citra-Utama-dropdown"
-                                            class="inline-flex items-center p-0.5 text-base font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
+                                            class="inline-flex items-center p-0.5 text-sm font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
                                             type="button">
                                             <svg class="w-5 h-5" aria-hidden="true" fill="currentColor"
                                                 viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -184,7 +197,7 @@
                                         </button>
                                         <div id="PT-Citra-Utama-dropdown"
                                             class="hidden z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
-                                            <ul class="py-1 text-base text-gray-700 dark:text-gray-200"
+                                            <ul class="py-1 text-sm text-gray-700 dark:text-gray-200"
                                                 aria-labelledby="PT-Citra-Utama-button">
                                                 <li>
                                                     <a href="#"
@@ -201,7 +214,7 @@
                                             </ul>
                                             <div class="py-1">
                                                 <a href="#"
-                                                    class="block py-2 px-4 text-base text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Delete</a>
+                                                    class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Delete</a>
                                             </div>
                                         </div>
                                     </td>
@@ -211,18 +224,18 @@
                                     <td class="px-4 py-4">3</td>
                                     <th scope="row"
                                         class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                        PO-0125-00005</th>
+                                        GR-0125-00003</th>
                                     <td class="px-4 py-4">30/01/2025</td>
                                     <td class="px-4 py-4">PT Sinar Jaya</td>
-                                    <td class="px-4 py-4">Admin</td>
+                                    <td class="px-4 py-4">WH-01</td>
                                     <td class="px-4 py-4">
                                         <span
-                                            class="bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-red-600 dark:text-white">Canceled</span>
+                                            class="bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-red-600 dark:text-white">Cancel</span>
                                     </td>
                                     <td class="px-4 py-4 flex items-center justify-start">
                                         <button id="PT-Sinar-Jaya-button"
                                             data-dropdown-toggle="PT-Sinar-Jaya-dropdown"
-                                            class="inline-flex items-center p-0.5 text-base font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
+                                            class="inline-flex items-center p-0.5 text-sm font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
                                             type="button">
                                             <svg class="w-5 h-5" aria-hidden="true" fill="currentColor"
                                                 viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -232,7 +245,7 @@
                                         </button>
                                         <div id="PT-Sinar-Jaya-dropdown"
                                             class="hidden z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
-                                            <ul class="py-1 text-base text-gray-700 dark:text-gray-200"
+                                            <ul class="py-1 text-sm text-gray-700 dark:text-gray-200"
                                                 aria-labelledby="PT-Sinar-Jaya-button">
                                                 <li>
                                                     <a href="#"
@@ -249,7 +262,7 @@
                                             </ul>
                                             <div class="py-1">
                                                 <a href="#"
-                                                    class="block py-2 px-4 text-base text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Delete</a>
+                                                    class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Delete</a>
                                             </div>
                                         </div>
                                     </td>
@@ -259,10 +272,10 @@
                                     <td class="px-4 py-4">4</td>
                                     <th scope="row"
                                         class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                        PO-0125-00006</th>
+                                        GR-0125-00004</th>
                                     <td class="px-4 py-4">31/01/2025</td>
                                     <td class="px-4 py-4">PT Mandiri Sejati</td>
-                                    <td class="px-4 py-4">Admin</td>
+                                    <td class="px-4 py-4">WH-03</td>
                                     <td class="px-4 py-4">
                                         <span
                                             class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-blue-600 dark:text-white">Proceed</span>
@@ -270,7 +283,7 @@
                                     <td class="px-4 py-4 flex items-center justify-start">
                                         <button id="PT-Mandiri-Sejati-button"
                                             data-dropdown-toggle="PT-Mandiri-Sejati-dropdown"
-                                            class="inline-flex items-center p-0.5 text-base font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
+                                            class="inline-flex items-center p-0.5 text-sm font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
                                             type="button">
                                             <svg class="w-5 h-5" aria-hidden="true" fill="currentColor"
                                                 viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -280,7 +293,7 @@
                                         </button>
                                         <div id="PT-Mandiri-Sejati-dropdown"
                                             class="hidden z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
-                                            <ul class="py-1 text-base text-gray-700 dark:text-gray-200"
+                                            <ul class="py-1 text-sm text-gray-700 dark:text-gray-200"
                                                 aria-labelledby="PT-Mandiri-Sejati-button">
                                                 <li>
                                                     <a href="#"
@@ -297,7 +310,7 @@
                                             </ul>
                                             <div class="py-1">
                                                 <a href="#"
-                                                    class="block py-2 px-4 text-base text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Delete</a>
+                                                    class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Delete</a>
                                             </div>
                                         </div>
                                     </td>
@@ -307,10 +320,10 @@
                                     <td class="px-4 py-4">5</td>
                                     <th scope="row"
                                         class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                        PO-0125-00006</th>
+                                        GR-0125-00005</th>
                                     <td class="px-4 py-4">27/01/2025</td>
                                     <td class="px-4 py-4">PT Berkah Jaya Sentosa</td>
-                                    <td class="px-4 py-4">Admin</td>
+                                    <td class="px-4 py-4">WH-02</td>
                                     <td class="px-4 py-4">
                                         <span
                                             class="bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-green-600 dark:text-white">Confirmed</span>
@@ -318,7 +331,7 @@
                                     <td class="px-4 py-4 flex items-center justify-start">
                                         <button id="PT-Berkah-Jaya-Sentosa-button"
                                             data-dropdown-toggle="PT-Berkah-Jaya-Sentosa-dropdown"
-                                            class="inline-flex items-center p-0.5 text-base font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
+                                            class="inline-flex items-center p-0.5 text-sm font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
                                             type="button">
                                             <svg class="w-5 h-5" aria-hidden="true" fill="currentColor"
                                                 viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -328,7 +341,7 @@
                                         </button>
                                         <div id="PT-Berkah-Jaya-Sentosa-dropdown"
                                             class="hidden z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
-                                            <ul class="py-1 text-base text-gray-700 dark:text-gray-200"
+                                            <ul class="py-1 text-sm text-gray-700 dark:text-gray-200"
                                                 aria-labelledby="PT-Berkah-Jaya-Sentosa-button">
                                                 <li>
                                                     <a href="#"
@@ -345,7 +358,7 @@
                                             </ul>
                                             <div class="py-1">
                                                 <a href="#"
-                                                    class="block py-2 px-4 text-base text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Delete</a>
+                                                    class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Delete</a>
                                             </div>
                                         </div>
                                     </td>
@@ -355,18 +368,18 @@
                                     <td class="px-4 py-4">6</td>
                                     <th scope="row"
                                         class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                        PO-0125-00003</th>
+                                        GR-0125-00006</th>
                                     <td class="px-4 py-4">28/01/2025</td>
                                     <td class="px-4 py-4">CV Mitra Sejahtera</td>
-                                    <td class="px-4 py-4">Admin</td>
+                                    <td class="px-4 py-4">WH-03</td>
                                     <td class="px-4 py-4">
                                         <span
-                                            class="bg-purple-100 text-purple-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-purple-600 dark:text-white">Receive</span>
+                                            class="bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-green-600 dark:text-white">Confirmed</span>
                                     </td>
                                     <td class="px-4 py-4 flex items-center justify-start">
                                         <button id="apple-imac-27-dropdown-button"
                                             data-dropdown-toggle="apple-imac-27-dropdown"
-                                            class="inline-flex items-center p-0.5 text-base font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
+                                            class="inline-flex items-center p-0.5 text-sm font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
                                             type="button">
                                             <svg class="w-5 h-5" aria-hidden="true" fill="currentColor"
                                                 viewbox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -376,7 +389,7 @@
                                         </button>
                                         <div id="apple-imac-27-dropdown"
                                             class="hidden z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
-                                            <ul class="py-1 text-base text-gray-700 dark:text-gray-200"
+                                            <ul class="py-1 text-sm text-gray-700 dark:text-gray-200"
                                                 aria-labelledby="apple-imac-27-dropdown-button">
                                                 <li>
                                                     <a href="#"
@@ -393,7 +406,7 @@
                                             </ul>
                                             <div class="py-1">
                                                 <a href="#"
-                                                    class="block py-2 px-4 text-base text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Delete</a>
+                                                    class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">Delete</a>
                                             </div>
                                         </div>
                                     </td>
@@ -403,7 +416,7 @@
                     </div>
                     <nav class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4 mt-4 dark:border-zinc-700 dark:bg-zinc-900"
                         aria-label="Table navigation">
-                        <span class="text-base font-normal text-gray-500 dark:text-gray-400">
+                        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">
                             Showing
                             <span class="font-semibold text-gray-900 dark:text-white">1-10</span>
                             of
@@ -424,23 +437,23 @@
                             </li>
                             <li>
                                 <a href="#"
-                                    class="flex items-center justify-center text-base py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">1</a>
+                                    class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">1</a>
                             </li>
                             <li>
                                 <a href="#"
-                                    class="flex items-center justify-center text-base py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">2</a>
+                                    class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">2</a>
                             </li>
                             <li>
                                 <a href="#" aria-current="page"
-                                    class="flex items-center justify-center text-base z-10 py-2 px-3 leading-tight text-primary-600 bg-primary-50 border border-primary-300 hover:bg-primary-100 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white">3</a>
+                                    class="flex items-center justify-center text-sm z-10 py-2 px-3 leading-tight text-primary-600 bg-primary-50 border border-primary-300 hover:bg-primary-100 hover:text-primary-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white">3</a>
                             </li>
                             <li>
                                 <a href="#"
-                                    class="flex items-center justify-center text-base py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">...</a>
+                                    class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">...</a>
                             </li>
                             <li>
                                 <a href="#"
-                                    class="flex items-center justify-center text-base py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">100</a>
+                                    class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">100</a>
                             </li>
                             <li>
                                 <a href="#"
