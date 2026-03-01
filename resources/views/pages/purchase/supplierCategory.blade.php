@@ -67,7 +67,7 @@
                 <div
                     class="bg-white relative shadow-md sm:rounded-lg overflow-hidden dark:border-zinc-700 dark:bg-zinc-900">
                     <div
-                        class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                        class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:border-zinc-700 dark:bg-zinc-900">
                         <p class="font-normal text-white">Data tabel Supplier Category</p>
                         <div class="w-full md:w-1/2">
                             <form class="flex items-center">
