@@ -40,13 +40,13 @@
             <div
                 class="w-full overflow-hidden rounded-md shadow dark:border bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 p-4 items-center justify-between gap-4">
                 <div class="w-full">
-                    <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Buat Purchase Order Baru
+                    <h2 class="mb-6 text-xl font-bold text-gray-900 dark:text-white">Buat Purchase Order Baru
                     </h2>
                     <form action="#">
-                        <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+                        <div class="grid gap-5 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-6">
                             <div class="w-full">
                                 <label for="po_no"
-                                    class="block mb-3 text-14 font-medium text-gray-900 dark:text-white">PO No</label>
+                                    class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">PO No</label>
                                 <input type="text" name="po_no" id="po_no"
                                     class="bg-gray-100 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 cursor-not-allowed"
                                     placeholder="Auto Generated" disabled>
@@ -54,7 +54,7 @@
 
                             <div class="w-full">
                                 <label for="po_date"
-                                    class="block mb-3 text-14 font-medium text-gray-900 dark:text-white">Date</label>
+                                    class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">Date</label>
                                 <input type="date" name="po_date" id="po_date"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                     required="">
@@ -62,7 +62,7 @@
 
                             <div class="w-full">
                                 <label for="supplier"
-                                    class="block mb-3 text-14 font-medium text-gray-900 dark:text-white">Supplier</label>
+                                    class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">Supplier</label>
                                 <select id="supplier" name="supplier"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                     required="">
@@ -77,7 +77,7 @@
 
                             <div class="w-full">
                                 <label for="tax"
-                                    class="block mb-3 text-14 font-medium text-gray-900 dark:text-white">Tax</label>
+                                    class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">Tax</label>
                                 <label class="inline-flex items-center cursor-pointer">
                                     <span
                                         class="select-none text-base font-medium text-gray-600 dark:text-gray-400">No</span>
@@ -93,7 +93,7 @@
 
                             <div class="w-full">
                                 <label for="warehouse"
-                                    class="block mb-3 text-14 font-medium text-gray-900 dark:text-white">Warehouse</label>
+                                    class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">Warehouse</label>
                                 <select id="warehouse" name="warehouse"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                     required="">
@@ -107,7 +107,7 @@
 
                             <div>
                                 <label for="note"
-                                    class="block mb-3 text-14 font-medium text-gray-900 dark:text-white">Note</label>
+                                    class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">Note</label>
                                 <input type="text" name="note" id="note"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                     placeholder="Masukkan catatan atau keterangan tambahan...">
@@ -143,9 +143,15 @@
                                             d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.5 5.5a7.5 7.5 0 0 0 10.5 10.5Z" />
                                     </svg>
                                 </div>
+                                <select id="categoryFilter"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 rounded-md focus:ring-primary-600 focus:border-primary-600 py-2.5 w-full sm:w-1/2 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 text-base">
+                                    <option value="">Pilih Kategori</option>
+                                    <option value="gelas">Gelas</option>
+                                    <option value="pipet">Pipet</option>
+                                    <option value="tutup-botol">Tutup Botol</option>
+                                </select>
                             </div>
                         </div>
-
 
                         <div class="overflow-x-auto">
                             <table class="w-full text-base text-left text-gray-900 dark:text-white my-2">
@@ -159,8 +165,9 @@
                                         <th scope="col" class="px-4 py-3">Nomor</th>
                                         <th scope="col" class="px-4 py-3">Nama Produk</th>
                                         <th scope="col" class="px-4 py-3">Barcode Produk</th>
+                                        <th scope="col" class="px-4 py-3">Kategori Produk</th>
                                         <th scope="col" class="px-4 py-3">Qty Order</th>
-                                        <th scope="col" class="px-4 py-3">UOM</th>
+                                        <th scope="col" class="px-4 py-3">Satuan</th>
                                         <th scope="col" class="px-4 py-3">Harga</th>
                                         <th scope="col" class="px-4 py-3">Diskon</th>
                                         <th scope="col" class="px-4 py-3">Subtotal</th>
@@ -175,6 +182,7 @@
                                         <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">1</td>
                                         <td class="px-4 py-3">Produk A</td>
                                         <td class="px-4 py-3">PROD-001</td>
+                                        <td class="px-4 py-3">Gelas</td>
                                         <td class="px-4 py-3">
                                             <input type="number" min="0" step="1" value="10"
                                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-20 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
@@ -200,6 +208,7 @@
                                         <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">2</td>
                                         <td class="px-4 py-3">Produk B</td>
                                         <td class="px-4 py-3">PROD-002</td>
+                                        <td class="px-4 py-3">Pipet</td>
                                         <td class="px-4 py-3">
                                             <input type="number" min="0" step="1" value="5"
                                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-20 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
@@ -224,6 +233,7 @@
                                         <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">3</td>
                                         <td class="px-4 py-3">Produk C</td>
                                         <td class="px-4 py-3">PROD-003</td>
+                                        <td class="px-4 py-3">Tutup Gelas</td>
                                         <td class="px-4 py-3">
                                             <input type="number" min="0" step="1" value="15"
                                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-20 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
@@ -248,6 +258,7 @@
                                         <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">4</td>
                                         <td class="px-4 py-3">Produk D</td>
                                         <td class="px-4 py-3">PROD-004</td>
+                                        <td class="px-4 py-3">Gelas</td>
                                         <td class="px-4 py-3">
                                             <input type="number" min="0" step="1" value="8"
                                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-20 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
@@ -272,6 +283,7 @@
                                         <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">5</td>
                                         <td class="px-4 py-3">Produk E</td>
                                         <td class="px-4 py-3">PROD-005</td>
+                                        <td class="px-4 py-3">Pipet</td>
                                         <td class="px-4 py-3">
                                             <input type="number" min="0" step="1" value="20"
                                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-20 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
@@ -296,6 +308,7 @@
                                         <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">6</td>
                                         <td class="px-4 py-3">Produk F</td>
                                         <td class="px-4 py-3">PROD-006</td>
+                                        <td class="px-4 py-3">Tutup Gelas</td>
                                         <td class="px-4 py-3">
                                             <input type="number" min="0" step="1" value="12"
                                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-20 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
@@ -320,6 +333,7 @@
                                         <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">7</td>
                                         <td class="px-4 py-3">Produk G</td>
                                         <td class="px-4 py-3">PROD-007</td>
+                                        <td class="px-4 py-3">Gelas</td>
                                         <td class="px-4 py-3">
                                             <input type="number" min="0" step="1" value="7"
                                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-20 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
@@ -344,6 +358,7 @@
                                         <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">8</td>
                                         <td class="px-4 py-3">Produk H</td>
                                         <td class="px-4 py-3">PROD-008</td>
+                                        <td class="px-4 py-3">Pipet</td>
                                         <td class="px-4 py-3">
                                             <input type="number" min="0" step="1" value="10"
                                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-20 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
@@ -368,6 +383,7 @@
                                         <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">9</td>
                                         <td class="px-4 py-3">Produk I</td>
                                         <td class="px-4 py-3">PROD-009</td>
+                                        <td class="px-4 py-3">Tutup Gelas</td>
                                         <td class="px-4 py-3">
                                             <input type="number" min="0" step="1" value="25"
                                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-20 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
@@ -392,6 +408,7 @@
                                         <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">10</td>
                                         <td class="px-4 py-3">Produk J</td>
                                         <td class="px-4 py-3">PROD-010</td>
+                                        <td class="px-4 py-3">Gelas</td>
                                         <td class="px-4 py-3">
                                             <input type="number" min="0" step="1" value="18"
                                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-20 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">

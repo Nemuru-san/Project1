@@ -26,10 +26,6 @@
                 :expanded="request()->routeIs('purchases.*')">
                 <flux:sidebar.group href="#" expandable heading="Master" class="grid"
                     :expanded="request()->routeIs('purchases.master.*')">
-                    <flux:sidebar.item href="{{ route('purchases.master.supplier-categories') }}"
-                        :current="request()->routeIs('purchases.master.supplier-categories')" wire:navigate>Suplier
-                        Category
-                    </flux:sidebar.item>
                     <flux:sidebar.item href="{{ route('purchases.master.supplier') }}"
                         :current="request()->routeIs('purchases.master.supplier')" wire:navigate>Supplier
                     </flux:sidebar.item>

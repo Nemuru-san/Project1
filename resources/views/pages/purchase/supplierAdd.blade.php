@@ -42,10 +42,10 @@
                 <div class="w-full">
                     <h2 class="mb-6 text-xl font-bold text-gray-900 dark:text-white">Tambah Data Supplier</h2>
                     <form action="#">
-                        <div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+                        <div class="grid gap-5 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-6">
                             <div class="w-full">
                                 <label for="brand"
-                                    class="block mb-3 text-xl font-medium text-gray-900 dark:text-white">Supplier
+                                    class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">Supplier
                                     Code</label>
                                 <input type="text" name="brand" id="brand"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
@@ -59,24 +59,6 @@
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                     placeholder="supplier name" required="">
                             </div>
-                            <div>
-                                <label for="category"
-                                    class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">Supplier
-                                    Type</label>
-                                <select id="category"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                                    <option selected="">Lokal</option>
-                                    <option value="TV">Internasional</option>
-                                </select>
-                            </div>
-                            <div class="w-full">
-                                <label for="price"
-                                    class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">Email</label>
-                                <input type="text" name="price" id="price"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                    placeholder="example@email.com" required="">
-                            </div>
-
                             <div class="w-full">
                                 <label for="price"
                                     class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">Phone
@@ -85,7 +67,6 @@
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                     placeholder="0813..." required="">
                             </div>
-
                             <div>
                                 <label for="category"
                                     class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">Status</label>
@@ -98,80 +79,14 @@
                                     <span class="select-none text-base font-medium text-heading">Active</span>
                                 </label>
                             </div>
-
-                            <div>
-                                <label for="country"
-                                    class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">Negara</label>
-                                <select id="country" name="country"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                                    <option value="">-- Pilih Negara --</option>
-                                    <option value="ID" selected="">Indonesia</option>
-                                    <option value="MY">Malaysia</option>
-                                    <option value="SG">Singapura</option>
-                                    <option value="TH">Thailand</option>
-                                    <option value="PH">Filipina</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label for="province"
-                                    class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">Provinsi</label>
-                                <select id="province" name="province"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                                    <option value="">-- Pilih Provinsi --</option>
-                                    <option value="JABAR">Jawa Barat</option>
-                                    <option value="JATIM">Jawa Timur</option>
-                                    <option value="JATENG">Jawa Tengah</option>
-                                    <option value="JABAR">DKI Jakarta</option>
-                                    <option value="SUMBAR">Sumatera Barat</option>
-                                    <option value="SUMUT">Sumatera Utara</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label for="city"
-                                    class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">Kota</label>
-                                <select id="city" name="city"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                                    <option value="">-- Pilih Kota --</option>
-                                    <option value="BDG">Bandung</option>
-                                    <option value="CIMAHI">Cimahi</option>
-                                    <option value="DEPOK">Depok</option>
-                                    <option value="BOGOR">Bogor</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label for="district"
-                                    class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">Kabupaten</label>
-                                <select id="district" name="district"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                                    <option value="">-- Pilih Kabupaten --</option>
-                                    <option value="BANDUNG">Bandung</option>
-                                    <option value="SUKABUMI">Sukabumi</option>
-                                    <option value="CIANJUR">Cianjur</option>
-                                    <option value="GARUT">Garut</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label for="postal_code"
-                                    class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">Kode
-                                    Pos</label>
-                                <input type="text" name="postal_code" id="postal_code"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                    placeholder="40123" required="">
-                            </div>
-
-                            <div>
-                                <label for="address_detail"
-                                    class="block mb-3 text-lg font-medium text-gray-900 dark:text-white">Detail
-                                    Alamat</label>
-                                <input type="text" name="address_detail" id="address_detail"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                    placeholder="Masukkan detail alamat lengkap (jalan, nomor rumah, RT/RW, dst)"
-                                    required="">
-                            </div>
+                        </div>
+                        <div class="w-full">
+                            <label for="alamat"
+                                class="block mb-3 mt-6 text-lg font-medium text-gray-900 dark:text-white">Detail
+                                Alamat</label>
+                            <textarea name="alamat" id="alamat" rows="4"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-md focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                placeholder="Masukkan detail alamat lengkap..." required=""></textarea>
                         </div>
                     </form>
                 </div>
