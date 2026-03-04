@@ -37,7 +37,8 @@
                         Order</flux:sidebar.item>
                     <flux:sidebar.item href="{{ route('purchases.transaction.good-receive') }}" wire:navigate>Good
                         Receive</flux:sidebar.item>
-                    <flux:sidebar.item href="#">Purchase Invoice</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('purchases.transaction.purchase-invoice') }}" wire:navigate>
+                        Purchase Invoice</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Report" class="grid">
@@ -51,21 +52,16 @@
                 :expanded="request()->routeIs('inventory.*')">
                 <flux:sidebar.group href="#" expandable heading="Master Security" class="grid">
                     <flux:sidebar.item href="#">Warehouse</flux:sidebar.item>
-                    <flux:sidebar.item href="#">Rack</flux:sidebar.item>
                     <flux:sidebar.item href="#">Warehouse Security</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Master Product" class="grid">
-                    <flux:sidebar.item href="#">Product Category</flux:sidebar.item>
                     <flux:sidebar.item href="#">Product Master</flux:sidebar.item>
-                    <flux:sidebar.item href="#">UOM</flux:sidebar.item>
-                    <flux:sidebar.item href="#">Color</flux:sidebar.item>
                     <flux:sidebar.item href="#">Sales Price</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group artisan migratelux:sidebar.group href="#" expandable
                     heading="Inventory Transaction" class="grid">
-                    <flux:sidebar.item href="#">Transfer Stock</flux:sidebar.item>
                     <flux:sidebar.item href="#">Adjustment In</flux:sidebar.item>
                     <flux:sidebar.item href="#">Adjustment Out</flux:sidebar.item>
                 </flux:sidebar.group>
@@ -107,6 +103,15 @@
                 <flux:sidebar.group href="#" expandable heading="Report" class="grid">
                     <flux:sidebar.item href="#">PO Outstanding</flux:sidebar.item>
                     <flux:sidebar.item href="#">Invoice Outstanding</flux:sidebar.item>
+                </flux:sidebar.group>
+            </flux:sidebar.group>
+
+            {{-- finance --}}
+            <flux:sidebar.group icon="presentation-chart-line" href="#" expandable heading="Finance"
+                class="grid" :expanded="request()->routeIs('finance.*')">
+                <flux:sidebar.group href="#" expandable heading="Transaction" class="grid">
+                    <flux:sidebar.item href="#">AP Payment</flux:sidebar.item>
+                    <flux:sidebar.item href="#">AR Payment</flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.group>
         </flux:sidebar.nav>

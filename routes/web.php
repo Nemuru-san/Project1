@@ -42,4 +42,12 @@ Route::get('purchases/transaction/good-receive-add', function () {
     return view('pages.purchase.goodReceiveAdd');
 })->name('purchases.transaction.good-receive-add');
 
+Route::get('purchases/transaction/purchase-invoice', function () {
+    return view('pages.purchase.purchaseInvoice');
+})->name('purchases.transaction.purchase-invoice');
+
+Route::get('purchases/transaction/good-invoice-add', function () {
+    return view('pages.purchase.purchaseInvoiceAdd');
+})->name('purchases.transaction.purchase-invoice-add');
+
 require __DIR__ . '/settings.php';
