@@ -6,11 +6,14 @@
 </head>
 
 <body class="min-h-screen bg-white dark:bg-zinc-950">
-    <flux:sidebar sticky collapsible="mobile"
-        class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 border lg:w-80">
+    <flux:sidebar sticky collapsible
+        class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 border lg:w-70">
         <flux:sidebar.header>
             <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
-            <flux:sidebar.collapse class="lg:hidden" />
+            {{-- <flux:sidebar.collapse class="lg:hidden" /> --}}
+
+            <flux:sidebar.collapse
+                class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
         </flux:sidebar.header>
 
         <flux:sidebar.nav>
@@ -64,19 +67,6 @@
                     heading="Inventory Transaction" class="grid">
                     <flux:sidebar.item href="#">Adjustment In</flux:sidebar.item>
                     <flux:sidebar.item href="#">Adjustment Out</flux:sidebar.item>
-                </flux:sidebar.group>
-
-                <flux:sidebar.group href="#" expandable heading="Distribution Management" class="grid">
-                    <flux:sidebar.item href="#">Request Transfer</flux:sidebar.item>
-                    <flux:sidebar.item href="#">Shipment</flux:sidebar.item>
-                    <flux:sidebar.item href="#">Good Receive</flux:sidebar.item>
-                </flux:sidebar.group>
-
-                <flux:sidebar.group href="#" expandable heading="Stock Opname" class="grid">
-                    <flux:sidebar.item href="#">Stock Opname Begin</flux:sidebar.item>
-                    <flux:sidebar.item href="#">Stock Opname Entry</flux:sidebar.item>
-                    <flux:sidebar.item href="#">Stock Opname Variant</flux:sidebar.item>
-                    <flux:sidebar.item href="#">Stock Opname Release</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Report" class="grid">
