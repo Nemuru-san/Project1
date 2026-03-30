@@ -42,4 +42,12 @@ Route::get('purchases/transaction/good-invoice-add', function () {
     return view('pages.purchase.purchaseInvoice.purchaseInvoiceAdd');
 })->name('purchases.transaction.purchase-invoice-add');
 
+Route::get('inventory/master/product-master', function () {
+    return view('pages.inventory.master.productMaster');
+})->name('inventory.master.product');
+
+Route::get('inventory/master/product-add', function () {
+    return view('pages.inventory.master.productMasterAdd');
+})->name('inventory.master.product-add');
+
 require __DIR__ . '/settings.php';

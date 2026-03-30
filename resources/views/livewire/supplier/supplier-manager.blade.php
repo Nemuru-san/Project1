@@ -27,14 +27,14 @@
             </div>
             {{-- Status Filter --}}
             <select wire:model.live="statusFilter"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-3 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
+                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-6 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
                 <option value="">Semua Status</option>
                 <option value="1">Aktif</option>
                 <option value="0">Nonaktif</option>
             </select>
             {{-- Per Page --}}
             <select wire:model.live="perPage"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-3 py-2.5 w-full sm:w-auto">
+                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-6 py-2.5 w-full sm:w-auto">
                 <option value="10">10 / hal</option>
                 <option value="25">25 / hal</option>
                 <option value="50">50 / hal</option>

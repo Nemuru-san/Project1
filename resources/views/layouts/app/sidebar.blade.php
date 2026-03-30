@@ -59,7 +59,8 @@
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Master Product" class="grid">
-                    <flux:sidebar.item href="#">Product Master</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('inventory.master.product') }}">Product Master
+                    </flux:sidebar.item>
                     <flux:sidebar.item href="#">Sales Price</flux:sidebar.item>
                 </flux:sidebar.group>
 
@@ -102,6 +103,15 @@
                 <flux:sidebar.group href="#" expandable heading="Transaction" class="grid">
                     <flux:sidebar.item href="#">AP Payment</flux:sidebar.item>
                     <flux:sidebar.item href="#">AR Payment</flux:sidebar.item>
+                </flux:sidebar.group>
+            </flux:sidebar.group>
+
+            {{-- user --}}
+            <flux:sidebar.group icon="presentation-chart-line" href="#" expandable heading="User" class="grid"
+                :expanded="request()->routeIs('user.*')">
+                <flux:sidebar.group href="#" expandable heading="Action" class="grid">
+                    <flux:sidebar.item href="#">Role User</flux:sidebar.item>
+                    <flux:sidebar.item href="#">User Security</flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.group>
         </flux:sidebar.nav>
