@@ -4,25 +4,35 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
     use SoftDeletes;
-    protected $table = "products";
 
     protected $fillable = [
-        'prd_code',
-        'prd_name',
-        'prd_desc',
-        'prd_category',
-        'prd_brand',
-        'prd_unit',
-        'prd_barcode',
-        'prd_image',
-        'created_by',
+        'sku',
+        'name',
+        'desc',
+        'category_id',
+        'brand',
+        'satuan',
+        'barcode',
+        'is_active',
     ];
 
     protected $casts = [
-        'status' => 'boolean',
+        'is_active' => 'boolean',
     ];
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(ProductCategory::class, 'category_id');
+    }
+
+    public function prices(): HasMany
+    {
+        return $this->hasMany(ProductPrice::class);
+    }
 }

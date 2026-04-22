@@ -66,6 +66,7 @@
 
                 <flux:sidebar.group artisan migratelux:sidebar.group href="#" expandable
                     heading="Inventory Transaction" class="grid">
+                    <flux:sidebar.item href="#">Transfer Stock</flux:sidebar.item>
                     <flux:sidebar.item href="#">Adjustment In</flux:sidebar.item>
                     <flux:sidebar.item href="#">Adjustment Out</flux:sidebar.item>
                 </flux:sidebar.group>
