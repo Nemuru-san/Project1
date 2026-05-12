@@ -44,6 +44,12 @@
                         Purchase Invoice</flux:sidebar.item>
                 </flux:sidebar.group>
 
+                <flux:sidebar.group href="#" expandable heading="Return" class="grid"
+                    :expanded="request()->routeIs('purchases.transaction.*')">
+                    <flux:sidebar.item href="#" wire:navigate>Purchase Return</flux:sidebar.item>
+                    <flux:sidebar.item href="#" wire:navigate>Purchase Return Invoice</flux:sidebar.item>
+                </flux:sidebar.group>
+
                 <flux:sidebar.group href="#" expandable heading="Report" class="grid">
                     <flux:sidebar.item href="#">PO Outstanding</flux:sidebar.item>
                     <flux:sidebar.item href="#">Invoice Outstanding</flux:sidebar.item>
@@ -59,9 +65,9 @@
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Master Product" class="grid">
-                    <flux:sidebar.item href="{{ route('inventory.master.product') }}">Product Master
-                    </flux:sidebar.item>
-                    <flux:sidebar.item href="#">Sales Price</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('inventory.master.product') }}">Product Master</flux:sidebar.item>
+                    <flux:sidebar.item href="#">Product Category</flux:sidebar.item>
+                    <flux:sidebar.item href="#">Price Type</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group artisan migratelux:sidebar.group href="#" expandable
@@ -87,9 +93,9 @@
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Transaction" class="grid">
-                    <flux:sidebar.item href="#">Purchase Order</flux:sidebar.item>
-                    <flux:sidebar.item href="#">Good Receive</flux:sidebar.item>
-                    <flux:sidebar.item href="#">Purchase Invoice</flux:sidebar.item>
+                    <flux:sidebar.item href="#">Sales Order</flux:sidebar.item>
+                    <flux:sidebar.item href="#">Delivery Order</flux:sidebar.item>
+                    <flux:sidebar.item href="#">Sales Invoice</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Report" class="grid">

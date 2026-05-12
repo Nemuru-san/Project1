@@ -1,7 +1,7 @@
 @props(['title', 'description' => null])
 
 <div
-    class="grid sm:grid-cols-1 lg:grid-cols-2 w-full overflow-hidden rounded-md dark:border bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 p-4 items-center justify-between gap-4">
+    class="grid sm:grid-cols-1 lg:grid-cols w-full overflow-hidden rounded-md dark:border bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 p-4 items-center justify-between gap-4">
     <div class="flex flex-col gap-2">
         <nav class="flex" aria-label="Breadcrumb">
             <ol

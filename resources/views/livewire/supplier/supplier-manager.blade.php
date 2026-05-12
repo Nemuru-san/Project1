@@ -27,14 +27,14 @@
             </div>
             {{-- Status Filter --}}
             <select wire:model.live="statusFilter"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-6 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
+                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
                 <option value="">Semua Status</option>
                 <option value="1">Aktif</option>
                 <option value="0">Nonaktif</option>
             </select>
             {{-- Per Page --}}
             <select wire:model.live="perPage"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-6 py-2.5 w-full sm:w-auto">
+                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 w-full sm:w-auto">
                 <option value="10">10 / hal</option>
                 <option value="25">25 / hal</option>
                 <option value="50">50 / hal</option>
@@ -56,7 +56,7 @@
             </button> --}}
             {{-- Tambah --}}
             <button wire:click="openCreate"
-                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap">
+                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -91,7 +91,7 @@
                     <th class="px-4 py-4">Actions</th>
                 </tr>
             </thead>
-            <tbody class="dark:bg-zinc-950 text-base">
+            <tbody class="dark:bg-zinc-950 text-base text-white">
                 @forelse ($suppliers as $supplier)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $supplier->trashed() ? 'opacity-60' : '' }}">
@@ -141,7 +141,7 @@
                                     }
                                 }">
                                     <button @click="toggle($el)" @click.outside="open = false"
-                                        class="inline-flex items-center p-0.5 text-sm font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"
+                                        class="inline-flex items-center p-0.5 text-md font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100 cursor-pointer"
                                         type="button">
                                         <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
                                             <path
@@ -156,7 +156,7 @@
                                             <li>
                                                 <button wire:click="openEdit({{ $supplier->id }})"
                                                     @click="open = false"
-                                                    class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                                                    class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -218,7 +218,7 @@
                     <h3 class="text-lg font-semibold dark:text-white">
                         {{ $supplierId ? 'Edit Supplier' : 'Tambah Supplier' }}
                     </h3>
-                    <button wire:click="$set('showModal', false)" class="text-gray-400 hover:text-white">
+                    <button wire:click="$set('showModal', false)" class="text-gray-400 hover:text-white cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
@@ -272,7 +272,7 @@
                         Batal
                     </button>
                     <button wire:click="save" wire:loading.attr="disabled"
-                        class="px-4 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50">
+                        class="px-4 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 cursor-pointer">
                         <span wire:loading.remove wire:target="save">Simpan</span>
                         <span wire:loading wire:target="save">Menyimpan...</span>
                     </button>
@@ -301,7 +301,7 @@
                         Batal
                     </button>
                     <button wire:click="delete"
-                        class="px-4 py-2 text-sm rounded-lg bg-red-700 text-white hover:bg-red-800">
+                        class="px-4 py-2 text-sm rounded-lg bg-red-700 text-white hover:bg-red-800 cursor-pointer">
                         Ya, Hapus
                     </button>
                 </div>
