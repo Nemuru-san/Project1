@@ -31,7 +31,8 @@
                 <option value="">Semua Status</option>
                 <option value="1">Draft</option>
                 <option value="0">Approved</option>
-                <option value="0">Received</option>
+                <option value="0">Paid</option>
+                <option value="0">Partial Paid</option>
                 <option value="0">Canceled</option>
             </select>
             {{-- Per Page --}}
@@ -77,7 +78,7 @@
                     @click.outside="$wire.showModal = false">
                     <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
                         <h3 class="text-lg font-semibold dark:text-white">
-                            Tambah Purchase Order
+                            Tambah Purchase Invoice
                         </h3>
                         <button wire:click="$set('showModal', false)" class="text-gray-400 hover:text-white cursor-pointer">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,14 +137,49 @@
                                             class="select-none text-base font-medium text-gray-600 dark:text-gray-400">Yes</span>
                                     </label>
                                 </div>
-                            </div>
-                            <div class="mt-6 w-full">
-                                    <label for="note"
-                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Note</label>
-                                    <textarea name="note" id="note" rows="4"
+
+                                <div class="w-full">
+                                    <label for="po_no"
+                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">PO No</label>
+                                    <select id="po_no" name="po_no"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                        required>
+                                        <option value="">-- Pilih PO --</option>
+                                        <option value="PO-001">PO-001</option>
+                                        <option value="PO-002">PO-002</option>
+                                        <option value="PO-003">PO-003</option>
+                                        <option value="PO-004">PO-004</option>
+                                        <option value="PO-005">PO-005</option>
+                                    </select>
+                                </div>
+
+                                <div class="w-full">
+                                    <label for="top_term"
+                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">TOP / Term of Payment</label>
+                                    <select id="top_term" name="top_term"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                        required>
+                                        <option value="">-- Pilih Term of Payment --</option>
+                                        <option value="7">TOP 7</option>
+                                        <option value="30">TOP 30</option>
+                                        <option value="90">TOP 90</option>
+                                    </select>
+                                </div>
+
+                                <div class="w-full">
+                                    <label for="custom_top"
+                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Custom TOP</label>
+                                    <input type="date" name="custom_top" id="custom_top"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                </div>
+
+                                <div class="w-full">
+                                    <label for="po_no"
+                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Note No</label>
+                                    <input type="text" name="po_no" id="po_no"
                                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                        placeholder="Masukkan catatan atau keterangan tambahan...">
-                                    </textarea>
+                                        placeholder="Input note">
+                                </div>
                             </div>
                         </form>
 
@@ -160,16 +196,10 @@
                                     <thead
                                         class="text-base font-bold text-gray-900 uppercase bg-gray-200 dark:bg-zinc-700 dark:text-white">
                                         <tr>
-                                            <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-center w-14">
-                                                    <button type="button" @click.prevent="showAddProductModal = true"
-                                                        class="inline-flex items-center justify-center w-10 h-10 rounded-sm bg-blue-600 text-white hover:bg-blue-700">
-                                                        <span class="text-xl font-semibold">+</span>
-                                                    </button>
-                                            </th>
-                                                <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">No</th>
-                                                <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">PO No</th>
-                                                <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">GR No</th>
-                                                <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Product Code</th>
+                                            <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">No</th>
+                                            <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">PO No</th>
+                                            <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">GR No</th>
+                                            <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Product Code</th>
                                             <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Product Name</th>
                                             <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Category</th>
                                             <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Satuan</th>
@@ -182,7 +212,6 @@
                                     </thead>
                                     <tbody>
                                         <tr class="hover:bg-gray-100 dark:hover:bg-zinc-800 text-sm">
-                                            <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-center text-gray-500 dark:text-gray-400"></td>
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3 font-medium text-gray-900 dark:text-white">1</td>
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">PO-001</td>
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">GR-001</td>
@@ -312,96 +341,6 @@
                                     <input type="text" id="nett" value="0"
                                         class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 cursor-not-allowed"
                                         disabled>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div x-show="showAddProductModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 py-6">
-                            <div class="w-full max-w-4xl overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 shadow-xl h-[85vh] flex flex-col">
-                                <div class="flex items-center justify-between border-b border-gray-200 dark:border-zinc-700 px-6 py-4 shrink-0">
-                                    <div>
-                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Tambah Detail Produk</h3>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">Cari produk dan pilih dari daftar.</p>
-                                    </div>
-                                    <button type="button" @click="showAddProductModal = false"
-                                        class="cursor-pointer">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div class="flex-1 overflow-y-auto p-6 space-y-5">
-                                    <div class="grid gap-4 sm:grid-cols-[1fr_auto] items-end">
-                                        <div class="relative">
-                                            <input type="text" placeholder="Cari produk..."
-                                                class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 p-2.5 pl-10 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 text-xs">
-                                            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.5 5.5a7.5 7.5 0 0 0 10.5 10.5Z" />
-                                            </svg>
-                                        </div>
-                                        <select class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 py-2.5 w-full sm:w-72 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 text-xs">
-                                            <option value="">Filter Kategori</option>
-                                            <option value="gelas">Gelas</option>
-                                            <option value="pipet">Pipet</option>
-                                            <option value="tutup-botol">Tutup Botol</option>
-                                        </select>
-                                    </div>
-                                    <div class="overflow-x-auto rounded-xl border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 mt-6">
-                                        <table class="w-full text-left text-gray-900 dark:text-white border-collapse">
-                                            <thead class="bg-gray-100 text-sm font-semibold uppercase text-gray-900 dark:bg-zinc-800 dark:text-gray-200">
-                                                <tr>
-                                                    <th class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
-                                                        <input type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                                    </th>
-                                                    <th class="border border-gray-300 dark:border-zinc-700 px-4 py-3">PO No</th>
-                                                    <th class="border border-gray-300 dark:border-zinc-700 px-4 py-3">GR No</th>
-                                                    <th class="border border-gray-300 dark:border-zinc-700 px-4 py-3">GR Date</th>
-                                                    <th class="border border-gray-300 dark:border-zinc-700 px-4 py-3">Note</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800 text-sm">
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
-                                                        <input type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                                    </td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">PO-001</td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">GR-001</td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">2026-05-11</td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">Barang diterima dalam kondisi baik</td>
-                                                </tr>
-                                                <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800 text-sm">
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
-                                                        <input type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                                    </td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">PO-002</td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">GR-002</td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">2026-05-10</td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">Ada kerusakan minor pada kemasan</td>
-                                                </tr>
-                                                <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800 text-sm">
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
-                                                        <input type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                                    </td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">PO-003</td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">GR-003</td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">2026-05-09</td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">Diterima lengkap sesuai pesanan</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                <div class="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
-                                    <button type="button" @click="showAddProductModal = false"
-                                        class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-gray-300 dark:hover:bg-zinc-700">
-                                        Batal
-                                    </button>
-                                    <button type="button" @click="showAddProductModal = false"
-                                        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-                                        Pilih Produk
-                                    </button>
                                 </div>
                             </div>
                         </div>

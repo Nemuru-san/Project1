@@ -31,8 +31,8 @@
                 <option value="">Semua Status</option>
                 <option value="1">Draft</option>
                 <option value="0">Confirm</option>
-                <option value="0">Partial Paid</option>
-                <option value="0">Paid</option>
+                <option value="0">Invoice</option>
+                <option value="0">Cancel</option>
             </select>
             {{-- Per Page --}}
             <select wire:model.live="perPage"
