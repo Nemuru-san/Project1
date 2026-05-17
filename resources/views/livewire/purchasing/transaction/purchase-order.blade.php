@@ -73,7 +73,7 @@
     @if ($showModal)
         <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
             <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-7xl mx-auto h-[90vh] flex flex-col overflow-hidden"
+                <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-full mx-auto h-[90vh] flex flex-col overflow-hidden"
                     @click.outside="$wire.showModal = false">
                     <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
                         <h3 class="text-lg font-semibold dark:text-white">
@@ -357,7 +357,7 @@
                         </div>
 
                         <div x-show="showAddProductModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 py-6">
-                            <div class="w-full max-w-4xl overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 shadow-xl h-[85vh] flex flex-col">
+                            <div class="w-full max-w-7xl overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 shadow-xl h-[85vh] flex flex-col">
                                 <div class="flex items-center justify-between border-b border-gray-200 dark:border-zinc-700 px-6 py-4 shrink-0">
                                     <div>
                                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Tambah Detail Produk</h3>

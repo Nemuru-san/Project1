@@ -14,40 +14,24 @@ Route::get('purchases/master/supplier', function () {
     return view('pages.purchase.supplier.supplier');
 })->name('purchases.master.supplier');
 
-Route::get('purchases/master/supplier-add', function () {
-    return view('pages.purchase.supplier.supplierAdd');
-})->name('purchases.master.supplier-add');
-
 Route::get('purchases/transaction/purchase-order', function () {
     return view('pages.purchase.purchaseOrder.purchaseOrder');
 })->name('purchases.transaction.purchase-order');
-
-Route::get('purchases/transaction/purchase-order-add', function () {
-    return view('pages.purchase.purchaseOrder.purchaseOrderAdd');
-})->name('purchases.transaction.purchase-order-add');
 
 Route::get('purchases/transaction/good-receive', function () {
     return view('pages.purchase.goodReceive.goodReceive');
 })->name('purchases.transaction.good-receive');
 
-Route::get('purchases/transaction/good-receive-add', function () {
-    return view('pages.purchase.goodReceive.goodReceiveAdd');
-})->name('purchases.transaction.good-receive-add');
-
 Route::get('purchases/transaction/purchase-invoice', function () {
     return view('pages.purchase.purchaseInvoice.purchaseInvoice');
 })->name('purchases.transaction.purchase-invoice');
 
-Route::get('purchases/transaction/good-invoice-add', function () {
-    return view('pages.purchase.purchaseInvoice.purchaseInvoiceAdd');
-})->name('purchases.transaction.purchase-invoice-add');
-
 Route::get('inventory/master/product-master', function () {
-    return view('pages.inventory.master.productMaster');
-})->name('inventory.master.product');
+    return view('pages.inventory.productMaster.productMaster');
+})->name('inventory.master.productMaster');
 
-Route::get('inventory/master/product-add', function () {
-    return view('pages.inventory.master.productMasterAdd');
-})->name('inventory.master.product-add');
+Route::get('inventory/master/product-category', function () {
+    return view('pages.inventory.productMaster.productCategory');
+})->name('inventory.master.productCategory');
 
 require __DIR__ . '/settings.php';
