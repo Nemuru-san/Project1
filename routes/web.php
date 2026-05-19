@@ -34,4 +34,8 @@ Route::get('inventory/master/product-category', function () {
     return view('pages.inventory.productMaster.productCategory');
 })->name('inventory.master.productCategory');
 
+Route::get('inventory/master/uom', function () {
+    return view('pages.inventory.productMaster.uom');
+})->name('inventory.master.uom');
+
 require __DIR__ . '/settings.php';

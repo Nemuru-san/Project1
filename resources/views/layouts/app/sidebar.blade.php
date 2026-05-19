@@ -67,7 +67,7 @@
                 <flux:sidebar.group href="#" expandable heading="Master Product" class="grid">
                     <flux:sidebar.item href="{{ route('inventory.master.productMaster') }}">Product Master</flux:sidebar.item>
                     <flux:sidebar.item href="{{ route('inventory.master.productCategory') }}">Product Category</flux:sidebar.item>
-                    <flux:sidebar.item href="#">UOM</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('inventory.master.uom') }}">UOM</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group artisan migratelux:sidebar.group href="#" expandable
