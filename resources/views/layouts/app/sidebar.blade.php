@@ -50,7 +50,8 @@
                     <flux:sidebar.item href="#" wire:navigate>Purchase Return Invoice</flux:sidebar.item>
                 </flux:sidebar.group>
 
-                <flux:sidebar.group href="#" expandable heading="Report" class="grid">
+                <flux:sidebar.group href="#" expandable heading="Report" class="grid"
+                    :expanded="request()->routeIs('purchases.report.*')">
                     <flux:sidebar.item href="#">PO Outstanding</flux:sidebar.item>
                     <flux:sidebar.item href="#">Invoice Outstanding</flux:sidebar.item>
                 </flux:sidebar.group>
@@ -59,25 +60,30 @@
             {{-- inventory --}}
             <flux:sidebar.group icon="rectangle-stack" href="#" expandable heading="Inventory" class="grid"
                 :expanded="request()->routeIs('inventory.*')">
-                <flux:sidebar.group href="#" expandable heading="Master Security" class="grid">
+                <flux:sidebar.group href="#" expandable heading="Master Security" class="grid"
+                    :expanded="request()->routeIs('inventory.master.*')">
                     <flux:sidebar.item href="#">Warehouse</flux:sidebar.item>
                     <flux:sidebar.item href="#">Warehouse Security</flux:sidebar.item>
                 </flux:sidebar.group>
 
-                <flux:sidebar.group href="#" expandable heading="Master Product" class="grid">
-                    <flux:sidebar.item href="{{ route('inventory.master.productMaster') }}">Product Master</flux:sidebar.item>
-                    <flux:sidebar.item href="{{ route('inventory.master.productCategory') }}">Product Category</flux:sidebar.item>
+                <flux:sidebar.group href="#" expandable heading="Master Product" class="grid"
+                    :expanded="request()->routeIs('inventory.master.*')">
+                    <flux:sidebar.item href="{{ route('inventory.master.productMaster') }}">Product Master
+                    </flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('inventory.master.productCategory') }}">Product Category
+                    </flux:sidebar.item>
                     <flux:sidebar.item href="{{ route('inventory.master.uom') }}">UOM</flux:sidebar.item>
                 </flux:sidebar.group>
 
-                <flux:sidebar.group artisan migratelux:sidebar.group href="#" expandable
-                    heading="Inventory Transaction" class="grid">
+                <flux:sidebar.group href="#" expandable heading="Inventory Transaction" class="grid"
+                    :expanded="request()->routeIs('inventory.transaction.*')">
                     <flux:sidebar.item href="#">Transfer Stock</flux:sidebar.item>
                     <flux:sidebar.item href="#">Adjustment In</flux:sidebar.item>
                     <flux:sidebar.item href="#">Adjustment Out</flux:sidebar.item>
                 </flux:sidebar.group>
 
-                <flux:sidebar.group href="#" expandable heading="Report" class="grid">
+                <flux:sidebar.group href="#" expandable heading="Report" class="grid"
+                    :expanded="request()->routeIs('inventory.report.*')">
                     <flux:sidebar.item href="#">Stock Balance</flux:sidebar.item>
                     <flux:sidebar.item href="#">Stock Card</flux:sidebar.item>
                     <flux:sidebar.item href="#">Stock Movement</flux:sidebar.item>
@@ -87,18 +93,21 @@
             {{-- sales --}}
             <flux:sidebar.group icon="presentation-chart-line" href="#" expandable heading="Sales" class="grid"
                 :expanded="request()->routeIs('sales.*')">
-                <flux:sidebar.group href="#" expandable heading="Master" class="grid">
+                <flux:sidebar.group href="#" expandable heading="Master" class="grid"
+                    :expanded="request()->routeIs('sales.master.*')">
                     <flux:sidebar.item href="#">Suplier Category</flux:sidebar.item>
                     <flux:sidebar.item href="#">Supplier</flux:sidebar.item>
                 </flux:sidebar.group>
 
-                <flux:sidebar.group href="#" expandable heading="Transaction" class="grid">
+                <flux:sidebar.group href="#" expandable heading="Transaction" class="grid"
+                    :expanded="request()->routeIs('sales.transaction.*')">
                     <flux:sidebar.item href="#">Sales Order</flux:sidebar.item>
                     <flux:sidebar.item href="#">Delivery Order</flux:sidebar.item>
                     <flux:sidebar.item href="#">Sales Invoice</flux:sidebar.item>
                 </flux:sidebar.group>
 
-                <flux:sidebar.group href="#" expandable heading="Report" class="grid">
+                <flux:sidebar.group href="#" expandable heading="Report" class="grid"
+                    :expanded="request()->routeIs('sales.report.*')">
                     <flux:sidebar.item href="#">PO Outstanding</flux:sidebar.item>
                     <flux:sidebar.item href="#">Invoice Outstanding</flux:sidebar.item>
                 </flux:sidebar.group>
@@ -107,7 +116,8 @@
             {{-- finance --}}
             <flux:sidebar.group icon="presentation-chart-line" href="#" expandable heading="Finance"
                 class="grid" :expanded="request()->routeIs('finance.*')">
-                <flux:sidebar.group href="#" expandable heading="Transaction" class="grid">
+                <flux:sidebar.group href="#" expandable heading="Transaction" class="grid"
+                    :expanded="request()->routeIs('finance.transaction.*')">
                     <flux:sidebar.item href="#">AP Payment</flux:sidebar.item>
                     <flux:sidebar.item href="#">AR Payment</flux:sidebar.item>
                 </flux:sidebar.group>
@@ -116,7 +126,8 @@
             {{-- user --}}
             <flux:sidebar.group icon="presentation-chart-line" href="#" expandable heading="User" class="grid"
                 :expanded="request()->routeIs('user.*')">
-                <flux:sidebar.group href="#" expandable heading="Action" class="grid">
+                <flux:sidebar.group href="#" expandable heading="Action" class="grid"
+                    :expanded="request()->routeIs('user.action.*')">
                     <flux:sidebar.item href="#">Role User</flux:sidebar.item>
                     <flux:sidebar.item href="#">User Security</flux:sidebar.item>
                 </flux:sidebar.group>
