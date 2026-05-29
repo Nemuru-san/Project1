@@ -28,14 +28,14 @@ Route::get('purchases/transaction/purchase-invoice', function () {
 
 Route::get('inventory/master/product-master', function () {
     return view('pages.inventory.productMaster.productMaster');
-})->name('inventory.master.productMaster');
+})->name('inventory.product.productMaster');
 
 Route::get('inventory/master/product-category', function () {
     return view('pages.inventory.productMaster.productCategory');
-})->name('inventory.master.productCategory');
+})->name('inventory.product.productCategory');
 
 Route::get('inventory/master/uom', function () {
     return view('pages.inventory.productMaster.uom');
-})->name('inventory.master.uom');
+})->name('inventory.product.uom');
 
 require __DIR__ . '/settings.php';

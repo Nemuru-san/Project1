@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Inventory\Product;
+
+use App\Models\Inventory\Product\ProductPrice as ProductProductPrice;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -12,14 +14,15 @@ class Product extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'sku',
         'name',
+        'image',
+        'sku',
         'desc',
         'category_id',
         'brand',
-        'satuan',
         'barcode',
         'is_active',
+        'created_by',
     ];
 
     protected $casts = [
@@ -33,6 +36,6 @@ class Product extends Model
 
     public function prices(): HasMany
     {
-        return $this->hasMany(ProductPrice::class);
+        return $this->hasMany(ProductProductPrice::class);
     }
 }

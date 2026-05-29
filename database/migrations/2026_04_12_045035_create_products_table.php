@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->string('sku')->unique();
             $table->string('name');
+            $table->string('image')->nullable();
+            $table->string('sku')->nullable()->unique();
             $table->text('desc')->nullable();
             $table->foreignId('category_id')->constrained('product_categories')->restrictOnDelete();
             $table->string('brand')->nullable();
-            $table->string('satuan')->nullable();
             $table->string('barcode')->nullable();
             $table->boolean('is_active')->default(true);
             $table->string('created_by');
