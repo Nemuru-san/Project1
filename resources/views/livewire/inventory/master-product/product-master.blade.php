@@ -104,7 +104,7 @@
                     <th class="px-4 py-3 w-12">No</th>
                     <th class="px-4 py-3 cursor-pointer select-none" wire:click="sortBy('sku')">
                         <div class="flex items-center gap-1">
-                            SKU
+                            Product Description
                             @if ($sortField === 'sku')
                                 <span>{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
@@ -112,7 +112,7 @@
                     </th>
                     <th class="px-4 py-3 cursor-pointer select-none" wire:click="sortBy('name')">
                         <div class="flex items-center gap-1">
-                            Nama Produk
+                            Code Product
                             @if ($sortField === 'name')
                                 <span>{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
@@ -347,11 +347,11 @@
                             {{-- Nama Produk --}}
                             <div>
                                 <label class="block mb-1.5 text-sm font-medium text-gray-900 dark:text-white">
-                                    Nama Produk <span class="text-red-500">*</span>
+                                    Product Code <span class="text-red-500">*</span>
                                 </label>
                                 <input wire:model="name" type="text"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-zinc-700 dark:border-zinc-600 dark:text-white @error('name') border-red-500 @enderror"
-                                    placeholder="Masukkan nama produk" />
+                                    placeholder="Masukkan kode produk" />
                                 @error('name')
                                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                                 @enderror
@@ -360,11 +360,11 @@
                             {{-- SKU --}}
                             <div>
                                 <label class="block mb-1.5 text-sm font-medium text-gray-900 dark:text-white">
-                                    SKU <span class="text-red-500">*</span>
+                                    Product Description <span class="text-red-500">*</span>
                                 </label>
                                 <input wire:model="sku" type="text"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-zinc-700 dark:border-zinc-600 dark:text-white @error('sku') border-red-500 @enderror"
-                                    placeholder="Contoh: PRD-001" />
+                                    placeholder="Gelas plastik" />
                                 @error('sku')
                                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                                 @enderror

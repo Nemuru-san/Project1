@@ -38,4 +38,8 @@ Route::get('inventory/master/uom', function () {
     return view('pages.inventory.productMaster.uom');
 })->name('inventory.product.uom');
 
+Route::get('inventory/master/warehouse', function () {
+    return view('pages.inventory.masterSecurity.warehouse');
+})->name('inventory.product.warehouse');
+
 require __DIR__ . '/settings.php';

@@ -31,6 +31,7 @@
                 <option value="">Semua Status</option>
                 <option value="1">Draft</option>
                 <option value="0">Approved</option>
+                <option value="0">Partially Received</option>
                 <option value="0">Received</option>
                 <option value="0">Canceled</option>
             </select>
@@ -170,7 +171,6 @@
                                             <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Product Name</th>
                                             <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Category</th>
                                             <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Satuan</th>
-                                            <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Rasio</th>
                                             <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Qty Order</th>
                                             <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Price</th>
                                             <th scope="col" class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Disc Amount</th>
@@ -200,10 +200,6 @@
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
                                                 <input type="number" min="0" step="1" value="2"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-24 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                                            </td>
-                                            <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                <input type="number" min="0" step="1" value="10"
-                                                    class="bg-gray-100 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-24 p-2 dark:bg-zinc-700 dark:border-gray-600 dark:text-white cursor-not-allowed" disabled>
                                             </td>
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
                                                 <div class="flex gap-2">
@@ -239,10 +235,6 @@
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
                                                 <input type="number" min="0" step="1" value="3"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-24 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                                            </td>
-                                            <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                <input type="number" min="0" step="1" value="15"
-                                                    class="bg-gray-100 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-24 p-2 dark:bg-zinc-700 dark:border-gray-600 dark:text-white cursor-not-allowed" disabled>
                                             </td>
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
                                                 <div class="flex gap-2">
@@ -396,7 +388,6 @@
                                                     </th>
                                                     <th class="border border-gray-300 dark:border-zinc-700 px-4 py-3">Kode Barang</th>
                                                     <th class="border border-gray-300 dark:border-zinc-700 px-4 py-3">Nama Produk</th>
-                                                    <th class="border border-gray-300 dark:border-zinc-700 px-4 py-3">Rasio</th>
                                                     <th class="border border-gray-300 dark:border-zinc-700 px-4 py-3">Qty Order</th>
                                                 </tr>
                                             </thead>
@@ -407,10 +398,6 @@
                                                     </td>
                                                     <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">PROD-001</td>
                                                     <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">Produk A</td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
-                                                        <input type="number" min="0" step="1" value="1"
-                                                            class="w-20 bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-primary-600 focus:border-primary-600 block p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                                                    </td>
                                                     <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
                                                         <input type="number" min="1" step="1" value="1"
                                                             class="w-20 bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-primary-600 focus:border-primary-600 block p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
@@ -423,10 +410,6 @@
                                                     <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">PROD-002</td>
                                                     <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">Produk B</td>
                                                     <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
-                                                        <input type="number" min="0" step="1" value="1"
-                                                            class="w-20 bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-primary-600 focus:border-primary-600 block p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                                                    </td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
                                                         <input type="number" min="1" step="1" value="1"
                                                             class="w-20 bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-primary-600 focus:border-primary-600 block p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
                                                     </td>
@@ -437,10 +420,6 @@
                                                     </td>
                                                     <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">PROD-003</td>
                                                     <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">Produk C</td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
-                                                        <input type="number" min="0" step="1" value="1"
-                                                            class="w-20 bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-primary-600 focus:border-primary-600 block p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                                                    </td>
                                                     <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
                                                         <input type="number" min="1" step="1" value="1"
                                                             class="w-20 bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-primary-600 focus:border-primary-600 block p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">

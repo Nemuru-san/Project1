@@ -60,13 +60,7 @@
             {{-- inventory --}}
             <flux:sidebar.group icon="rectangle-stack" href="#" expandable heading="Inventory" class="grid"
                 :expanded="request()->routeIs('inventory.*')">
-                <flux:sidebar.group href="#" expandable heading="Master Security" class="grid"
-                    :expanded="request()->routeIs('inventory.warehouse.*')">
-                    <flux:sidebar.item href="#" wire:navigate>Warehouse</flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Warehouse Security</flux:sidebar.item>
-                </flux:sidebar.group>
-
-                <flux:sidebar.group href="#" expandable heading="Master Product" class="grid"
+                <flux:sidebar.group href="#" expandable heading="Inventory Master" class="grid"
                     :expanded="request()->routeIs('inventory.product.*')">
                     <flux:sidebar.item href="{{ route('inventory.product.productMaster') }}" wire:navigate>Product
                         Master
@@ -75,6 +69,7 @@
                         Category
                     </flux:sidebar.item>
                     <flux:sidebar.item href="{{ route('inventory.product.uom') }}" wire:navigate>UOM</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('inventory.product.warehouse') }}" wire:navigate>Warehouse</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Inventory Transaction" class="grid"

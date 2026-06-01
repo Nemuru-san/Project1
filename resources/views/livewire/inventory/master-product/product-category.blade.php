@@ -46,7 +46,7 @@
             <thead class="text-lg font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
-                        <div class="flex items-center gap-1">Name
+                        <div class="flex items-center gap-1">Code
                             @if ($sortField === 'name')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
@@ -62,7 +62,7 @@
                     <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800">
                         <td class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white uppercase">
                             {{ $cat->name }}</td>
-                        <td class="px-4 py-4 max-w-xs truncate">{{ $cat->desc ?? '-' }}</td>\
+                        <td class="px-4 py-4 max-w-xs truncate">{{ $cat->desc ?? '-' }}</td>
                         <td class="px-4 py-4">
                             @if ($cat->is_active)
                                 <span
@@ -161,10 +161,10 @@
                 <div class="flex-1 overflow-y-auto px-6 py-5">
                     <div class="flex flex-col gap-4">
                         <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">Category Name</label>
+                            <label class="block mb-1 text-sm font-medium dark:text-white">Category Code</label>
                             <input wire:model="name" type="text"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('name') border-red-500 @else border-gray-300 @enderror"
-                                placeholder="Masukkan nama category">
+                                placeholder="Masukkan kode category">
                             @error('name')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
@@ -173,7 +173,7 @@
                             <label class="block mb-1 text-sm font-medium dark:text-white">Description</label>
                             <input wire:model="desc" type="text"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white"
-                                placeholder="Opsional">
+                                placeholder="Masukkan deskripsi kategori">
                         </div>
                         <div class="flex items-center gap-2">
                             <input wire:model="is_active" type="checkbox" id="is_active"
