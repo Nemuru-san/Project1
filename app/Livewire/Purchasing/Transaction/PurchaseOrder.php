@@ -49,6 +49,7 @@ class PurchaseOrder extends Component
 
     public bool $showDetail = false;
     public ?PurchaseOrderModel $selectedPO = null;
+    public string $selectedStatus = '';
 
     public ?int $editId = null;
 
@@ -350,6 +351,7 @@ class PurchaseOrder extends Component
     public function openDetail(int $id): void
     {
         $this->selectedPO = PurchaseOrderModel::with(['supplier', 'user', 'items.product'])->findOrFail($id);
+        $this->selectedStatus = $this->selectedPO->status;
         $this->showDetail = true;
     }
 
@@ -357,6 +359,25 @@ class PurchaseOrder extends Component
     {
         $this->showDetail = false;
         $this->selectedPO = null;
+    }
+
+    public function updateStatus(): void
+    {
+        $allowed = [
+            PurchaseOrderModel::STATUS_DRAFT,
+            PurchaseOrderModel::STATUS_APPROVED,
+            PurchaseOrderModel::STATUS_CANCELED,
+        ];
+
+        $this->validate([
+            'selectedStatus' => ['required', \Illuminate\Validation\Rule::in($allowed)],
+        ]);
+
+        PurchaseOrderModel::findOrFail($this->selectedPO->id)
+            ->update(['status' => $this->selectedStatus]);
+
+        session()->flash('success', 'Status berhasil diperbarui.');
+        $this->closeDetail();
     }
 
     public function confirmDelete(int $id): void

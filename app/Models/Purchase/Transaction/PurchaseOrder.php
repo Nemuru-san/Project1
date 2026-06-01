@@ -37,10 +37,8 @@ class PurchaseOrder extends Model
     const STATUS_DRAFT           = 'Draft';
     const STATUS_APPROVED        = 'Approved';
     const STATUS_RECEIVED        = 'Received';
+    const STATUS_PARTIALLY_RECEIVED = 'Partially Received';
     const STATUS_CANCELED        = 'Canceled';
-    const STATUS_TAGIHAN         = 'Tagihan';
-    const STATUS_BAYAR_FULL      = 'Bayar Full';
-    const STATUS_BAYAR_SETENGAH  = 'Bayar Setengah';
 
     public static function statusOptions(): array
     {
@@ -48,10 +46,8 @@ class PurchaseOrder extends Model
             self::STATUS_DRAFT,
             self::STATUS_APPROVED,
             self::STATUS_RECEIVED,
+            self::STATUS_PARTIALLY_RECEIVED,
             self::STATUS_CANCELED,
-            self::STATUS_TAGIHAN,
-            self::STATUS_BAYAR_FULL,
-            self::STATUS_BAYAR_SETENGAH,
         ];
     }
 
