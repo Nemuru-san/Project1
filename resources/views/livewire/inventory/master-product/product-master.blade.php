@@ -97,56 +97,57 @@
     </div>
 
     {{-- ═══════════════════════ TABLE ═══════════════════════ --}}
-    <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-zinc-700">
-        <table class="w-full text-sm text-left text-gray-900 dark:text-white">
-            <thead class="text-xs font-bold uppercase bg-gray-100 dark:bg-zinc-800 dark:text-gray-300">
+    <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
+        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
+            <thead class="text-lg font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
-                    <th class="px-4 py-3 w-12">No</th>
-                    <th class="px-4 py-3 cursor-pointer select-none" wire:click="sortBy('sku')">
+                    <th class="px-4 py-4 w-12">No</th>
+                    <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('sku')">
                         <div class="flex items-center gap-1">
                             Product Description
                             @if ($sortField === 'sku')
-                                <span>{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                                <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
                         </div>
                     </th>
-                    <th class="px-4 py-3 cursor-pointer select-none" wire:click="sortBy('name')">
+                    <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
                         <div class="flex items-center gap-1">
                             Code Product
                             @if ($sortField === 'name')
-                                <span>{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                                <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
                         </div>
                     </th>
-                    <th class="px-4 py-3">Kategori</th>
-                    <th class="px-4 py-3">Brand</th>
-                    <th class="px-4 py-3 text-center">Status</th>
-                    <th class="px-4 py-3 text-center">Aksi</th>
+                    <th class="px-4 py-4">Kategori</th>
+                    <th class="px-4 py-4">Brand</th>
+                    <th class="px-4 py-4">Status</th>
+                    <th class="px-4 py-4">Aksi</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
+            <tbody class="dark:bg-zinc-950 text-base text-white">
                 @forelse($products as $index => $product)
                     <tr
-                        class="hover:bg-gray-50 dark:hover:bg-zinc-800/50 {{ $product->trashed() ? 'opacity-50' : '' }}">
-                        <td class="px-4 py-3 text-gray-500">{{ $products->firstItem() + $index }}</td>
-                        <td class="px-4 py-3 font-mono font-medium">{{ $product->sku }}</td>
-                        <td class="px-4 py-3 font-medium">{{ $product->name }}</td>
-                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $product->category?->name ?? '-' }}
+                        class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $product->trashed() ? 'opacity-50' : '' }}">
+                        <td class="px-4 py-4 text-gray-500">{{ $products->firstItem() + $index }}</td>
+                        <td class="px-4 py-4 font-mono font-medium text-gray-900 dark:text-white">{{ $product->sku }}
                         </td>
-                        <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ $product->brand ?: '-' }}</td>
-                        <td class="px-4 py-3 text-center">
+                        <td class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {{ $product->name }}</td>
+                        <td class="px-4 py-4">{{ $product->category?->name ?? '-' }}</td>
+                        <td class="px-4 py-4">{{ $product->brand ?: '-' }}</td>
+                        <td class="px-4 py-4">
                             @if ($product->trashed())
                                 <span
-                                    class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600 dark:bg-zinc-700 dark:text-gray-400">Terhapus</span>
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded dark:bg-zinc-600 dark:text-white">Terhapus</span>
                             @elseif($product->is_active)
                                 <span
-                                    class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">Active</span>
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded dark:bg-green-700 dark:text-white">Active</span>
                             @else
                                 <span
-                                    class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400">Inactive</span>
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded dark:bg-zinc-600 dark:text-white">Inactive</span>
                             @endif
                         </td>
-                        <td class="px-4 py-3">
+                        <td class="px-4 py-4">
                             <div class="inline-block" x-data="{
                                 open: false,
                                 top: 0,
@@ -171,13 +172,13 @@
                                     class="z-50 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
 
                                     {{-- Group 1: Detail & Edit --}}
-                                    <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
+                                    <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
                                         @if (!$product->trashed())
                                             <li>
                                                 <button wire:click="openDetail({{ $product->id }})"
                                                     @click="open = false"
                                                     class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -191,7 +192,7 @@
                                             <li>
                                                 <button wire:click="openEdit({{ $product->id }})" @click="open = false"
                                                     class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
@@ -205,7 +206,7 @@
                                                 <button wire:click="restore({{ $product->id }})"
                                                     @click="open = false"
                                                     class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
@@ -223,8 +224,8 @@
                                             <button wire:click="forceDelete({{ $product->id }})"
                                                 wire:confirm="Hapus permanen? Data tidak dapat dikembalikan."
                                                 @click="open = false"
-                                                class="flex items-center gap-2 w-full py-2 px-4 text-sm text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
@@ -235,8 +236,8 @@
                                         @else
                                             <button wire:click="confirmDelete({{ $product->id }})"
                                                 @click="open = false"
-                                                class="flex items-center gap-2 w-full py-2 px-4 text-sm text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
@@ -253,7 +254,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-10 text-center text-gray-500 dark:text-gray-400">
+                        <td colspan="7" class="px-4 py-10 text-center text-gray-400 dark:text-gray-500">
                             Tidak ada data produk ditemukan.
                         </td>
                     </tr>
@@ -441,7 +442,7 @@
                         <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-zinc-700">
                             <table class="w-full text-sm text-left text-gray-900 dark:text-white border-collapse">
                                 <thead
-                                    class="text-xs font-bold uppercase bg-gray-100 dark:bg-zinc-700 dark:text-gray-300">
+                                    class="text-sm font-bold uppercase bg-gray-100 dark:bg-zinc-700 dark:text-gray-300">
                                     <tr>
                                         <th
                                             class="border border-gray-200 dark:border-zinc-600 px-3 py-2.5 w-12 text-center">
@@ -475,7 +476,7 @@
                                                 x-text="index + 1"></td>
                                             <td class="border border-gray-200 dark:border-zinc-600 px-3 py-2">
                                                 <select x-model="row.unit_id" @change="syncToWire()"
-                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-full p-2 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white">
+                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white">
                                                     <option value="">-- Pilih Unit --</option>
                                                     @foreach ($units as $unit)
                                                         <option value="{{ $unit['id'] }}">{{ $unit['name'] }}
@@ -487,19 +488,19 @@
                                             <td class="border border-gray-200 dark:border-zinc-600 px-3 py-2">
                                                 <input x-model="row.conversion" @change="syncToWire()" type="number"
                                                     min="1" placeholder="e.g. 12"
-                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-full p-2 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white" />
+                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white" />
                                             </td>
                                             <td class="border border-gray-200 dark:border-zinc-600 px-3 py-2">
                                                 <input x-model="row.price" @change="syncToWire()" type="number"
                                                     min="0" placeholder="e.g. 15000"
-                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-full p-2 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white" />
+                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white" />
                                             </td>
                                         </tr>
                                     </template>
                                     <template x-if="rows.length === 0">
                                         <tr>
                                             <td colspan="5"
-                                                class="border border-gray-200 dark:border-zinc-600 px-4 py-6 text-center text-gray-400 dark:text-gray-500 text-xs">
+                                                class="border border-gray-200 dark:border-zinc-600 px-4 py-6 text-center text-gray-400 dark:text-gray-500 text-sm">
                                                 Belum ada baris harga. Klik "Tambah Baris" untuk menambahkan.
                                             </td>
                                         </tr>

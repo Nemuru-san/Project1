@@ -8,6 +8,7 @@ use App\Models\Inventory\Product\Product;
 use App\Models\Inventory\Product\ProductCategory;
 use App\Models\Inventory\Product\ProductUnit;
 use App\Models\Inventory\Product\ProductPrice;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\WithFileUploads;
@@ -177,7 +178,7 @@ class ProductMaster extends Component
                 'category_id' => $this->category_id,
                 'brand'       => $this->brand,
                 'is_active'   => $this->is_active,
-                'created_by'  => auth()->id(),
+                'created_by'  => Auth::id(),
             ];
 
             if ($this->image) {
