@@ -29,11 +29,11 @@
             <select wire:model.live="statusFilter"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
                 <option value="">Semua Status</option>
-                <option value="1">Draft</option>
-                <option value="0">Approved</option>
-                <option value="0">Partially Received</option>
-                <option value="0">Received</option>
-                <option value="0">Canceled</option>
+                <option value="Draft">Draft</option>
+                <option value="Approved">Approved</option>
+                <option value="Partially Received">Partially Received</option>
+                <option value="Received">Received</option>
+                <option value="Canceled">Canceled</option>
             </select>
             {{-- Per Page --}}
             <select wire:model.live="perPage"
@@ -131,17 +131,7 @@
                             @elseif ($po->status === 'Canceled')
                                 <span
                                     class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-700 dark:text-white">Canceled</span>
-                            @elseif ($po->status === 'Tagihan')
-                                <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-yellow-100 text-yellow-700 dark:bg-yellow-600 dark:text-white">Tagihan</span>
-                            @elseif ($po->status === 'Bayar Full')
-                                <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-700 dark:text-white">Bayar
-                                    Full</span>
-                            @elseif ($po->status === 'Bayar Setengah')
-                                <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-orange-100 text-orange-700 dark:bg-orange-600 dark:text-white">Bayar
-                                    Setengah</span>
+                            @elseif ($po->status === 'Partially Received')
                             @endif
                         </td>
                         <td class="px-4 py-4">
@@ -169,6 +159,8 @@
                                     class="z-50 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
 
                                     <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
+                                        @php $locked = in_array($po->status, ['Approved', 'Received', 'Partially Received']); @endphp
+
                                         @if (!$po->trashed())
                                             <li>
                                                 <button wire:click="openDetail({{ $po->id }})"
@@ -186,9 +178,10 @@
                                                 </button>
                                             </li>
                                             <li>
-                                                <button wire:click="openEdit({{ $po->id }})"
-                                                    @click="open = false"
-                                                    class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
+                                                <button
+                                                    @if (!$locked) wire:click="openEdit({{ $po->id }})" @endif
+                                                    @click="open = false" @disabled($locked)
+                                                    class="flex items-center gap-2 w-full py-2 px-4 {{ $locked ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer' }}">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -230,9 +223,10 @@
                                                 Hapus Permanen
                                             </button>
                                         @else
-                                            <button wire:click="confirmDelete({{ $po->id }})"
-                                                @click="open = false"
-                                                class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
+                                            <button
+                                                @if (!$locked) wire:click="confirmDelete({{ $po->id }})" @endif
+                                                @click="open = false" @disabled($locked)
+                                                class="flex items-center gap-2 w-full py-2 px-4 text-base {{ $locked ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer' }}">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
