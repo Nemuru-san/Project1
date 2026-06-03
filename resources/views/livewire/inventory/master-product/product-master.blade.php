@@ -13,9 +13,20 @@
         this.$watch('$wire.priceRowsJson', () => this.syncFromWire());
     },
 
-    syncFromWire() {
+    {{-- syncFromWire() {
         const raw = JSON.parse(this.$wire.priceRowsJson || '[]');
         this.rows = raw.map(r => ({ ...r, _id: this.nextTempId++ }));
+    }, --}}
+
+    syncFromWire() {
+        const raw = JSON.parse(this.$wire.priceRowsJson || '[]');
+
+        this.rows = raw.map(r => ({
+            _id: this.nextTempId++,
+            unit_id: r.unit_id ?? '',
+            conversion: r.conversion || 1,
+            price: r.price ?? 0,
+        }));
     },
 
     syncToWire() {
@@ -24,14 +35,32 @@
         ));
     },
 
-    addRow() {
+    {{-- addRow() {
         this.rows.push({ _id: this.nextTempId++, unit_id: '', conversion: '', price: '' });
+        this.syncToWire();
+    }, --}}
+
+    addRow() {
+        this.rows.push({
+            _id: this.nextTempId++,
+            unit_id: '',
+            conversion: '',
+            price: 0
+        });
+
         this.syncToWire();
     },
 
     removeRow(id) {
         this.rows = this.rows.filter(r => r._id !== id);
         this.syncToWire();
+    },
+
+    isUnitSelected(unitId, currentRowId) {
+        return this.rows.some(row =>
+            row._id !== currentRowId &&
+            String(row.unit_id) === String(unitId)
+        );
     }
 }"
     @toast.window="toastMsg = $event.detail.message; toastType = $event.detail.type; setTimeout(() => toastMsg = '', 3000)">
@@ -475,19 +504,36 @@
                                             <td class="border border-gray-200 dark:border-zinc-600 px-3 py-2 text-center font-medium"
                                                 x-text="index + 1"></td>
                                             <td class="border border-gray-200 dark:border-zinc-600 px-3 py-2">
-                                                <select x-model="row.unit_id" @change="syncToWire()"
+                                                <select x-model="row.unit_id"
+                                                    @change="
+                                                        if (index === 0) {
+                                                            row.unit_id = 1;
+                                                        }
+                                                        syncToWire();
+                                                    "
+                                                    :disabled="index === 0"
+                                                    :class="index === 0 ? 'cursor-not-allowed opacity-70' : ''"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white">
                                                     <option value="">-- Pilih Unit --</option>
                                                     @foreach ($units as $unit)
-                                                        <option value="{{ $unit['id'] }}">{{ $unit['name'] }}
-                                                            ({{ $unit['code'] }})
+                                                        <option value="{{ $unit['id'] }}"
+                                                            :hidden="isUnitSelected({{ $unit['id'] }}, row._id)"
+                                                            :disabled="isUnitSelected({{ $unit['id'] }}, row._id)">
+                                                            {{ $unit['name'] }} ({{ $unit['code'] }})
                                                         </option>
                                                     @endforeach
                                                 </select>
                                             </td>
                                             <td class="border border-gray-200 dark:border-zinc-600 px-3 py-2">
-                                                <input x-model="row.conversion" @change="syncToWire()" type="number"
-                                                    min="1" placeholder="e.g. 12"
+                                                <input x-model="row.conversion"
+                                                    @input="
+                                                        if (index === 0) {
+                                                            row.conversion = 1;
+                                                        }
+                                                        syncToWire();
+                                                    "
+                                                    type="number" min="1" :readonly="index === 0"
+                                                    :class="index === 0 ? 'cursor-not-allowed opacity-70' : ''"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white" />
                                             </td>
                                             <td class="border border-gray-200 dark:border-zinc-600 px-3 py-2">

@@ -154,6 +154,14 @@ class ProductMaster extends Component
 
         $rows = json_decode($this->priceRowsJson, true) ?? [];
 
+        if (empty($rows)) {
+            $this->addError('priceRowsJson', 'Minimal harus ada 1 baris unit.');
+            return;
+        }
+
+        $rows[0]['unit_id'] = 1;
+        $rows[0]['conversion'] = 1;
+
         // Validate price rows
         foreach ($rows as $index => $row) {
             if (empty($row['unit_id'])) {
@@ -264,6 +272,17 @@ class ProductMaster extends Component
 
     // ── Helper ─────────────────────────────────────────────────────────────────
 
+    private function defaultPriceRowsJson(): string
+    {
+        return json_encode([
+            [
+                'unit_id'    => 1,
+                'conversion' => 1,
+                'price'      => 0,
+            ],
+        ]);
+    }
+
     private function resetForm(): void
     {
         $this->sku          = '';
@@ -272,7 +291,9 @@ class ProductMaster extends Component
         $this->category_id  = null;
         $this->brand        = '';
         $this->is_active    = true;
-        $this->priceRowsJson = '[]';
+
+        $this->priceRowsJson = $this->defaultPriceRowsJson();
+
         $this->editingId    = null;
         $this->resetErrorBag();
         $this->image = null;
