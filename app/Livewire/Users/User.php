@@ -38,7 +38,7 @@ class User extends Component
 
             'email' => [
                 'required',
-                'email',
+                'string',
                 'max:255',
                 Rule::unique('users', 'email')
                     ->whereNull('deleted_at')
@@ -59,7 +59,7 @@ class User extends Component
     protected array $messages = [
         'name.required' => 'Nama user wajib diisi.',
         'email.required' => 'Email wajib diisi.',
-        'email.email' => 'Format email tidak valid.',
+        // 'email.email' => 'Format email tidak valid.',
         'email.unique' => 'Email sudah digunakan.',
         'password.required' => 'Password wajib diisi.',
         'password.min' => 'Password minimal 8 karakter.',

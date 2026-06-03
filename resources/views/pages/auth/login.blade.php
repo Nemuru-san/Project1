@@ -9,8 +9,8 @@
             @csrf
 
             <!-- Email Address -->
-            <flux:input name="email" :label="__('Email address')" :value="old('email')" type="email" required
-                autofocus autocomplete="email" placeholder="email@example.com" />
+            <flux:input name="email" :label="__('Username')" :value="old('email')" type="text" required autofocus
+                autocomplete="text" placeholder="admin" />
 
             <!-- Password -->
             <div class="relative">
