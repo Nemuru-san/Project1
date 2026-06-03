@@ -10,7 +10,7 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Data Tabel Users</p>
+        <p class="dark:text-white text-base font-semibold">Data Tabel Role User</p>
 
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             {{-- Search --}}
@@ -25,7 +25,7 @@
 
                 <input wire:model.live.debounce.300ms="search" type="text"
                     class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg block w-full pl-10 p-2.5 placeholder-gray-400"
-                    placeholder="Cari nama, email, role..." />
+                    placeholder="Cari role..." />
             </div>
 
             {{-- Per Page --}}
@@ -49,7 +49,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                Tambah User
+                Tambah Role
             </button>
         </div>
     </div>
@@ -63,67 +63,54 @@
 
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
                         <div class="flex items-center gap-1">
-                            Name
+                            Role Name
                             @if ($sortField === 'name')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
                         </div>
                     </th>
 
-                    <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('email')">
-                        <div class="flex items-center gap-1">
-                            Email
-                            @if ($sortField === 'email')
-                                <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
-                            @endif
-                        </div>
-                    </th>
-
-                    <th class="px-4 py-4">Role</th>
                     <th class="px-4 py-4">Permission</th>
+                    <th class="px-4 py-4">Users</th>
                     <th class="px-4 py-4">Status</th>
                     <th class="px-4 py-4">Actions</th>
                 </tr>
             </thead>
 
             <tbody class="dark:bg-zinc-950 text-base">
-                @forelse ($users as $index => $user)
+                @forelse ($roles as $index => $role)
                     <tr
-                        class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $user->trashed() ? 'opacity-50' : '' }}">
+                        class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $role->trashed() ? 'opacity-50' : '' }}">
                         <td class="px-4 py-4 text-gray-500">
-                            {{ $users->firstItem() + $index }}
+                            {{ $roles->firstItem() + $index }}
                         </td>
 
                         <td class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {{ $user->name }}
+                            {{ $role->name }}
 
-                            @if ($user->id === auth()->id())
+                            @if (in_array('*', $role->permissions ?? [], true))
                                 <span class="ml-2 text-xs px-2 py-0.5 rounded bg-blue-700 text-white">
-                                    Login
+                                    Full Access
                                 </span>
                             @endif
                         </td>
 
                         <td class="px-4 py-4">
-                            {{ $user->email }}
-                        </td>
-
-                        <td class="px-4 py-4">
-                            {{ $user->role?->name ?? '-' }}
-                        </td>
-
-                        <td class="px-4 py-4">
-                            @if (in_array('*', $user->role?->permissions ?? [], true))
-                                <span class="text-sm text-blue-400">Full Access</span>
+                            @if (in_array('*', $role->permissions ?? [], true))
+                                <span class="text-sm text-blue-400">Semua Module</span>
                             @else
                                 <span class="text-sm text-gray-300">
-                                    {{ count($user->role?->permissions ?? []) }} permission
+                                    {{ count($role->permissions ?? []) }} permission
                                 </span>
                             @endif
                         </td>
 
                         <td class="px-4 py-4">
-                            @if ($user->trashed())
+                            {{ $role->users_count }}
+                        </td>
+
+                        <td class="px-4 py-4">
+                            @if ($role->trashed())
                                 <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-700 text-white">
                                     Terhapus
                                 </span>
@@ -135,7 +122,7 @@
                         </td>
 
                         <td class="px-4 py-4">
-                            @if ($user->trashed())
+                            @if ($role->trashed())
                                 <div class="px-4 py-2 text-sm text-gray-400">
                                     Data sudah terhapus
                                 </div>
@@ -165,7 +152,7 @@
                                         class="z-50 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
                                         <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
                                             <li>
-                                                <button wire:click="openEdit({{ $user->id }})" @click="open = false"
+                                                <button wire:click="openEdit({{ $role->id }})" @click="open = false"
                                                     class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
@@ -179,9 +166,9 @@
                                         </ul>
 
                                         <div class="py-1">
-                                            <button wire:click="confirmDelete({{ $user->id }})"
-                                                @click="open = false" @disabled($user->id === auth()->id())
-                                                class="flex items-center gap-2 w-full py-2 px-4 text-base {{ $user->id === auth()->id() ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white' }}">
+                                            <button wire:click="confirmDelete({{ $role->id }})"
+                                                @click="open = false"
+                                                class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -198,8 +185,8 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center py-8 text-gray-400 dark:text-gray-500">
-                            Tidak ada data user.
+                        <td colspan="6" class="text-center py-8 text-gray-400 dark:text-gray-500">
+                            Tidak ada data role.
                         </td>
                     </tr>
                 @endforelse
@@ -209,19 +196,19 @@
 
     {{-- PAGINATION --}}
     <div class="mt-4">
-        {{ $users->links() }}
+        {{ $roles->links() }}
     </div>
 
     {{-- CREATE / EDIT MODAL --}}
     @if ($showModal)
         <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-2xl mx-auto max-h-[90vh] flex flex-col overflow-hidden">
+                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-5xl mx-auto max-h-[90vh] flex flex-col overflow-hidden">
 
                 <div
                     class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
                     <h3 class="text-lg font-semibold dark:text-white">
-                        {{ $editingId ? 'Edit User' : 'Tambah User' }}
+                        {{ $editingId ? 'Edit Role' : 'Tambah Role' }}
                     </h3>
 
                     <button wire:click="$set('showModal', false)"
@@ -234,15 +221,15 @@
                 </div>
 
                 <div class="flex-1 overflow-y-auto px-6 py-5">
-                    <div class="flex flex-col gap-4">
+                    <div class="space-y-5">
                         <div>
                             <label class="block mb-1 text-sm font-medium dark:text-white">
-                                Nama User
+                                Nama Role
                             </label>
 
                             <input wire:model="name" type="text"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('name') border-red-500 @else border-gray-300 @enderror"
-                                placeholder="Masukkan nama user">
+                                placeholder="Contoh: Purchasing, Inventory, Super Admin">
 
                             @error('name')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -250,59 +237,55 @@
                         </div>
 
                         <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">
-                                Email
-                            </label>
+                            <div class="flex items-center justify-between mb-4">
+                                <h4
+                                    class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                    Permission Module
+                                </h4>
 
-                            <input wire:model="email" type="email"
-                                class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('email') border-red-500 @else border-gray-300 @enderror"
-                                placeholder="email@example.com">
+                                <button type="button" wire:click="toggleFullAccess"
+                                    class="text-sm px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white">
+                                    {{ in_array('*', $selectedPermissions, true) ? 'Batalkan Full Access' : 'Full Access' }}
+                                </button>
+                            </div>
 
-                            @error('email')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                            @if (in_array('*', $selectedPermissions, true))
+                                <div
+                                    class="mb-4 rounded-lg border border-blue-700 bg-blue-900/20 px-4 py-3 text-sm text-blue-300">
+                                    Role ini punya akses ke semua module.
+                                </div>
+                            @endif
 
-                        <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">
-                                Role
-                            </label>
+                            <div
+                                class="{{ in_array('*', $selectedPermissions, true) ? 'opacity-40 pointer-events-none' : '' }} space-y-4">
+                                @foreach ($permissionGroups as $group => $permissions)
+                                    <div
+                                        class="rounded-lg border border-gray-200 dark:border-zinc-700 overflow-hidden">
+                                        <div class="px-4 py-2 bg-gray-100 dark:bg-zinc-900">
+                                            <p class="text-sm font-semibold text-gray-700 dark:text-white">
+                                                {{ $group }}
+                                            </p>
+                                        </div>
 
-                            <select wire:model="role_id"
-                                class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('role_id') border-red-500 @else border-gray-300 @enderror">
-                                <option value="">-- Pilih Role --</option>
-                                @foreach ($roles as $role)
-                                    <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-4">
+                                            @foreach ($permissions as $key => $label)
+                                                <label
+                                                    class="flex items-center gap-2 text-sm dark:text-gray-300 cursor-pointer">
+                                                    <input type="checkbox" wire:model="selectedPermissions"
+                                                        value="{{ $key }}"
+                                                        class="w-4 h-4 rounded border-gray-600 dark:bg-zinc-800 text-blue-600">
+
+                                                    <span>{{ $label }}</span>
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                    </div>
                                 @endforeach
-                            </select>
+                            </div>
 
-                            @error('role_id')
+                            @error('selectedPermissions')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
-                        </div>
-
-                        <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">
-                                Password {{ $editingId ? '(kosongkan jika tidak diubah)' : '' }}
-                            </label>
-
-                            <input wire:model="password" type="password"
-                                class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('password') border-red-500 @else border-gray-300 @enderror"
-                                placeholder="Minimal 8 karakter">
-
-                            @error('password')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">
-                                Konfirmasi Password
-                            </label>
-
-                            <input wire:model="password_confirmation" type="password"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white"
-                                placeholder="Ulangi password">
                         </div>
                     </div>
                 </div>
@@ -329,7 +312,7 @@
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-sm p-6">
                 <h3 class="text-lg font-semibold dark:text-white mb-2">Konfirmasi Hapus</h3>
-                <p class="text-sm text-gray-400 mb-6">User akan dipindahkan ke trash.</p>
+                <p class="text-sm text-gray-400 mb-6">Role akan dipindahkan ke trash.</p>
 
                 <div class="flex justify-end gap-2">
                     <button wire:click="$set('showDeleteModal', false)"

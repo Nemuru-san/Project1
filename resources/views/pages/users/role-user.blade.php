@@ -1,14 +1,15 @@
-<x-layouts::app :title="__('UOM')">
+<x-layouts::app :title="__('Role User')">
 
     <div class="flex flex-col items-center justify-between min-h-full gap-6 w-full">
         <div class="flex flex-col gap-6 w-full">
+
             {{-- header --}}
-            <x-layouts::page-header :title="__('Warehouse')"
-                description="Kelola data Warehouse secara terpusat untuk mendukung proses operasional dan pencatatan yang rapi.">
+            <x-layouts::page-header :title="__('Role User')" description="
+                Kelola data Role untuk user">
                 <x-slot:breadcrumbs>
                     <li class="inline-flex items-center">
                         <a href="#" class="inline-flex items-center text-sm font-medium hover:text-fg-brand">
-                            Inventory
+                            Users
                         </a>
                     </li>
                     <li>
@@ -19,7 +20,7 @@
                                     stroke-width="2" d="m9 5 7 7-7 7" />
                             </svg>
                             <a href="#"
-                                class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Master</a>
+                                class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Action</a>
                         </div>
                     </li>
                     <li aria-current="page">
@@ -30,7 +31,7 @@
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                     stroke-width="2" d="m9 5 7 7-7 7" />
                             </svg>
-                            <span class="inline-flex items-center text-sm font-medium">Warehouse</span>
+                            <span class="inline-flex items-center text-sm font-medium">Role</span>
                         </div>
                     </li>
                 </x-slot:breadcrumbs>
@@ -39,7 +40,7 @@
             {{-- content --}}
             <div
                 class="w-full h-full overflow-hidden rounded-md dark:border bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 p-4">
-                <livewire:inventory.master-product.warehouse />
+                <livewire:users.role-user />
             </div>
         </div>
     </div>

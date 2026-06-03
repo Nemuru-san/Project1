@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Purchasing\Transaction;
 
-use App\Models\Inventory\Product\Product;
-use App\Models\Inventory\Product\ProductCategory;
-use App\Models\Purchase\Transaction\PurchaseOrder as PurchaseOrderModel;
+use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Models\PurchaseOrder as PurchaseOrderModel;
 use App\Models\Supplier;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -80,6 +80,16 @@ class PurchaseOrder extends Component
         $this->resetPage();
     }
     public function updatingStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingShowTrashed(): void
     {
         $this->resetPage();
     }
@@ -366,7 +376,6 @@ class PurchaseOrder extends Component
         $allowed = [
             PurchaseOrderModel::STATUS_DRAFT,
             PurchaseOrderModel::STATUS_APPROVED,
-            PurchaseOrderModel::STATUS_CANCELED,
         ];
 
         $this->validate([
@@ -382,30 +391,28 @@ class PurchaseOrder extends Component
 
     public function confirmDelete(int $id): void
     {
+        $po = PurchaseOrderModel::findOrFail($id);
+
+        if ($po->trashed()) {
+            return;
+        }
+
         $this->deleteTargetId = $id;
         $this->showDeleteModal = true;
     }
 
     public function delete(): void
     {
-        if ($this->deleteTargetId) {
-            PurchaseOrderModel::find($this->deleteTargetId)?->delete(); // soft delete
-            $this->showDeleteModal = false;
-            $this->deleteTargetId  = null;
-            $this->dispatch('toast', message: 'Purchase Order dihapus.', type: 'success');
+        if (!$this->deleteTargetId) {
+            return;
         }
-    }
 
-    public function restore(int $id): void
-    {
-        PurchaseOrderModel::withTrashed()->find($id)?->restore();
-        $this->dispatch('toast', message: 'Purchase Order dipulihkan.', type: 'success');
-    }
+        PurchaseOrderModel::findOrFail($this->deleteTargetId)->delete();
 
-    public function forceDelete(int $id): void
-    {
-        PurchaseOrderModel::withTrashed()->find($id)?->forceDelete();
-        $this->dispatch('toast', message: 'Purchase Order dihapus permanen.', type: 'success');
+        $this->showDeleteModal = false;
+        $this->deleteTargetId  = null;
+
+        $this->dispatch('toast', message: 'Purchase Order dihapus.', type: 'success');
     }
 
     // ─── Render ───────────────────────────────────────────────────────────────
@@ -413,7 +420,7 @@ class PurchaseOrder extends Component
     public function render()
     {
         $purchaseOrders = PurchaseOrderModel::with(['supplier'])
-            ->when($this->showTrashed, fn($q) => $q->onlyTrashed())
+            ->when($this->showTrashed, fn($q) => $q->withTrashed())
             ->when(
                 $this->search,
                 fn($q) =>
@@ -428,10 +435,9 @@ class PurchaseOrder extends Component
             ->paginate($this->perPage);
 
         $suppliers  = Supplier::orderBy('name')->get();
-        $categories = ProductCategory::where('is_active', true)->orderBy('name')->get();
+        $categories = ProductCategory::orderBy('name')->get();
 
         $products = Product::with(['category', 'prices.unit'])
-            ->where('is_active', true)
             ->when(
                 $this->searchProduct,
                 fn($q) =>

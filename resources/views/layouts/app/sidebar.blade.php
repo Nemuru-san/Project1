@@ -69,7 +69,8 @@
                         Category
                     </flux:sidebar.item>
                     <flux:sidebar.item href="{{ route('inventory.product.uom') }}" wire:navigate>UOM</flux:sidebar.item>
-                    <flux:sidebar.item href="{{ route('inventory.product.warehouse') }}" wire:navigate>Warehouse</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('inventory.product.warehouse') }}" wire:navigate>Warehouse
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Inventory Transaction" class="grid"
@@ -125,8 +126,12 @@
                 :expanded="request()->routeIs('user.*')">
                 <flux:sidebar.group href="#" expandable heading="Action" class="grid"
                     :expanded="request()->routeIs('user.action.*')">
-                    <flux:sidebar.item href="#" wire:navigate>Role User</flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>User Security</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('user.action.user') }}"
+                        :current="request()->routeIs('user.action.user')" wire:navigate>Users</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('user.action.role') }}"
+                        :current="request()->routeIs('user.action.role')" wire:navigate>
+                        Role User
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.group>
         </flux:sidebar.nav>

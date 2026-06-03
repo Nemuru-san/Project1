@@ -15,12 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('image')->nullable();
-            $table->string('sku')->nullable()->unique();
+            $table->string('sku')->nullable();
             $table->text('desc')->nullable();
             $table->foreignId('category_id')->constrained('product_categories')->restrictOnDelete();
             $table->string('brand')->nullable();
             $table->string('barcode')->nullable();
-            $table->boolean('is_active')->default(true);
             $table->string('created_by');
             $table->timestamps();
             $table->softDeletes();

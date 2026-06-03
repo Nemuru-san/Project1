@@ -18,7 +18,6 @@ return new class extends Migration
             $table->integer('conversion')->default(1);
             $table->bigInteger('price')->default(0);
             $table->timestamps();
-
             $table->unique(['product_id', 'unit_id']);
         });
     }

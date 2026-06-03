@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Models\Purchase\Transaction;
+namespace App\Models;
 
-use App\Models\Inventory\Product\Product;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

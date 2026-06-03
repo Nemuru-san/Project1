@@ -25,13 +25,7 @@
                     class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2.5 placeholder-gray-400"
                     placeholder="Cari kode, nama, kontak..." />
             </div>
-            {{-- Status Filter --}}
-            <select wire:model.live="statusFilter"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
-                <option value="">Semua Status</option>
-                <option value="1">Aktif</option>
-                <option value="0">Nonaktif</option>
-            </select>
+
             {{-- Per Page --}}
             <select wire:model.live="perPage"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 w-full sm:w-auto">
@@ -68,7 +62,7 @@
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
         <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-lg font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+            <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('code')">
                         <div class="flex items-center gap-1">Code
@@ -91,7 +85,7 @@
                     <th class="px-4 py-4">Actions</th>
                 </tr>
             </thead>
-            <tbody class="dark:bg-zinc-950 text-base text-white">
+            <tbody class="dark:bg-zinc-950 text-base">
                 @forelse ($suppliers as $supplier)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $supplier->trashed() ? 'opacity-60' : '' }}">
@@ -104,29 +98,20 @@
                         <td class="px-4 py-4">{{ $supplier->contact }}</td>
                         <td class="px-4 py-4">
                             @if ($supplier->trashed())
-                                <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded dark:bg-red-700 dark:text-white">Dihapus</span>
-                            @elseif($supplier->status)
-                                <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded dark:bg-green-700 dark:text-white">Active</span>
+                                <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-700 text-white">
+                                    Terhapus
+                                </span>
                             @else
-                                <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded dark:bg-zinc-600 dark:text-white">Inactive</span>
+                                <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-green-700 text-white">
+                                    Aktif
+                                </span>
                             @endif
                         </td>
                         <td class="px-4 py-4">{{ $supplier->created_by }}</td>
                         <td class="px-4 py-4">
                             @if ($supplier->trashed())
-                                <div class="flex gap-2">
-                                    <button wire:click="restore({{ $supplier->id }})"
-                                        class="text-xs px-2 py-1 rounded bg-yellow-600 text-white hover:bg-yellow-700">
-                                        Pulihkan
-                                    </button>
-                                    <button wire:click="forceDelete({{ $supplier->id }})"
-                                        wire:confirm="Hapus permanen? Data tidak bisa dikembalikan!"
-                                        class="text-xs px-2 py-1 rounded bg-red-700 text-white hover:bg-red-800">
-                                        Hapus Permanen
-                                    </button>
+                                <div class="px-4 py-2 text-sm text-gray-400">
+                                    Data sudah terhapus
                                 </div>
                             @else
                                 <div class="inline-block" x-data="{
@@ -154,8 +139,7 @@
                                         class="z-50 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
                                         <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
                                             <li>
-                                                <button wire:click="openEdit({{ $supplier->id }})"
-                                                    @click="open = false"
+                                                <button wire:click="openEdit({{ $supplier->id }})" @click="open = false"
                                                     class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
@@ -197,17 +181,9 @@
     </div>
 
     {{-- PAGINATION --}}
-    <nav
-        class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4 mt-2 dark:bg-zinc-900">
-        <span class="text-sm font-normal text-gray-400">
-            Showing
-            <span
-                class="font-semibold dark:text-white">{{ $suppliers->firstItem() }}-{{ $suppliers->lastItem() }}</span>
-            of
-            <span class="font-semibold dark:text-white">{{ $suppliers->total() }}</span>
-        </span>
+    <div class="mt-4">
         {{ $suppliers->links() }}
-    </nav>
+    </div>
 
     {{-- MODAL CREATE/EDIT --}}
     @if ($showModal)
@@ -218,7 +194,8 @@
                     <h3 class="text-lg font-semibold dark:text-white">
                         {{ $supplierId ? 'Edit Supplier' : 'Tambah Supplier' }}
                     </h3>
-                    <button wire:click="$set('showModal', false)" class="text-gray-400 hover:text-white cursor-pointer">
+                    <button wire:click="$set('showModal', false)"
+                        class="text-gray-400 hover:text-white cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12" />
@@ -259,11 +236,6 @@
                             <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" wire:model="status" id="status"
-                            class="w-4 h-4 rounded border-gray-600 dark:bg-zinc-700 text-blue-600 focus:ring-blue-500" />
-                        <label for="status" class="text-sm dark:text-gray-300">Aktif</label>
-                    </div>
                 </div>
 
                 <div class="flex justify-end gap-2 mt-6">
@@ -294,7 +266,7 @@
                     </div>
                     <h3 class="text-base font-semibold dark:text-white">Hapus Supplier?</h3>
                 </div>
-                <p class="text-sm text-gray-400 mb-5">Data akan dipindahkan ke trash dan bisa dipulihkan nanti.</p>
+                <p class="text-sm text-gray-400 mb-5">Data akan dipindahkan ke trash.</p>
                 <div class="flex justify-end gap-2">
                     <button wire:click="$set('showDeleteModal', false)"
                         class="px-4 py-2 text-sm rounded-lg border border-gray-600 dark:text-gray-300 hover:bg-zinc-700">

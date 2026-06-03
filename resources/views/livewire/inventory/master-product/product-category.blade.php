@@ -30,6 +30,11 @@
                 <option value="25">25 / hal</option>
                 <option value="50">50 / hal</option>
             </select>
+            <label class="flex items-center gap-2 text-sm dark:text-gray-300 cursor-pointer whitespace-nowrap">
+                <input type="checkbox" wire:model.live="showTrashed"
+                    class="w-4 h-4 rounded border-gray-600 dark:bg-zinc-800 text-blue-600">
+                Tampilkan Terhapus
+            </label>
             <button wire:click="openCreate"
                 class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,7 +48,7 @@
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
         <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-lg font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+            <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
                         <div class="flex items-center gap-1">Code
@@ -57,19 +62,21 @@
                     <th class="px-4 py-4">Actions</th>
                 </tr>
             </thead>
-            <tbody class="dark:bg-zinc-950 text-base text-white">
+            <tbody class="dark:bg-zinc-950 text-base">
                 @forelse ($categories as $cat)
                     <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800">
                         <td class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white uppercase">
                             {{ $cat->name }}</td>
                         <td class="px-4 py-4 max-w-xs truncate">{{ $cat->desc ?? '-' }}</td>
                         <td class="px-4 py-4">
-                            @if ($cat->is_active)
-                                <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded dark:bg-green-700 dark:text-white">Active</span>
+                            @if ($cat->trashed())
+                                <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-700 text-white">
+                                    Terhapus
+                                </span>
                             @else
-                                <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded dark:bg-zinc-600 dark:text-white">Inactive</span>
+                                <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-green-700 text-white">
+                                    Aktif
+                                </span>
                             @endif
                         </td>
                         <td class="px-4 py-4">
@@ -94,38 +101,35 @@
                                 </button>
                                 <div x-show="open" x-cloak :style="`position: fixed; top: ${top}px; left: ${left}px;`"
                                     class="z-50 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
-                                    <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
-                                        <li>
-                                            <button wire:click="openEdit({{ $cat->id }})" @click="open = false"
-                                                class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                </svg>
-                                                Edit
+                                    @if ($cat->trashed())
+                                        <div class="px-4 py-2 text-sm text-gray-400">
+                                            Data sudah terhapus
+                                        </div>
+                                    @else
+                                        <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
+                                            <li>
+                                                <button wire:click="openEdit({{ $cat->id }})" @click="open = false"
+                                                    class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
+                                                    Edit
+                                                </button>
+                                            </li>
+                                        </ul>
+
+                                        <div class="py-1">
+                                            <button wire:click="confirmDelete({{ $cat->id }})"
+                                                @click="open = false"
+                                                class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white">
+                                                Delete
                                             </button>
-                                        </li>
-                                    </ul>
-                                    <div class="py-1">
-                                        <button wire:click="confirmDelete({{ $cat->id }})" @click="open = false"
-                                            class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                            Delete
-                                        </button>
-                                    </div>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="3" class="text-center py-8 text-gray-400 dark:text-gray-500">
+                        <td colspan="4" class="text-center py-8 text-gray-400 dark:text-gray-500">
                             Tidak ada data category.
                         </td>
                     </tr>
@@ -174,11 +178,6 @@
                             <input wire:model="desc" type="text"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white"
                                 placeholder="Masukkan deskripsi kategori">
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <input wire:model="is_active" type="checkbox" id="is_active"
-                                class="h-4 w-4 text-blue-600 border-gray-300 rounded dark:bg-zinc-800 dark:border-zinc-600">
-                            <label for="is_active" class="text-sm font-medium dark:text-white">Active</label>
                         </div>
                     </div>
                 </div>

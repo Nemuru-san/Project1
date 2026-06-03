@@ -4,13 +4,14 @@ namespace App\Livewire\Inventory\MasterProduct;
 
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Inventory\Product\Product;
-use App\Models\Inventory\Product\ProductCategory;
-use App\Models\Inventory\Product\ProductUnit;
-use App\Models\Inventory\Product\ProductPrice;
+use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Models\ProductUnit;
+use App\Models\ProductPrice;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\WithFileUploads;
 
 class ProductMaster extends Component
@@ -19,7 +20,6 @@ class ProductMaster extends Component
 
     // ── Table state ────────────────────────────────────────────────────────────
     public string $search        = '';
-    public string $statusFilter  = '';
     public int    $perPage       = 10;
     public string $sortField     = 'created_at';
     public string $sortDirection = 'desc';
@@ -37,7 +37,6 @@ class ProductMaster extends Component
     public string $desc      = '';
     public ?int   $category_id = null;
     public string $brand     = '';
-    public bool   $is_active = true;
 
     public $image = null;
     public ?string $existingImage = null;
@@ -64,13 +63,11 @@ class ProductMaster extends Component
 
     private function loadDropdowns(): void
     {
-        $this->categories = ProductCategory::where('is_active', true)
-            ->orderBy('name')
+        $this->categories = ProductCategory::orderBy('name')
             ->get(['id', 'name'])
             ->toArray();
 
-        $this->units = ProductUnit::where('is_active', true)
-            ->orderBy('name')
+        $this->units = ProductUnit::orderBy('name')
             ->get(['id', 'code', 'name'])
             ->toArray();
     }
@@ -81,11 +78,13 @@ class ProductMaster extends Component
     {
         $this->resetPage();
     }
-    public function updatingStatusFilter(): void
+
+    public function updatingShowTrashed(): void
     {
         $this->resetPage();
     }
-    public function updatingShowTrashed(): void
+
+    public function updatingPerPage(): void
     {
         $this->resetPage();
     }
@@ -119,7 +118,6 @@ class ProductMaster extends Component
         $this->desc        = $product->desc     ?? '';
         $this->category_id = $product->category_id;
         $this->brand       = $product->brand    ?? '';
-        $this->is_active   = $product->is_active;
         $this->existingImage = $product->image;
         $this->image = null;
 
@@ -144,12 +142,26 @@ class ProductMaster extends Component
     public function save(): void
     {
         $this->validate([
-            'sku'         => 'required|string|max:100',
-            'name'        => 'required|string|max:255',
+            'sku' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('products', 'sku')
+                    ->whereNull('deleted_at')
+                    ->ignore($this->editingId),
+            ],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('products', 'name')
+                    ->whereNull('deleted_at')
+                    ->ignore($this->editingId),
+            ],
             'category_id' => 'required|integer|exists:product_categories,id',
             'brand'       => 'nullable|string|max:255',
             'desc'        => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
+            'image'       => 'nullable|image|max:2048',
         ]);
 
         $rows = json_decode($this->priceRowsJson, true) ?? [];
@@ -185,7 +197,6 @@ class ProductMaster extends Component
                 'desc'        => $this->desc,
                 'category_id' => $this->category_id,
                 'brand'       => $this->brand,
-                'is_active'   => $this->is_active,
                 'created_by'  => Auth::id(),
             ];
 
@@ -232,20 +243,6 @@ class ProductMaster extends Component
         $this->dispatch('toast', message: 'Produk berhasil dihapus.', type: 'success');
     }
 
-    public function restore(int $id): void
-    {
-        Product::withTrashed()->findOrFail($id)->restore();
-        $this->dispatch('toast', message: 'Produk berhasil dipulihkan.', type: 'success');
-    }
-
-    public function forceDelete(int $id): void
-    {
-        $product = Product::withTrashed()->findOrFail($id);
-        $product->prices()->forceDelete();
-        $product->forceDelete();
-        $this->dispatch('toast', message: 'Produk dihapus permanen.', type: 'success');
-    }
-
     public function openDetail(int $id): void
     {
         $product = Product::with(['category', 'prices.unit'])->findOrFail($id);
@@ -256,7 +253,6 @@ class ProductMaster extends Component
             'name'        => $product->name,
             'desc'        => $product->desc,
             'brand'       => $product->brand,
-            'is_active'   => $product->is_active,
             'image'       => $product->image,
             'category'    => $product->category?->name,
             'created_at'  => $product->created_at?->format('d M Y'),
@@ -290,7 +286,6 @@ class ProductMaster extends Component
         $this->desc         = '';
         $this->category_id  = null;
         $this->brand        = '';
-        $this->is_active    = true;
 
         $this->priceRowsJson = $this->defaultPriceRowsJson();
 
@@ -304,20 +299,26 @@ class ProductMaster extends Component
 
     public function render()
     {
-        $query = Product::with('category')
-            ->when($this->showTrashed, fn($q) => $q->withTrashed())
-            ->when($this->search, function ($q) {
-                $q->where(function ($inner) {
-                    $inner->where('sku', 'like', "%{$this->search}%")
-                        ->orWhere('name', 'like', "%{$this->search}%")
-                        ->orWhere('brand', 'like', "%{$this->search}%");
-                });
-            })
-            ->when($this->statusFilter !== '', fn($q) => $q->where('is_active', (bool) $this->statusFilter))
-            ->orderBy($this->sortField, $this->sortDirection);
+        $query = Product::with('category');
+
+        if ($this->showTrashed) {
+            $query->withTrashed();
+        }
+
+        if ($this->search) {
+            $query->where(function ($inner) {
+                $inner->where('sku', 'like', '%' . $this->search . '%')
+                    ->orWhere('name', 'like', '%' . $this->search . '%')
+                    ->orWhere('brand', 'like', '%' . $this->search . '%');
+            });
+        }
+
+        $products = $query
+            ->orderBy($this->sortField, $this->sortDirection)
+            ->paginate($this->perPage);
 
         return view('livewire.inventory.master-product.product-master', [
-            'products' => $query->paginate($this->perPage),
+            'products' => $products,
         ]);
     }
 }

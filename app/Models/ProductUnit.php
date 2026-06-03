@@ -1,17 +1,16 @@
 <?php
 
-namespace App\Models\Inventory\Product;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductUnit extends Model
 {
-    protected $fillable = ['code', 'name', 'is_active'];
+    use SoftDeletes;
 
-    protected $casts = [
-        'is_active' => 'boolean',
-    ];
+    protected $fillable = ['code', 'name'];
 
     public function productPrices(): HasMany
     {

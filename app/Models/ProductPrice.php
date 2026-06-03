@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Models\Inventory\Product;
+namespace App\Models;
 
-use App\Models\Inventory\Product\ProductUnit as ProductProductUnit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -27,6 +26,6 @@ class ProductPrice extends Model
 
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(ProductProductUnit::class);
+        return $this->belongsTo(ProductUnit::class);
     }
 }

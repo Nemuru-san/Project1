@@ -2,44 +2,61 @@
 
 use Illuminate\Support\Facades\Route;
 
+// Route::get('/', function () {
+//     return view('welcome');
+// })->name('home');
+
 Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+    return redirect()->route('login');
+})->middleware('guest')->name('home');
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::view('dashboard', 'dashboard')
+        ->name('dashboard');
 
-Route::get('purchases/master/supplier', function () {
-    return view('pages.purchase.supplier.supplier');
-})->name('purchases.master.supplier');
+    // Purchasing - Master
+    Route::get('purchases/master/supplier', function () {
+        return view('pages.purchase.supplier.supplier-manager');
+    })->name('purchases.master.supplier');
 
-Route::get('purchases/transaction/purchase-order', function () {
-    return view('pages.purchase.purchaseOrder.purchaseOrder');
-})->name('purchases.transaction.purchase-order');
+    // Purchasing - Transaction
+    Route::get('purchases/transaction/purchase-order', function () {
+        return view('pages.purchase.purchaseOrder.purchaseOrder');
+    })->name('purchases.transaction.purchase-order');
 
-Route::get('purchases/transaction/good-receive', function () {
-    return view('pages.purchase.goodReceive.goodReceive');
-})->name('purchases.transaction.good-receive');
+    Route::get('purchases/transaction/good-receive', function () {
+        return view('pages.purchase.goodReceive.goodReceive');
+    })->name('purchases.transaction.good-receive');
 
-Route::get('purchases/transaction/purchase-invoice', function () {
-    return view('pages.purchase.purchaseInvoice.purchaseInvoice');
-})->name('purchases.transaction.purchase-invoice');
+    Route::get('purchases/transaction/purchase-invoice', function () {
+        return view('pages.purchase.purchaseInvoice.purchaseInvoice');
+    })->name('purchases.transaction.purchase-invoice');
 
-Route::get('inventory/master/product-master', function () {
-    return view('pages.inventory.productMaster.productMaster');
-})->name('inventory.product.productMaster');
+    // Inventory - Master
+    Route::get('inventory/master/product-master', function () {
+        return view('pages.inventory.productMaster.productMaster');
+    })->name('inventory.product.productMaster');
 
-Route::get('inventory/master/product-category', function () {
-    return view('pages.inventory.productMaster.productCategory');
-})->name('inventory.product.productCategory');
+    Route::get('inventory/master/product-category', function () {
+        return view('pages.inventory.productMaster.productCategory');
+    })->name('inventory.product.productCategory');
 
-Route::get('inventory/master/uom', function () {
-    return view('pages.inventory.productMaster.uom');
-})->name('inventory.product.uom');
+    Route::get('inventory/master/uom', function () {
+        return view('pages.inventory.productMaster.uom');
+    })->name('inventory.product.uom');
 
-Route::get('inventory/master/warehouse', function () {
-    return view('pages.inventory.masterSecurity.warehouse');
-})->name('inventory.product.warehouse');
+    Route::get('inventory/master/warehouse', function () {
+        return view('pages.inventory.masterSecurity.warehouse');
+    })->name('inventory.product.warehouse');
+
+    // User
+    Route::get('user/action/user', function () {
+        return view('pages.users.user');
+    })->name('user.action.user');
+
+    Route::get('user/action/role-user', function () {
+        return view('pages.users.role-user');
+    })->name('user.action.role');
+});
 
 require __DIR__ . '/settings.php';

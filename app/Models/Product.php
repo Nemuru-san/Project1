@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models\Inventory\Product;
+namespace App\Models;
 
-use App\Models\Inventory\Product\ProductPrice as ProductProductPrice;
+use App\Models\ProductPrice;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -21,12 +21,7 @@ class Product extends Model
         'category_id',
         'brand',
         'barcode',
-        'is_active',
         'created_by',
-    ];
-
-    protected $casts = [
-        'is_active' => 'boolean',
     ];
 
     public function category(): BelongsTo
@@ -36,6 +31,6 @@ class Product extends Model
 
     public function prices(): HasMany
     {
-        return $this->hasMany(ProductProductPrice::class);
+        return $this->hasMany(ProductPrice::class);
     }
 }

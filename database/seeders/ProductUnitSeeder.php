@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Inventory\Product\ProductUnit;
+use App\Models\ProductUnit;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -18,7 +18,6 @@ class ProductUnitSeeder extends Seeder
             [
                 'code' => 'PCS',
                 'name' => 'Eceran',
-                'is_active' => true,
             ]
         );
     }

@@ -33,7 +33,6 @@
                 <option value="Approved">Approved</option>
                 <option value="Partially Received">Partially Received</option>
                 <option value="Received">Received</option>
-                <option value="Canceled">Canceled</option>
             </select>
             {{-- Per Page --}}
             <select wire:model.live="perPage"
@@ -117,21 +116,29 @@
                         </td>
                         <td class="px-4 py-4">
                             @if ($po->trashed())
-                                <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded dark:bg-zinc-600 dark:text-white">Terhapus</span>
+                                <span class="text-sm font-normal px-2.5 py-0.5 rounded dark:bg-red-700 dark:text-white">
+                                    Terhapus
+                                </span>
                             @elseif ($po->status === 'Draft')
                                 <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-gray-200 text-gray-700 dark:bg-zinc-600 dark:text-white">Draft</span>
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-gray-200 text-gray-700 dark:bg-zinc-600 dark:text-white">
+                                    Draft
+                                </span>
                             @elseif ($po->status === 'Approved')
                                 <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-700 dark:text-white">Approved</span>
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-700 dark:text-white">
+                                    Approved
+                                </span>
                             @elseif ($po->status === 'Received')
                                 <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-700 dark:text-white">Received</span>
-                            @elseif ($po->status === 'Canceled')
-                                <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-700 dark:text-white">Canceled</span>
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-700 dark:text-white">
+                                    Received
+                                </span>
                             @elseif ($po->status === 'Partially Received')
+                                <span
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-yellow-100 text-yellow-700 dark:bg-yellow-600 dark:text-white">
+                                    Partially Received
+                                </span>
                             @endif
                         </td>
                         <td class="px-4 py-4">
@@ -158,10 +165,14 @@
                                 <div x-show="open" x-cloak :style="`position: fixed; top: ${top}px; left: ${left}px;`"
                                     class="z-50 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
 
-                                    <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
-                                        @php $locked = in_array($po->status, ['Approved', 'Received', 'Partially Received']); @endphp
+                                    @php $locked = in_array($po->status, ['Approved', 'Received', 'Partially Received']); @endphp
 
-                                        @if (!$po->trashed())
+                                    @if ($po->trashed())
+                                        <div class="px-4 py-2 text-sm text-gray-400">
+                                            Data sudah terhapus
+                                        </div>
+                                    @else
+                                        <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
                                             <li>
                                                 <button wire:click="openDetail({{ $po->id }})"
                                                     @click="open = false"
@@ -177,6 +188,7 @@
                                                     Detail
                                                 </button>
                                             </li>
+
                                             <li>
                                                 <button
                                                     @if (!$locked) wire:click="openEdit({{ $po->id }})" @endif
@@ -191,38 +203,9 @@
                                                     Edit
                                                 </button>
                                             </li>
-                                        @else
-                                            <li>
-                                                <button wire:click="restore({{ $po->id }})"
-                                                    @click="open = false"
-                                                    class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                                    </svg>
-                                                    Pulihkan
-                                                </button>
-                                            </li>
-                                        @endif
-                                    </ul>
+                                        </ul>
 
-                                    <div class="py-1">
-                                        @if ($po->trashed())
-                                            <button wire:click="forceDelete({{ $po->id }})"
-                                                wire:confirm="Hapus permanen? Data tidak dapat dikembalikan."
-                                                @click="open = false"
-                                                class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                                Hapus Permanen
-                                            </button>
-                                        @else
+                                        <div class="py-1">
                                             <button
                                                 @if (!$locked) wire:click="confirmDelete({{ $po->id }})" @endif
                                                 @click="open = false" @disabled($locked)
@@ -235,8 +218,8 @@
                                                 </svg>
                                                 Delete
                                             </button>
-                                        @endif
-                                    </div>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </td>
@@ -663,7 +646,6 @@
                                             'Draft' => 'bg-zinc-600 text-white',
                                             'Approved' => 'bg-blue-700 text-white',
                                             'Received' => 'bg-green-700 text-white',
-                                            'Canceled' => 'bg-red-700 text-white',
                                             'Tagihan' => 'bg-yellow-600 text-white',
                                             'Bayar Full' => 'bg-emerald-700 text-white',
                                             'Bayar Setengah' => 'bg-orange-600 text-white',
@@ -747,7 +729,7 @@
                         </div>
                     </div>
 
-                    @if (in_array($selectedPO->status, ['Draft', 'Approved', 'Canceled']))
+                    @if (in_array($selectedPO->status, ['Draft', 'Approved']))
                         <div class="border-t dark:border-zinc-700 pt-5">
                             <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Ubah Status</h4>
                             <div class="flex items-center gap-3">
@@ -755,7 +737,6 @@
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white w-48">
                                     <option value="Draft">Draft</option>
                                     <option value="Approved">Approved</option>
-                                    <option value="Canceled">Canceled</option>
                                 </select>
                                 <button wire:click="updateStatus" wire:loading.attr="disabled"
                                     class="px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium disabled:opacity-50 cursor-pointer">
@@ -784,7 +765,7 @@
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
             <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl p-6 w-full max-w-sm">
                 <h3 class="text-lg font-semibold dark:text-white mb-2">Hapus Purchase Order?</h3>
-                <p class="text-sm text-gray-400 mb-6">Data akan dipindahkan ke tempat sampah dan bisa dipulihkan.</p>
+                <p class="text-sm text-gray-400 mb-6">Data akan dipindahkan ke tempat sampah.</p>
                 <div class="flex justify-end gap-3">
                     <button wire:click="$set('showDeleteModal', false)"
                         class="px-4 py-2 text-sm rounded-lg border border-gray-600 dark:text-gray-300 hover:bg-zinc-700">

@@ -15,12 +15,7 @@ class Supplier extends Model
         'code',
         'name',
         'address',
-        'status',
         'contact',
         'created_by',
-    ];
-
-    protected $casts = [
-        'status' => 'boolean',
     ];
 }

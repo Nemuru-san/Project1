@@ -91,14 +91,6 @@
                     placeholder="Cari SKU, nama, brand..." />
             </div>
 
-            {{-- Status Filter --}}
-            <select wire:model.live="statusFilter"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-3 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
-                <option value="">Semua Status</option>
-                <option value="1">Active</option>
-                <option value="0">Inactive</option>
-            </select>
-
             {{-- Per Page --}}
             <select wire:model.live="perPage"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-3 py-2.5 w-full sm:w-auto">
@@ -128,7 +120,7 @@
     {{-- ═══════════════════════ TABLE ═══════════════════════ --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
         <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-lg font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+            <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 w-12">No</th>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('sku')">
@@ -153,7 +145,7 @@
                     <th class="px-4 py-4">Aksi</th>
                 </tr>
             </thead>
-            <tbody class="dark:bg-zinc-950 text-base text-white">
+            <tbody class="dark:bg-zinc-950 text-base">
                 @forelse($products as $index => $product)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $product->trashed() ? 'opacity-50' : '' }}">
@@ -166,14 +158,13 @@
                         <td class="px-4 py-4">{{ $product->brand ?: '-' }}</td>
                         <td class="px-4 py-4">
                             @if ($product->trashed())
-                                <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded dark:bg-zinc-600 dark:text-white">Terhapus</span>
-                            @elseif($product->is_active)
-                                <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded dark:bg-green-700 dark:text-white">Active</span>
+                                <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-700 text-white">
+                                    Terhapus
+                                </span>
                             @else
-                                <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded dark:bg-zinc-600 dark:text-white">Inactive</span>
+                                <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-green-700 text-white">
+                                    Aktif
+                                </span>
                             @endif
                         </td>
                         <td class="px-4 py-4">
@@ -200,9 +191,12 @@
                                 <div x-show="open" x-cloak :style="`position: fixed; top: ${top}px; left: ${left}px;`"
                                     class="z-50 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
 
-                                    {{-- Group 1: Detail & Edit --}}
-                                    <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
-                                        @if (!$product->trashed())
+                                    @if ($product->trashed())
+                                        <div class="px-4 py-2 text-sm text-gray-400">
+                                            Data sudah terhapus
+                                        </div>
+                                    @else
+                                        <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
                                             <li>
                                                 <button wire:click="openDetail({{ $product->id }})"
                                                     @click="open = false"
@@ -218,6 +212,7 @@
                                                     Detail
                                                 </button>
                                             </li>
+
                                             <li>
                                                 <button wire:click="openEdit({{ $product->id }})" @click="open = false"
                                                     class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
@@ -230,39 +225,9 @@
                                                     Edit
                                                 </button>
                                             </li>
-                                        @else
-                                            <li>
-                                                <button wire:click="restore({{ $product->id }})"
-                                                    @click="open = false"
-                                                    class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                                    </svg>
-                                                    Pulihkan
-                                                </button>
-                                            </li>
-                                        @endif
-                                    </ul>
+                                        </ul>
 
-                                    {{-- Group 2: Delete --}}
-                                    <div class="py-1">
-                                        @if ($product->trashed())
-                                            <button wire:click="forceDelete({{ $product->id }})"
-                                                wire:confirm="Hapus permanen? Data tidak dapat dikembalikan."
-                                                @click="open = false"
-                                                class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                                Hapus Permanen
-                                            </button>
-                                        @else
+                                        <div class="py-1">
                                             <button wire:click="confirmDelete({{ $product->id }})"
                                                 @click="open = false"
                                                 class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
@@ -274,9 +239,8 @@
                                                 </svg>
                                                 Delete
                                             </button>
-                                        @endif
-                                    </div>
-
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </td>
@@ -435,15 +399,6 @@
                                     placeholder="Deskripsi produk (opsional)"></textarea>
                             </div>
 
-                            {{-- Is Active --}}
-                            <div class="sm:col-span-2 flex items-center gap-3">
-                                <input wire:model="is_active" type="checkbox" id="is_active_modal"
-                                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:bg-zinc-700 dark:border-zinc-600">
-                                <label for="is_active_modal"
-                                    class="text-sm font-medium text-gray-900 dark:text-white">
-                                    Produk Aktif
-                                </label>
-                            </div>
                         </div>
                     </div>
 
@@ -668,16 +623,6 @@
                                         {{ $detailProduct['brand'] }}
                                     </span>
                                 @endif
-                                <span @class([
-                                    'px-2 py-0.5 text-xs rounded-full',
-                                    'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' =>
-                                        $detailProduct['is_active'],
-                                    'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400' => !$detailProduct[
-                                        'is_active'
-                                    ],
-                                ])>
-                                    {{ $detailProduct['is_active'] ? 'Active' : 'Inactive' }}
-                                </span>
                             </div>
                         </div>
                     </div>

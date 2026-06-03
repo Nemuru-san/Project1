@@ -4,40 +4,40 @@ namespace App\Livewire\Inventory\MasterProduct;
 
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Inventory\Product\ProductUnit;
+use Illuminate\Validation\Rule;
+use App\Models\ProductUnit;
 
 class Uom extends Component
 {
     use WithPagination;
 
-    // Table state
     public string $search = '';
     public int $perPage = 10;
     public string $sortField = 'created_at';
     public string $sortDirection = 'desc';
 
-    // Modal state
+    public bool $showTrashed = false;
+
     public bool $showModal = false;
     public bool $showDeleteModal = false;
     public ?int $deleteTargetId = null;
 
-    // Form fields
     public ?int $editingId = null;
     public string $code = '';
     public string $name = '';
-    public bool $is_active = true;
 
     protected function rules(): array
     {
-        $uniqueCode = 'required|string|max:50|unique:product_units,code';
-        if ($this->editingId) {
-            $uniqueCode .= ',' . $this->editingId;
-        }
-
         return [
-            'code'      => $uniqueCode,
-            'name'      => 'required|string|max:255',
-            'is_active' => 'boolean',
+            'code' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('product_units', 'code')
+                    ->whereNull('deleted_at')
+                    ->ignore($this->editingId),
+            ],
+            'name' => 'required|string|max:255',
         ];
     }
 
@@ -52,11 +52,22 @@ class Uom extends Component
         $this->resetPage();
     }
 
+    public function updatingPerPage(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingShowTrashed(): void
+    {
+        $this->resetPage();
+    }
+
     public function sortBy(string $field): void
     {
         $this->sortDirection = $this->sortField === $field
             ? ($this->sortDirection === 'asc' ? 'desc' : 'asc')
             : 'asc';
+
         $this->sortField = $field;
     }
 
@@ -68,11 +79,11 @@ class Uom extends Component
 
     public function openEdit(int $id): void
     {
-        $unit            = ProductUnit::findOrFail($id);
+        $unit = ProductUnit::findOrFail($id);
+
         $this->editingId = $unit->id;
-        $this->code      = $unit->code;
-        $this->name      = $unit->name;
-        $this->is_active = (bool) $unit->is_active;
+        $this->code = $unit->code;
+        $this->name = $unit->name;
         $this->showModal = true;
     }
 
@@ -82,9 +93,11 @@ class Uom extends Component
 
         if ($this->editingId) {
             ProductUnit::findOrFail($this->editingId)->update($validated);
+
             $this->dispatch('toast', message: 'UOM berhasil diperbarui.', type: 'success');
         } else {
             ProductUnit::create($validated);
+
             $this->dispatch('toast', message: 'UOM berhasil ditambahkan.', type: 'success');
         }
 
@@ -94,7 +107,13 @@ class Uom extends Component
 
     public function confirmDelete(int $id): void
     {
-        $this->deleteTargetId  = $id;
+        $unit = ProductUnit::findOrFail($id);
+
+        if ($unit->trashed()) {
+            return;
+        }
+
+        $this->deleteTargetId = $id;
         $this->showDeleteModal = true;
     }
 
@@ -102,25 +121,30 @@ class Uom extends Component
     {
         if ($this->deleteTargetId) {
             ProductUnit::findOrFail($this->deleteTargetId)->delete();
+
             $this->dispatch('toast', message: 'UOM berhasil dihapus.', type: 'success');
         }
 
         $this->showDeleteModal = false;
-        $this->deleteTargetId  = null;
+        $this->deleteTargetId = null;
     }
 
     private function resetForm(): void
     {
         $this->editingId = null;
-        $this->code      = '';
-        $this->name      = '';
-        $this->is_active = true;
+        $this->code = '';
+        $this->name = '';
+
         $this->resetValidation();
     }
 
     public function render()
     {
         $query = ProductUnit::query();
+
+        if ($this->showTrashed) {
+            $query->withTrashed();
+        }
 
         if ($this->search) {
             $query->where(function ($q) {

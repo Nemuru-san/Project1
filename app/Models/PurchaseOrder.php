@@ -1,9 +1,7 @@
 <?php
 
-namespace App\Models\Purchase\Transaction;
+namespace App\Models;
 
-use App\Models\Supplier;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -38,7 +36,6 @@ class PurchaseOrder extends Model
     const STATUS_APPROVED        = 'Approved';
     const STATUS_RECEIVED        = 'Received';
     const STATUS_PARTIALLY_RECEIVED = 'Partially Received';
-    const STATUS_CANCELED        = 'Canceled';
 
     public static function statusOptions(): array
     {
@@ -47,7 +44,6 @@ class PurchaseOrder extends Model
             self::STATUS_APPROVED,
             self::STATUS_RECEIVED,
             self::STATUS_PARTIALLY_RECEIVED,
-            self::STATUS_CANCELED,
         ];
     }
 

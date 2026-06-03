@@ -4,43 +4,59 @@ namespace App\Livewire\Inventory\MasterProduct;
 
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Inventory\Product\ProductCategory as ProductCategoryModel;
+use Illuminate\Validation\Rule;
+use App\Models\ProductCategory as ProductCategoryModel;
 
 class ProductCategory extends Component
 {
     use WithPagination;
 
-    // Table state
     public string $search = '';
     public int $perPage = 10;
     public string $sortField = 'created_at';
     public string $sortDirection = 'desc';
 
-    // Modal state
+    public bool $showTrashed = false;
+
     public bool $showModal = false;
     public bool $showDeleteModal = false;
     public ?int $deleteTargetId = null;
 
-    // Form fields
     public ?int $editingId = null;
     public string $name = '';
     public string $desc = '';
-    public bool $is_active = true;
 
     protected function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('product_categories', 'name')
+                    ->whereNull('deleted_at')
+                    ->ignore($this->editingId),
+            ],
             'desc' => 'nullable|string|max:500',
-            'is_active' => 'boolean',
         ];
     }
 
     protected array $messages = [
         'name.required' => 'Nama category wajib diisi.',
+        'name.unique' => 'Nama category sudah digunakan.',
     ];
 
     public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingShowTrashed(): void
     {
         $this->resetPage();
     }
@@ -50,6 +66,7 @@ class ProductCategory extends Component
         $this->sortDirection = $this->sortField === $field
             ? ($this->sortDirection === 'asc' ? 'desc' : 'asc')
             : 'asc';
+
         $this->sortField = $field;
     }
 
@@ -61,11 +78,11 @@ class ProductCategory extends Component
 
     public function openEdit(int $id): void
     {
-        $category        = ProductCategoryModel::findOrFail($id);
+        $category = ProductCategoryModel::findOrFail($id);
+
         $this->editingId = $category->id;
-        $this->name      = $category->name;
-        $this->desc      = $category->desc ?? '';
-        $this->is_active = (bool) $category->is_active;
+        $this->name = $category->name;
+        $this->desc = $category->desc ?? '';
         $this->showModal = true;
     }
 
@@ -75,9 +92,11 @@ class ProductCategory extends Component
 
         if ($this->editingId) {
             ProductCategoryModel::findOrFail($this->editingId)->update($validated);
+
             $this->dispatch('toast', message: 'Category berhasil diperbarui.', type: 'success');
         } else {
             ProductCategoryModel::create($validated);
+
             $this->dispatch('toast', message: 'Category berhasil ditambahkan.', type: 'success');
         }
 
@@ -87,7 +106,7 @@ class ProductCategory extends Component
 
     public function confirmDelete(int $id): void
     {
-        $this->deleteTargetId  = $id;
+        $this->deleteTargetId = $id;
         $this->showDeleteModal = true;
     }
 
@@ -95,25 +114,30 @@ class ProductCategory extends Component
     {
         if ($this->deleteTargetId) {
             ProductCategoryModel::findOrFail($this->deleteTargetId)->delete();
+
             $this->dispatch('toast', message: 'Category berhasil dihapus.', type: 'success');
         }
 
         $this->showDeleteModal = false;
-        $this->deleteTargetId  = null;
+        $this->deleteTargetId = null;
     }
 
     private function resetForm(): void
     {
         $this->editingId = null;
-        $this->name      = '';
-        $this->desc      = '';
-        $this->is_active = true;
+        $this->name = '';
+        $this->desc = '';
+
         $this->resetValidation();
     }
 
     public function render()
     {
         $query = ProductCategoryModel::query();
+
+        if ($this->showTrashed) {
+            $query->withTrashed();
+        }
 
         if ($this->search) {
             $query->where(function ($q) {
