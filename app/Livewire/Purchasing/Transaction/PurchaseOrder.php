@@ -30,7 +30,7 @@ class PurchaseOrder extends Component
 
     // ─── Create form ──────────────────────────────────────────────────────────
     public string $date           = '';
-    public int|string $id_supplier = '';
+    public int|string $supplier_id = '';
     public bool $tax              = false;
     public string $purchase_note  = '';
     public array $items           = [];
@@ -44,6 +44,7 @@ class PurchaseOrder extends Component
     // ─── Product modal state ──────────────────────────────────────────────────
     public string $searchProduct      = '';
     public int|string $filterCategory = '';
+    public array $selectedProductIds = [];
 
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -57,13 +58,13 @@ class PurchaseOrder extends Component
     {
         return [
             'date'               => 'required|date|before_or_equal:today',
-            'id_supplier'        => 'required|exists:suppliers,id',
+            'supplier_id'        => 'required|exists:suppliers,id',
             'purchase_note'      => 'nullable|string',
             'items'              => 'required|array|min:1',
-            'items.*.id_product' => 'required|exists:products,id',
-            'items.*.id_price'   => 'required|exists:product_prices,id',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.price_id'   => 'required|exists:product_prices,id',
             'items.*.qty'        => 'required|integer|min:1',
-            'items.*.price'      => 'required|integer|min:0',
+            'items.*.price'      => 'required|numeric|min:0',
             'items.*.disc'       => 'required|integer|min:0',
         ];
     }
@@ -129,17 +130,18 @@ class PurchaseOrder extends Component
 
     public function addProduct(int $productId): void
     {
-        // Cegah duplikat produk (boleh beda satuan, tapi cek id_product saja)
         foreach ($this->items as $item) {
-            if ($item['id_product'] === $productId) {
+            if ((int) $item['product_id'] === $productId) {
                 return;
             }
         }
 
         $product = Product::with(['category', 'prices.unit'])->find($productId);
-        if (!$product || $product->prices->isEmpty()) return;
 
-        // Siapkan list prices untuk dropdown
+        if (!$product || $product->prices->isEmpty()) {
+            return;
+        }
+
         $prices = $product->prices->map(fn($p) => [
             'id'        => $p->id,
             'unit_name' => $p->unit->name,
@@ -149,20 +151,33 @@ class PurchaseOrder extends Component
         $defaultPrice = $product->prices->first();
 
         $this->items[] = [
-            'id_product'   => $product->id,
+            'product_id'   => $product->id,
             'product_code' => $product->sku,
             'product_name' => $product->name,
             'category'     => $product->category?->name ?? '-',
             'prices'       => $prices,
-            'id_price'     => $defaultPrice->id,
+            'price_id'     => $defaultPrice->id,
             'unit_name'    => $defaultPrice->unit->name,
             'qty'          => 1,
-            'price'        => $defaultPrice->price,
+
+            // ini dikosongkan
+            'price'        => '',
             'disc'         => 0,
-            'subtotal'     => $defaultPrice->price,
+            'subtotal'     => 0,
         ];
 
         $this->recalculate();
+    }
+
+    public function addSelectedProducts(): void
+    {
+        foreach ($this->selectedProductIds as $productId) {
+            $this->addProduct((int) $productId);
+        }
+
+        $this->selectedProductIds = [];
+
+        $this->dispatch('toast', message: 'Produk berhasil ditambahkan.', type: 'success');
     }
 
     public function removeItem(int $index): void
@@ -182,18 +197,20 @@ class PurchaseOrder extends Component
 
         if (!isset($this->items[$index])) return;
 
-        // Kalau satuan berubah, update price otomatis
-        if ($field === 'id_price') {
+        if ($field === 'price_id') {
             $priceId = (int) $value;
             $matched = collect($this->items[$index]['prices'])->firstWhere('id', $priceId);
+
             if ($matched) {
-                $this->items[$index]['price']     = $matched['price'];
                 $this->items[$index]['unit_name'] = $matched['unit_name'];
+
+                // price jangan otomatis diisi
+                $this->items[$index]['price'] = '';
             }
         }
 
         $qty   = max(1, (int) ($this->items[$index]['qty']   ?? 1));
-        $price = (int) ($this->items[$index]['price'] ?? 0);
+        $price = (int) ($this->items[$index]['price'] ?: 0);
         $disc  = max(0, (int) ($this->items[$index]['disc']  ?? 0));
         $disc  = min($disc, $price * $qty);
 
@@ -249,7 +266,7 @@ class PurchaseOrder extends Component
 
         $this->editId        = $po->id;
         $this->date          = $po->date->toDateString();
-        $this->id_supplier   = $po->id_supplier;
+        $this->supplier_id   = $po->supplier_id;
         $this->tax           = (bool) $po->tax;
         $this->purchase_note = $po->purchase_note ?? '';
 
@@ -269,13 +286,13 @@ class PurchaseOrder extends Component
             $idPrice = $matchedPrice ? $matchedPrice['id'] : ($prices[0]['id'] ?? null);
 
             return [
-                'id_product'   => $product->id,
+                'product_id'   => $product->id,
                 'product_code' => $product->sku,
                 'product_name' => $product->name,
                 'category'     => $product->category?->name ?? '-',
                 'prices'       => $prices,
-                'id_price'     => $idPrice,
-                'unit_name'    => collect($prices)->firstWhere('id', $item->id_price)['unit_name'] ?? '',
+                'price_id'     => $idPrice,
+                'unit_name'    => collect($prices)->firstWhere('id', $item->price_id)['unit_name'] ?? '',
                 'qty'          => $item->qty,
                 'price'        => $price,
                 'disc'         => $item->disc,
@@ -301,8 +318,8 @@ class PurchaseOrder extends Component
 
                 $data = [
                     'date'          => $this->date,
-                    'id_supplier'   => $this->id_supplier,
-                    'id_user'       => Auth::id(),
+                    'supplier_id'   => $this->supplier_id,
+                    'user_id'       => Auth::id(),
                     'total_price'   => $afterDisc,
                     'tax'           => $this->tax,
                     'purchase_note' => $this->purchase_note,
@@ -322,8 +339,8 @@ class PurchaseOrder extends Component
 
                 foreach ($this->items as $item) {
                     $po->items()->create([
-                        'id_product'  => $item['id_product'],
-                        'id_price'    => $item['id_price'],
+                        'product_id'  => $item['product_id'],
+                        'price_id'    => $item['price_id'],
                         'qty'         => $item['qty'],
                         'total_harga' => $item['subtotal'],
                         'disc'        => $item['disc'],
@@ -344,7 +361,7 @@ class PurchaseOrder extends Component
     private function resetCreateForm(): void
     {
         $this->date          = now()->toDateString();
-        $this->id_supplier   = '';
+        $this->supplier_id   = '';
         $this->tax           = false;
         $this->purchase_note = '';
         $this->items         = [];
@@ -354,6 +371,7 @@ class PurchaseOrder extends Component
         $this->nett          = 0;
         $this->searchProduct  = '';
         $this->filterCategory = '';
+        $this->selectedProductIds = [];
         $this->resetValidation();
         $this->editId = null;
     }

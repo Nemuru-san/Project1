@@ -82,7 +82,8 @@
 
                 <flux:sidebar.group href="#" expandable heading="Report" class="grid"
                     :expanded="request()->routeIs('inventory.report.*')">
-                    <flux:sidebar.item href="#" wire:navigate>Stock Balance</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('inventory.report.stock-balance') }}" wire:navigate>Stock Balance
+                    </flux:sidebar.item>
                     <flux:sidebar.item href="#" wire:navigate>Stock Card</flux:sidebar.item>
                     <flux:sidebar.item href="#" wire:navigate>Stock Movement</flux:sidebar.item>
                 </flux:sidebar.group>

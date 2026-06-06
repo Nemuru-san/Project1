@@ -184,8 +184,8 @@ class ProductMaster extends Component
                 $this->addError('priceRowsJson', "Baris " . ($index + 1) . ": Konversi harus angka positif.");
                 return;
             }
-            if (!is_numeric($row['price']) || (int)$row['price'] < 0) {
-                $this->addError('priceRowsJson', "Baris " . ($index + 1) . ": Harga tidak valid.");
+            if (!is_numeric($row['price']) || (int) $row['price'] <= 0) {
+                $this->addError('priceRowsJson', "Baris " . ($index + 1) . ": Retail Price harus lebih dari 0.");
                 return;
             }
         }

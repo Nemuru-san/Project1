@@ -14,8 +14,8 @@ class PurchaseOrder extends Model
     protected $fillable = [
         'code',
         'date',
-        'id_supplier',
-        'id_user',
+        'supplier_id',
+        'user_id',
         'total_price',
         'tax',
         'purchase_note',
@@ -65,11 +65,11 @@ class PurchaseOrder extends Model
 
     public function supplier(): BelongsTo
     {
-        return $this->belongsTo(Supplier::class, 'id_supplier');
+        return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'id_user');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

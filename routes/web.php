@@ -25,7 +25,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('purchases.transaction.purchase-order');
 
     Route::get('purchases/transaction/good-receive', function () {
-        return view('pages.purchase.goodReceive.goodReceive');
+        return view('pages.purchase.goodsReceive.goodsReceive');
     })->name('purchases.transaction.good-receive');
 
     Route::get('purchases/transaction/purchase-invoice', function () {
@@ -46,8 +46,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('inventory.product.uom');
 
     Route::get('inventory/master/warehouse', function () {
-        return view('pages.inventory.masterSecurity.warehouse');
+        return view('pages.inventory.productMaster.warehouse');
     })->name('inventory.product.warehouse');
+
+    Route::get('inventory/report/stock-balance', function () {
+        return view('pages.inventory.report.stockBalance');
+    })->name('inventory.report.stock-balance');
 
     // User
     Route::get('user/action/user', function () {

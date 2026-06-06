@@ -286,7 +286,7 @@
                 <div class="flex-1 overflow-y-auto px-8 pt-6 pb-10 space-y-8">
 
                     {{-- Validation Errors --}}
-                    @if ($errors->any())
+                    {{-- @if ($errors->any())
                         <div
                             class="bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-400 rounded-lg px-4 py-3 text-sm">
                             <ul class="list-disc list-inside space-y-1">
@@ -295,7 +295,7 @@
                                 @endforeach
                             </ul>
                         </div>
-                    @endif
+                    @endif --}}
 
                     {{-- ── Section: Info Produk ── --}}
                     <div>
@@ -481,7 +481,7 @@
                                             </td>
                                             <td class="border border-gray-200 dark:border-zinc-600 px-3 py-2">
                                                 <input x-model="row.conversion"
-                                                    @input="
+                                                    @change="
                                                         if (index === 0) {
                                                             row.conversion = 1;
                                                         }
@@ -493,7 +493,7 @@
                                             </td>
                                             <td class="border border-gray-200 dark:border-zinc-600 px-3 py-2">
                                                 <input x-model="row.price" @change="syncToWire()" type="number"
-                                                    min="0" placeholder="e.g. 15000"
+                                                    min="1" placeholder="e.g. 15000"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white" />
                                             </td>
                                         </tr>

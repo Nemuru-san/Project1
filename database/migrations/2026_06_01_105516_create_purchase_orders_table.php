@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('code')->unique();
             $table->date('date');
-            $table->foreignId('id_supplier')->constrained('suppliers')->restrictOnDelete();
-            $table->foreignId('id_user')->constrained('users')->restrictOnDelete();
+            $table->foreignId('supplier_id')->constrained('suppliers')->restrictOnDelete();
+            $table->foreignId('user_id')->constrained('users')->restrictOnDelete();
             $table->unsignedBigInteger('total_price')->default(0);
             $table->boolean('tax')->default(false);
             $table->text('purchase_note')->nullable();

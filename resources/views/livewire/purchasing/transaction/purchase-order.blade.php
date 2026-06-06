@@ -283,14 +283,14 @@
                         <div class="w-full">
                             <label
                                 class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Supplier</label>
-                            <select wire:model="id_supplier"
+                            <select wire:model="supplier_id"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                 <option value="">-- Pilih Supplier --</option>
                                 @foreach ($suppliers as $supplier)
                                     <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
                                 @endforeach
                             </select>
-                            @error('id_supplier')
+                            @error('supplier_id')
                                 <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                             @enderror
                         </div>
@@ -386,7 +386,7 @@
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
                                                 {{ $item['category'] }}</td>
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                <select wire:model.live="items.{{ $i }}.id_price"
+                                                <select wire:model.live="items.{{ $i }}.price_id"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-36 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                                     @foreach ($item['prices'] as $p)
                                                         <option value="{{ $p['id'] }}">{{ $p['unit_name'] }}
@@ -396,17 +396,18 @@
                                             </td>
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
                                                 <input type="number" min="1"
-                                                    wire:model.live="items.{{ $i }}.qty"
+                                                    wire:model.live.debounce.200ms="items.{{ $i }}.qty"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-24 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                             </td>
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                <input type="number" min="0"
-                                                    wire:model.live="items.{{ $i }}.price"
+                                                <input type="number" min="1"
+                                                    wire:model.live.debounce.200ms="items.{{ $i }}.price"
+                                                    placeholder="Isi harga"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-28 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                             </td>
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
                                                 <input type="number" min="0"
-                                                    wire:model.live="items.{{ $i }}.disc"
+                                                    wire:model.live.debounce.200ms="items.{{ $i }}.disc"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-28 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                             </td>
                                             <td
@@ -516,40 +517,56 @@
                                         <thead
                                             class="bg-gray-100 font-semibold uppercase text-xs dark:bg-zinc-800 dark:text-gray-200">
                                             <tr>
-                                                <th class="border border-gray-300 dark:border-zinc-700 px-4 py-3">Kode
-                                                </th>
-                                                <th class="border border-gray-300 dark:border-zinc-700 px-4 py-3">Nama
-                                                    Produk</th>
-                                                <th class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
-                                                    Kategori</th>
                                                 <th
-                                                    class="border border-gray-300 dark:border-zinc-700 px-4 py-3 text-center">
-                                                    Pilih</th>
+                                                    class="border border-gray-300 dark:border-zinc-700 px-4 py-3 text-center w-12">
+                                                    Pilih
+                                                </th>
+                                                <th class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
+                                                    Kode
+                                                </th>
+                                                <th class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
+                                                    Nama Produk
+                                                </th>
+                                                <th class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
+                                                    Kategori
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @forelse ($products as $product)
-                                                <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800">
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
-                                                        {{ $product->sku }}</td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
-                                                        {{ $product->name }}</td>
-                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
-                                                        {{ $product->category?->name ?? '-' }}</td>
+                                                @php
+                                                    $alreadyAdded = collect($items)->contains(
+                                                        'product_id',
+                                                        $product->id,
+                                                    );
+                                                @endphp
+
+                                                <tr
+                                                    class="hover:bg-gray-50 dark:hover:bg-zinc-800 {{ $alreadyAdded ? 'opacity-50' : '' }}">
                                                     <td
                                                         class="border border-gray-300 dark:border-zinc-700 px-4 py-3 text-center">
-                                                        <button type="button"
-                                                            wire:click="addProduct({{ $product->id }})"
-                                                            @click="showAddProductModal = false"
-                                                            class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
-                                                            Pilih
-                                                        </button>
+                                                        <input type="checkbox" wire:model.live="selectedProductIds"
+                                                            value="{{ $product->id }}" @disabled($alreadyAdded)
+                                                            class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-zinc-800 dark:border-gray-600">
+                                                    </td>
+
+                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
+                                                        {{ $product->sku }}
+                                                    </td>
+
+                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
+                                                        {{ $product->name }}
+                                                    </td>
+
+                                                    <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
+                                                        {{ $product->category?->name ?? '-' }}
                                                     </td>
                                                 </tr>
                                             @empty
                                                 <tr>
                                                     <td colspan="4" class="px-4 py-8 text-center text-gray-400">
-                                                        Produk tidak ditemukan.</td>
+                                                        Produk tidak ditemukan.
+                                                    </td>
                                                 </tr>
                                             @endforelse
                                         </tbody>
@@ -559,6 +576,19 @@
                                 {{-- Pagination --}}
                                 <div class="mt-2">
                                     {{ $products->links() }}
+                                </div>
+
+                                <div class="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-zinc-700">
+                                    <button type="button" @click="showAddProductModal = false"
+                                        class="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-zinc-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700">
+                                        Batal
+                                    </button>
+
+                                    <button type="button" wire:click="addSelectedProducts"
+                                        @click="showAddProductModal = false"
+                                        class="px-4 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-700 text-white">
+                                        Tambah Produk Terpilih
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -578,7 +608,7 @@
                         <span wire:loading.remove wire:target="save">Simpan</span>
                         <span wire:loading wire:target="save">Menyimpan...</span>
                     </button>
-                    @if ($errors->any())
+                    {{-- @if ($errors->any())
                         <div class="text-red-400 text-xs mr-auto max-w-md">
                             <ul>
                                 @foreach ($errors->all() as $e)
@@ -586,7 +616,7 @@
                                 @endforeach
                             </ul>
                         </div>
-                    @endif
+                    @endif --}}
                 </div>
 
             </div>

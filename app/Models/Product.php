@@ -33,4 +33,14 @@ class Product extends Model
     {
         return $this->hasMany(ProductPrice::class);
     }
+
+    public function stockBalances(): HasMany
+    {
+        return $this->hasMany(StockBalance::class);
+    }
+
+    public function goodsReceiveItems(): HasMany
+    {
+        return $this->hasMany(GoodsReceiveItem::class, 'product_id');
+    }
 }
