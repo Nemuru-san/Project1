@@ -505,7 +505,7 @@
                                         class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 w-full sm:w-60 dark:bg-zinc-800 dark:border-gray-600 dark:text-white text-sm">
                                         <option value="">Semua Kategori</option>
                                         @foreach ($categories as $cat)
-                                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                            <option value="{{ $cat->id }}">{{ $cat->desc }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -559,7 +559,7 @@
                                                     </td>
 
                                                     <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
-                                                        {{ $product->category?->name ?? '-' }}
+                                                        {{ $product->category?->desc ?? '-' }}
                                                     </td>
                                                 </tr>
                                             @empty

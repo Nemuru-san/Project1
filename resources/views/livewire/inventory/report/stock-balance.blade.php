@@ -37,18 +37,7 @@
                 <option value="">Semua Category</option>
                 @foreach ($categories as $category)
                     <option value="{{ $category->id }}">
-                        {{ $category->name }}
-                    </option>
-                @endforeach
-            </select>
-
-            {{-- Product --}}
-            <select wire:model.live="productFilter"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
-                <option value="">Semua Product</option>
-                @foreach ($products as $product)
-                    <option value="{{ $product->id }}">
-                        {{ $product->sku }} - {{ $product->name }}
+                        {{ $category->desc }}
                     </option>
                 @endforeach
             </select>
@@ -125,13 +114,13 @@
                             $product = $row;
                             $balance = $product->stockBalances->first();
                             $quantity = $balance?->quantity ?? 0;
-                            $warehouseName = $selectedWarehouse?->name ?? '-';
+                            $warehouseName = $selectedWarehouse?->desc ?? '-';
                         @endphp
                     @else
                         @php
                             $product = $row->product;
                             $quantity = $row->quantity;
-                            $warehouseName = $row->warehouse?->name ?? '-';
+                            $warehouseName = $row->warehouse?->desc ?? '-';
                         @endphp
                     @endif
 
@@ -149,7 +138,7 @@
                         </td>
 
                         <td class="px-4 py-4 text-gray-900 dark:text-white">
-                            {{ $product?->category?->name ?? '-' }}
+                            {{ $product?->category?->desc ?? '-' }}
                         </td>
 
                         <td class="px-4 py-4 text-gray-900 dark:text-white">

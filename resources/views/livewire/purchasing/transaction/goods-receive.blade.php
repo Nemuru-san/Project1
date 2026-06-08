@@ -406,7 +406,7 @@
                                                     <option value="">-- Pilih Warehouse --</option>
                                                     @foreach ($warehouses as $warehouse)
                                                         <option value="{{ $warehouse->id }}">
-                                                            {{ $warehouse->name }}
+                                                            {{ $warehouse->desc }}
                                                         </option>
                                                     @endforeach
                                                 </select>
