@@ -115,6 +115,14 @@
             {{-- finance --}}
             <flux:sidebar.group icon="presentation-chart-line" href="#" expandable heading="Finance"
                 class="grid" :expanded="request()->routeIs('finance.*')">
+                <flux:sidebar.group href="#" expandable heading="Master" class="grid"
+                    :expanded="request()->routeIs('finance.master.*')">
+                    <flux:sidebar.item href="{{ route('finance.master.chart-of-accounts') }}" wire:navigate>Accounts
+                    </flux:sidebar.item>
+                    <flux:sidebar.item href="#" wire:navigate>Bank</flux:sidebar.item>
+                    <flux:sidebar.item href="#" wire:navigate>Term of Payment</flux:sidebar.item>
+                </flux:sidebar.group>
+
                 <flux:sidebar.group href="#" expandable heading="Transaction" class="grid"
                     :expanded="request()->routeIs('finance.transaction.*')">
                     <flux:sidebar.item href="#" wire:navigate>AP Payment</flux:sidebar.item>

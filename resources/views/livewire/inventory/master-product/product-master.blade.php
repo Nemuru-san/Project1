@@ -174,8 +174,10 @@
                                 left: 0,
                                 toggle($el) {
                                     const rect = $el.getBoundingClientRect();
-                                    this.top = rect.bottom + window.scrollY;
-                                    this.left = rect.left + window.scrollX - 128;
+                            
+                                    this.top = rect.bottom + 6;
+                                    this.left = rect.left - 128;
+                            
                                     this.open = !this.open;
                                 }
                             }">

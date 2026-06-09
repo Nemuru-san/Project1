@@ -20,4 +20,14 @@ class Warehouse extends Model
     {
         return $this->hasMany(StockBalance::class);
     }
+
+    public function goodsReceiveItems(): HasMany
+    {
+        return $this->hasMany(GoodsReceiveItem::class, 'warehouse_id');
+    }
+
+    public function purchaseInvoiceItems(): HasMany
+    {
+        return $this->hasMany(PurchaseInvoiceItem::class, 'warehouse_id');
+    }
 }

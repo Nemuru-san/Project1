@@ -46,4 +46,9 @@ class GoodsReceive extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function purchaseInvoices(): HasMany
+    {
+        return $this->hasMany(PurchaseInvoice::class, 'goods_receive_id');
+    }
 }

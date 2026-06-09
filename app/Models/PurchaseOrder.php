@@ -72,4 +72,9 @@ class PurchaseOrder extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    public function purchaseInvoices(): HasMany
+    {
+        return $this->hasMany(PurchaseInvoice::class, 'purchase_order_id');
+    }
 }

@@ -148,8 +148,10 @@
                                 left: 0,
                                 toggle($el) {
                                     const rect = $el.getBoundingClientRect();
-                                    this.top = rect.bottom + window.scrollY;
-                                    this.left = rect.left + window.scrollX - 128;
+                            
+                                    this.top = rect.bottom + 6;
+                                    this.left = rect.left - 128;
+                            
                                     this.open = !this.open;
                                 }
                             }">
@@ -304,7 +306,7 @@
                                 <div class="relative mx-3">
                                     <input type="checkbox" wire:model.live="tax" class="sr-only peer">
                                     <div
-                                        class="w-9 h-5 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600">
+                                        class="w-9 h-5 bg-red-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-red-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-red-500 after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-red-500 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600">
                                     </div>
                                 </div>
                                 <span

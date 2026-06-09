@@ -53,6 +53,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('pages.inventory.report.stockBalance');
     })->name('inventory.report.stock-balance');
 
+
+    // Finance
+    Route::get('finance/master/accounts', function () {
+        return view('pages.finance.master.chart-of-account');
+    })->name('finance.master.chart-of-accounts');
+
     // User
     Route::get('user/action/user', function () {
         return view('pages.users.user');

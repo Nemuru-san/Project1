@@ -16,4 +16,9 @@ class ProductUnit extends Model
     {
         return $this->hasMany(ProductPrice::class);
     }
+
+    public function purchaseInvoiceItems(): HasMany
+    {
+        return $this->hasMany(PurchaseInvoiceItem::class, 'unit_id');
+    }
 }
