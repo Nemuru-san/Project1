@@ -45,10 +45,9 @@ class PurchaseInvoice extends Model
 
     const STATUS_DRAFT = 'Draft';
     const STATUS_POSTED = 'Posted';
-    const STATUS_CANCELLED = 'Cancelled';
 
     const PAYMENT_UNPAID = 'Unpaid';
-    const PAYMENT_PARTIAL = 'Partial';
+    const PAYMENT_PARTIAL = 'Partial Paid';
     const PAYMENT_PAID = 'Paid';
 
     public static function statusOptions(): array
@@ -56,7 +55,6 @@ class PurchaseInvoice extends Model
         return [
             self::STATUS_DRAFT,
             self::STATUS_POSTED,
-            self::STATUS_CANCELLED,
         ];
     }
 
@@ -67,17 +65,6 @@ class PurchaseInvoice extends Model
             self::PAYMENT_PARTIAL,
             self::PAYMENT_PAID,
         ];
-    }
-
-    protected static function booted(): void
-    {
-        static::deleting(function (PurchaseInvoice $invoice) {
-            $invoice->items()->each(fn($item) => $item->delete());
-        });
-
-        static::restoring(function (PurchaseInvoice $invoice) {
-            $invoice->items()->onlyTrashed()->each(fn($item) => $item->restore());
-        });
     }
 
     public function items(): HasMany

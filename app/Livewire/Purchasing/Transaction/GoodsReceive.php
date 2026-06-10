@@ -9,6 +9,7 @@ use App\Models\StockBalance;
 use App\Models\Warehouse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -28,11 +29,15 @@ class GoodsReceive extends Component
     public bool $showModal = false;
     public bool $showDetailModal = false;
     public bool $showDeleteModal = false;
+    public bool $showReceiveModal = false;
+
     public ?int $deleteTargetId = null;
+    public ?int $receiveTargetId = null;
+
     public bool $showTrashed = false;
-    // public ?array $detail = null;
+    // public bool $showDetail = false;
     public ?GoodsReceiveModel $selectedGR = null;
-    public string $selectedStatus = 'draft';
+    public string $selectedStatus = '';
 
     // Form state
     public ?int $editingId = null;
@@ -135,7 +140,7 @@ class GoodsReceive extends Component
             ])
             ->findOrFail($id);
 
-        if ($goodsReceive->status !== 'draft') {
+        if ($goodsReceive->status !== 'Draft') {
             $this->dispatch(
                 'toast',
                 message: 'Goods Receive hanya bisa diedit saat status draft.',
@@ -228,7 +233,7 @@ class GoodsReceive extends Component
         foreach ($purchaseOrder->items as $poItem) {
             $totalReceived = (int) $poItem->goodsReceiveItems()
                 ->whereHas('goodsReceive', function ($query) {
-                    $query->where('status', 'received');
+                    $query->where('status', 'Received');
                 })
                 ->sum('qty_received');
 
@@ -299,7 +304,7 @@ class GoodsReceive extends Component
             if ($this->editingId) {
                 $goodsReceive = GoodsReceiveModel::with('items')->findOrFail($this->editingId);
 
-                if ($goodsReceive->status !== 'draft') {
+                if ($goodsReceive->status !== 'Draft') {
                     throw ValidationException::withMessages([
                         'items' => 'Goods Receive hanya bisa diedit saat status draft.',
                     ]);
@@ -317,7 +322,7 @@ class GoodsReceive extends Component
                     'date' => $validated['date'],
                     'supplier_id' => $validated['supplier_id'],
                     'purchase_order_id' => $validated['purchase_order_id'],
-                    'status' => 'draft',
+                    'status' => GoodsReceiveModel::STATUS_DRAFT,
                     'note' => $validated['note'] ?? null,
                     'created_by' => Auth::id(),
                 ]);
@@ -377,7 +382,7 @@ class GoodsReceive extends Component
 
             $receivedForItem = $item->goodsReceiveItems
                 ->filter(function ($grItem) {
-                    return $grItem->goodsReceive?->status === 'received';
+                    return $grItem->goodsReceive?->status === 'Received';
                 })
                 ->sum('qty_received');
 
@@ -407,16 +412,14 @@ class GoodsReceive extends Component
 
     public function openDetail(int $id): void
     {
-        $this->selectedGR = GoodsReceiveModel::query()
-            ->with([
-                'supplier',
-                'purchaseOrder',
-                'items.product.category',
-                'items.unit',
-                'items.warehouse',
-            ])
-            ->withTrashed()
-            ->findOrFail($id);
+        $this->selectedGR = GoodsReceiveModel::with([
+            'supplier',
+            'purchaseOrder',
+            'creator',
+            'items.product.category',
+            'items.unit',
+            'items.warehouse',
+        ])->findOrFail($id);
 
         $this->selectedStatus = $this->selectedGR->status;
         $this->showDetailModal = true;
@@ -426,62 +429,132 @@ class GoodsReceive extends Component
     {
         $this->showDetailModal = false;
         $this->selectedGR = null;
-        $this->selectedStatus = 'draft';
-
-        $this->resetValidation();
+        $this->selectedStatus = '';
     }
 
     public function updateStatus(): void
     {
-        if (! $this->selectedGR) {
+        if (!$this->selectedGR) {
             return;
         }
 
-        if (! in_array($this->selectedStatus, ['draft', 'received'], true)) {
-            throw ValidationException::withMessages([
-                'selectedStatus' => 'Status tidak valid.',
-            ]);
-        }
+        $this->validate([
+            'selectedStatus' => [
+                'required',
+                Rule::in(GoodsReceiveModel::statusOptions()),
+            ],
+        ]);
 
-        $goodsReceive = GoodsReceiveModel::query()
-            ->with('items')
-            ->findOrFail($this->selectedGR->id);
+        $goodsReceive = GoodsReceiveModel::with([
+            'items',
+            'purchaseInvoices',
+            'purchaseOrder',
+        ])->findOrFail($this->selectedGR->id);
 
-        if ($goodsReceive->status === 'received') {
-            $this->dispatch('toast', message: 'Goods Receive sudah received dan tidak bisa diubah lagi.', type: 'error');
+        if (!in_array($goodsReceive->status, [
+            GoodsReceiveModel::STATUS_DRAFT,
+            GoodsReceiveModel::STATUS_RECEIVED,
+        ], true)) {
+            $this->addError('selectedStatus', 'Status Goods Receive ini tidak bisa diubah manual.');
             return;
         }
 
-        if ($this->selectedStatus === 'draft') {
-            $this->dispatch('toast', message: 'Status masih draft.', type: 'success');
+        if ($goodsReceive->status === $this->selectedStatus) {
             return;
         }
 
-        DB::transaction(function () use ($goodsReceive) {
-            foreach ($goodsReceive->items as $item) {
-                $stockBalance = StockBalance::firstOrCreate(
-                    [
-                        'warehouse_id' => $item->warehouse_id,
-                        'product_id' => $item->product_id,
-                    ],
-                    [
-                        'quantity' => 0,
-                    ]
-                );
+        if (
+            $goodsReceive->status === GoodsReceiveModel::STATUS_RECEIVED &&
+            $this->selectedStatus === GoodsReceiveModel::STATUS_DRAFT
+        ) {
+            if ($goodsReceive->purchaseInvoices()->exists()) {
+                $this->addError('selectedStatus', 'Goods Receive tidak bisa dikembalikan ke Draft karena sudah memiliki Purchase Invoice.');
+                return;
+            }
+        }
 
-                $stockBalance->increment('quantity', (int) $item->qty_base);
+        if (
+            $goodsReceive->status === GoodsReceiveModel::STATUS_DRAFT &&
+            $this->selectedStatus === GoodsReceiveModel::STATUS_RECEIVED
+        ) {
+            if ($goodsReceive->items()->count() <= 0) {
+                $this->addError('selectedStatus', 'Goods Receive tidak bisa Received karena item masih kosong.');
+                return;
             }
 
-            $goodsReceive->update([
-                'status' => 'received',
-            ]);
+            $invalidItem = $goodsReceive->items->first(function ($item) {
+                return (int) $item->qty_received <= 0;
+            });
 
-            $this->updatePurchaseOrderStatus((int) $goodsReceive->purchase_order_id);
-        });
+            if ($invalidItem) {
+                $this->addError('selectedStatus', 'Goods Receive tidak bisa Received karena masih ada qty received yang 0.');
+                return;
+            }
+        }
 
-        $this->openDetail($goodsReceive->id);
+        $goodsReceive->update([
+            'status' => $this->selectedStatus,
+        ]);
 
-        $this->dispatch('toast', message: 'Goods Receive berhasil di-received. Stok berhasil ditambahkan.', type: 'success');
+        $this->updatePurchaseOrderStatus($goodsReceive->purchase_order_id);
+
+        $this->showDetailModal = false;
+        $this->selectedGR = null;
+        $this->selectedStatus = '';
+
+        $this->dispatch('toast', message: 'Status Goods Receive berhasil diubah.', type: 'success');
+    }
+
+    public function confirmReceive(int $id): void
+    {
+        $goodsReceive = GoodsReceiveModel::with('items')->findOrFail($id);
+
+        if ($goodsReceive->status !== GoodsReceiveModel::STATUS_DRAFT) {
+            $this->dispatch('toast', message: 'Hanya Goods Receive Draft yang bisa di-receive.', type: 'error');
+            return;
+        }
+
+        if ($goodsReceive->items->isEmpty()) {
+            $this->dispatch('toast', message: 'Goods Receive tidak bisa di-receive karena item masih kosong.', type: 'error');
+            return;
+        }
+
+        $this->receiveTargetId = $id;
+        $this->showReceiveModal = true;
+    }
+
+    public function cancelReceive(): void
+    {
+        $this->showReceiveModal = false;
+        $this->receiveTargetId = null;
+    }
+
+    public function receive(): void
+    {
+        if (!$this->receiveTargetId) {
+            return;
+        }
+
+        $goodsReceive = GoodsReceiveModel::with('items')->findOrFail($this->receiveTargetId);
+
+        if ($goodsReceive->status !== GoodsReceiveModel::STATUS_DRAFT) {
+            $this->showReceiveModal = false;
+            $this->receiveTargetId = null;
+
+            $this->dispatch('toast', message: 'Hanya Goods Receive Draft yang bisa di-receive.', type: 'error');
+            return;
+        }
+
+        $goodsReceive->update([
+            'status' => GoodsReceiveModel::STATUS_RECEIVED,
+        ]);
+
+        $this->updatePurchaseOrderStatus($goodsReceive->purchase_order_id);
+
+        $this->showReceiveModal = false;
+        $this->receiveTargetId = null;
+
+        $this->dispatch('toast', message: 'Goods Receive berhasil di-receive.', type: 'success');
     }
 
     public function confirmDelete(int $id): void
@@ -498,7 +571,7 @@ class GoodsReceive extends Component
 
         $goodsReceive = GoodsReceiveModel::findOrFail($this->deleteTargetId);
 
-        if ($goodsReceive->status !== 'draft') {
+        if ($goodsReceive->status !== 'Draft') {
             $this->dispatch(
                 'toast',
                 message: 'Hanya Goods Receive status draft yang boleh dihapus.',
@@ -533,28 +606,24 @@ class GoodsReceive extends Component
 
         $this->showDetailModal = false;
         $this->selectedGR = null;
-        $this->selectedStatus = 'draft';
+        $this->selectedStatus = 'Draft';
 
         $this->resetValidation();
     }
 
     private function generateGrCode(): string
     {
-        $prefix = 'GR/' . now()->format('dmy') . '/';
+        $date   = now()->format('dmy');
+        $prefix = "GR-{$date}-";
 
         $last = GoodsReceiveModel::withTrashed()
             ->where('code', 'like', $prefix . '%')
-            ->orderByDesc('id')
-            ->first();
+            ->orderByDesc('code')
+            ->value('code');
 
-        $nextNumber = 1;
+        $seq = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
 
-        if ($last) {
-            $lastNumber = (int) str_replace($prefix, '', $last->code);
-            $nextNumber = $lastNumber + 1;
-        }
-
-        return $prefix . str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
+        return $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
     }
 
     public function render()

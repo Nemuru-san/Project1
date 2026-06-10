@@ -56,8 +56,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Finance
     Route::get('finance/master/accounts', function () {
-        return view('pages.finance.master.chart-of-account');
+        return view('pages.finance.master.chartOfAccount');
     })->name('finance.master.chart-of-accounts');
+
+    Route::get('finance/master/bank-accounts', function () {
+        return view('pages.finance.master.bankAccount');
+    })->name('finance.master.bank-accounts');
+
+    Route::get('finance/transaction/ap-payment', function () {
+        return view('pages.finance.transaction.apPayment');
+    })->name('finance.transaction.ap-payment');
+
+    Route::get('finance/report/journal-entry', function () {
+        return view('pages.finance.report.journalEntry');
+    })->name('finance.report.journal-entry');
 
     // User
     Route::get('user/action/user', function () {

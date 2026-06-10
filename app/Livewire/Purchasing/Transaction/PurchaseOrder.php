@@ -27,6 +27,8 @@ class PurchaseOrder extends Component
     public bool $showModal       = false;
     public bool $showDeleteModal = false;
     public ?int $deleteTargetId  = null;
+    public bool $showApproveModal = false;
+    public ?int $approveTargetId = null;
 
     // ─── Create form ──────────────────────────────────────────────────────────
     public string $date           = '';
@@ -63,6 +65,8 @@ class PurchaseOrder extends Component
             'items'              => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.price_id'   => 'required|exists:product_prices,id',
+            'items.*.unit_id'    => 'nullable|exists:product_units,id',
+            'items.*.conversion' => 'required|integer|min:1',
             'items.*.qty'        => 'required|integer|min:1',
             'items.*.price'      => 'required|numeric|min:0',
             'items.*.disc'       => 'required|integer|min:0',
@@ -143,9 +147,11 @@ class PurchaseOrder extends Component
         }
 
         $prices = $product->prices->map(fn($p) => [
-            'id'        => $p->id,
-            'unit_name' => $p->unit->name,
-            'price'     => $p->price,
+            'id'         => $p->id,
+            'unit_id'    => $p->unit_id,
+            'unit_name'  => $p->unit?->name ?? '-',
+            'price'      => $p->price,
+            'conversion' => $p->conversion ?? $p->unit?->conversion ?? 1,
         ])->toArray();
 
         $defaultPrice = $product->prices->first();
@@ -157,10 +163,12 @@ class PurchaseOrder extends Component
             'category'     => $product->category?->name ?? '-',
             'prices'       => $prices,
             'price_id'     => $defaultPrice->id,
-            'unit_name'    => $defaultPrice->unit->name,
+            'unit_id'      => $defaultPrice->unit_id,
+            'unit_name'    => $defaultPrice->unit?->name ?? '-',
+            'conversion'   => $defaultPrice->conversion ?? $defaultPrice->unit?->conversion ?? 1,
             'qty'          => 1,
+            'qty_base'     => 1 * ($defaultPrice->conversion ?? $defaultPrice->unit?->conversion ?? 1),
 
-            // ini dikosongkan
             'price'        => '',
             'disc'         => 0,
             'subtotal'     => 0,
@@ -190,33 +198,48 @@ class PurchaseOrder extends Component
     public function updatedItems(mixed $value, string $key): void
     {
         $parts = explode('.', $key);
-        if (count($parts) !== 2) return;
+
+        if (count($parts) !== 2) {
+            return;
+        }
 
         [$index, $field] = $parts;
         $index = (int) $index;
 
-        if (!isset($this->items[$index])) return;
+        if (!isset($this->items[$index])) {
+            return;
+        }
 
         if ($field === 'price_id') {
             $priceId = (int) $value;
-            $matched = collect($this->items[$index]['prices'])->firstWhere('id', $priceId);
+
+            $matched = collect($this->items[$index]['prices'] ?? [])
+                ->firstWhere('id', $priceId);
 
             if ($matched) {
-                $this->items[$index]['unit_name'] = $matched['unit_name'];
+                $this->items[$index]['unit_id'] = $matched['unit_id'] ?? null;
+                $this->items[$index]['unit_name'] = $matched['unit_name'] ?? '-';
+                $this->items[$index]['conversion'] = max(1, (int) ($matched['conversion'] ?? 1));
+                $this->items[$index]['qty_base'] = max(1, (int) ($this->items[$index]['qty'] ?? 1)) * $this->items[$index]['conversion'];
 
-                // price jangan otomatis diisi
+                // harga sengaja dikosongkan karena kamu input manual
                 $this->items[$index]['price'] = '';
             }
         }
 
-        $qty   = max(1, (int) ($this->items[$index]['qty']   ?? 1));
-        $price = (int) ($this->items[$index]['price'] ?: 0);
-        $disc  = max(0, (int) ($this->items[$index]['disc']  ?? 0));
-        $disc  = min($disc, $price * $qty);
+        $qty = max(1, (int) ($this->items[$index]['qty'] ?? 1));
+        $conversion = max(1, (int) ($this->items[$index]['conversion'] ?? 1));
+        $price = max(0, (int) ($this->items[$index]['price'] ?: 0));
+        $disc = max(0, (int) ($this->items[$index]['disc'] ?? 0));
 
-        $this->items[$index]['qty']      = $qty;
-        $this->items[$index]['disc']     = $disc;
-        $this->items[$index]['subtotal'] = ($price * $qty) - $disc;
+        $lineGross = $qty * $price;
+        $disc = min($disc, $lineGross);
+
+        $this->items[$index]['qty'] = $qty;
+        $this->items[$index]['qty_base'] = $qty * $conversion;
+        $this->items[$index]['price'] = $price;
+        $this->items[$index]['disc'] = $disc;
+        $this->items[$index]['subtotal'] = $lineGross - $disc;
 
         $this->recalculate();
     }
@@ -230,18 +253,26 @@ class PurchaseOrder extends Component
 
     private function recalculate(): void
     {
-        $gross = $totalDisc = 0;
+        $gross = 0;
+        $totalDisc = 0;
 
         foreach ($this->items as $item) {
-            $gross     += (int) ($item['price'] ?? 0) * (int) ($item['qty'] ?? 1);
-            $totalDisc += (int) ($item['disc']  ?? 0);
+            $qty = max(1, (int) ($item['qty'] ?? 1));
+            $price = max(0, (int) ($item['price'] ?? 0));
+            $disc = max(0, (int) ($item['disc'] ?? 0));
+
+            $subtotalBeforeDisc = $qty * $price;
+            $disc = min($disc, $subtotalBeforeDisc);
+            $subtotal = $subtotalBeforeDisc - $disc;
+
+            $gross += $subtotal;
+            $totalDisc += $disc;
         }
 
-        $afterDisc       = $gross - $totalDisc;
-        $this->gross     = $gross;
+        $this->gross = $gross;
         $this->totalDisc = $totalDisc;
-        $this->ppn       = $this->tax ? (int) round($afterDisc * 0.11) : 0;
-        $this->nett      = $afterDisc + $this->ppn;
+        $this->ppn = $this->tax ? (int) round($gross * 0.11) : 0;
+        $this->nett = $gross + $this->ppn;
     }
 
     // ─── Generate code ────────────────────────────────────────────────────────
@@ -260,9 +291,80 @@ class PurchaseOrder extends Component
         return $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
     }
 
+    public function confirmApprove(int $id): void
+    {
+        $purchaseOrder = PurchaseOrderModel::with('items')->findOrFail($id);
+
+        if ($purchaseOrder->status !== PurchaseOrderModel::STATUS_DRAFT) {
+            $this->dispatch('toast', message: 'Hanya Purchase Order Draft yang bisa di-approve.', type: 'error');
+            return;
+        }
+
+        if ($purchaseOrder->items->isEmpty()) {
+            $this->dispatch('toast', message: 'Purchase Order tidak bisa di-approve karena item masih kosong.', type: 'error');
+            return;
+        }
+
+        if ((int) $purchaseOrder->nett <= 0) {
+            $this->dispatch('toast', message: 'Purchase Order tidak bisa di-approve karena nett masih 0.', type: 'error');
+            return;
+        }
+
+        $this->approveTargetId = $id;
+        $this->showApproveModal = true;
+    }
+
+    public function cancelApprove(): void
+    {
+        $this->showApproveModal = false;
+        $this->approveTargetId = null;
+    }
+
+    public function approve(): void
+    {
+        if (!$this->approveTargetId) {
+            return;
+        }
+
+        $purchaseOrder = PurchaseOrderModel::with('items')->findOrFail($this->approveTargetId);
+
+        if ($purchaseOrder->status !== PurchaseOrderModel::STATUS_DRAFT) {
+            $this->showApproveModal = false;
+            $this->approveTargetId = null;
+
+            $this->dispatch('toast', message: 'Hanya Purchase Order Draft yang bisa di-approve.', type: 'error');
+            return;
+        }
+
+        if ($purchaseOrder->items->isEmpty()) {
+            $this->showApproveModal = false;
+            $this->approveTargetId = null;
+
+            $this->dispatch('toast', message: 'Purchase Order tidak bisa di-approve karena item masih kosong.', type: 'error');
+            return;
+        }
+
+        if ((int) $purchaseOrder->nett <= 0) {
+            $this->showApproveModal = false;
+            $this->approveTargetId = null;
+
+            $this->dispatch('toast', message: 'Purchase Order tidak bisa di-approve karena nett masih 0.', type: 'error');
+            return;
+        }
+
+        $purchaseOrder->update([
+            'status' => PurchaseOrderModel::STATUS_APPROVED,
+        ]);
+
+        $this->showApproveModal = false;
+        $this->approveTargetId = null;
+
+        $this->dispatch('toast', message: 'Purchase Order berhasil di-approve.', type: 'success');
+    }
+
     public function openEdit(int $id): void
     {
-        $po = PurchaseOrderModel::with(['items.product.prices.unit'])->findOrFail($id);
+        $po = PurchaseOrderModel::with(['items.product.prices.unit', 'items.unit'])->findOrFail($id);
 
         $this->editId        = $po->id;
         $this->date          = $po->date->toDateString();
@@ -275,15 +377,12 @@ class PurchaseOrder extends Component
             if (!$product) return null;
 
             $prices = $product->prices->map(fn($p) => [
-                'id'        => $p->id,
-                'unit_name' => $p->unit->name,
-                'price'     => $p->price,
+                'id'         => $p->id,
+                'unit_id'    => $p->unit_id,
+                'unit_name'  => $p->unit?->name ?? '-',
+                'price'      => $p->price,
+                'conversion' => $p->conversion ?? $p->unit?->conversion ?? 1,
             ])->toArray();
-
-            $price = $item->qty > 0 ? (int)(($item->total_harga + $item->disc) / $item->qty) : 0;
-
-            $matchedPrice = collect($prices)->firstWhere('price', $price);
-            $idPrice = $matchedPrice ? $matchedPrice['id'] : ($prices[0]['id'] ?? null);
 
             return [
                 'product_id'   => $product->id,
@@ -291,10 +390,13 @@ class PurchaseOrder extends Component
                 'product_name' => $product->name,
                 'category'     => $product->category?->name ?? '-',
                 'prices'       => $prices,
-                'price_id'     => $idPrice,
-                'unit_name'    => collect($prices)->firstWhere('id', $item->price_id)['unit_name'] ?? '',
+                'price_id'     => $item->price_id,
+                'unit_id'      => $item->unit_id,
+                'unit_name'    => $item->unit?->name ?? '-',
+                'conversion'   => $item->conversion ?? 1,
                 'qty'          => $item->qty,
-                'price'        => $price,
+                'qty_base'     => $item->qty_base ?? ($item->qty * ($item->conversion ?? 1)),
+                'price'        => $item->price,
                 'disc'         => $item->disc,
                 'subtotal'     => $item->total_harga,
             ];
@@ -310,7 +412,7 @@ class PurchaseOrder extends Component
     {
         $this->validate();
 
-        $isEdit = (bool) $this->editId; // ← simpan dulu sebelum closeModal reset editId
+        $isEdit = (bool) $this->editId;
 
         try {
             DB::transaction(function () {
@@ -328,22 +430,47 @@ class PurchaseOrder extends Component
                 ];
 
                 if ($this->editId) {
-                    $po = PurchaseOrderModel::findOrFail($this->editId);
+                    $po = PurchaseOrderModel::with(['items.goodsReceiveItems', 'items.purchaseInvoiceItems'])
+                        ->findOrFail($this->editId);
+
+                    $alreadyUsed = $po->items->contains(function ($item) {
+                        return $item->goodsReceiveItems->isNotEmpty()
+                            || $item->purchaseInvoiceItems->isNotEmpty();
+                    });
+
+                    if ($alreadyUsed) {
+                        throw new \Exception('PO sudah dipakai di Good Receive / Purchase Invoice, item tidak boleh diubah.');
+                    }
+
                     $po->update($data);
                     $po->items()->delete();
                 } else {
-                    $data['code']   = $this->generateCode();
+                    $data['code'] = $this->generateCode();
                     $data['status'] = PurchaseOrderModel::STATUS_DRAFT;
+
                     $po = PurchaseOrderModel::create($data);
                 }
 
                 foreach ($this->items as $item) {
+                    $qty = max(1, (int) ($item['qty'] ?? 1));
+                    $conversion = max(1, (int) ($item['conversion'] ?? 1));
+                    $price = max(0, (int) ($item['price'] ?: 0));
+                    $disc = max(0, (int) ($item['disc'] ?? 0));
+
+                    $lineGross = $qty * $price;
+                    $disc = min($disc, $lineGross);
+                    $subtotal = $lineGross - $disc;
+
                     $po->items()->create([
                         'product_id'  => $item['product_id'],
                         'price_id'    => $item['price_id'],
-                        'qty'         => $item['qty'],
-                        'total_harga' => $item['subtotal'],
-                        'disc'        => $item['disc'],
+                        'unit_id'     => $item['unit_id'] ?? null,
+                        'qty'         => $qty,
+                        'price'       => $price,
+                        'conversion'  => $conversion,
+                        'qty_base'    => $qty * $conversion,
+                        'total_harga' => $subtotal,
+                        'disc'        => $disc,
                     ]);
                 }
             });
@@ -353,7 +480,12 @@ class PurchaseOrder extends Component
         }
 
         $this->closeModal();
-        $this->dispatch('toast', message: $isEdit ? 'PO berhasil diupdate.' : 'PO berhasil dibuat.', type: 'success');
+
+        $this->dispatch(
+            'toast',
+            message: $isEdit ? 'PO berhasil diupdate.' : 'PO berhasil dibuat.',
+            type: 'success'
+        );
     }
 
     // ─── Reset ────────────────────────────────────────────────────────────────
@@ -389,22 +521,99 @@ class PurchaseOrder extends Component
         $this->selectedPO = null;
     }
 
+    // public function updateStatus(): void
+    // {
+    //     $allowed = [
+    //         PurchaseOrderModel::STATUS_DRAFT,
+    //         PurchaseOrderModel::STATUS_APPROVED,
+    //     ];
+
+    //     $this->validate([
+    //         'selectedStatus' => ['required', \Illuminate\Validation\Rule::in($allowed)],
+    //     ]);
+
+    //     PurchaseOrderModel::findOrFail($this->selectedPO->id)
+    //         ->update(['status' => $this->selectedStatus]);
+
+    //     session()->flash('success', 'Status berhasil diperbarui.');
+    //     $this->closeDetail();
+    // }
+
     public function updateStatus(): void
     {
-        $allowed = [
-            PurchaseOrderModel::STATUS_DRAFT,
-            PurchaseOrderModel::STATUS_APPROVED,
-        ];
+        if (!$this->selectedPO) {
+            return;
+        }
 
         $this->validate([
-            'selectedStatus' => ['required', \Illuminate\Validation\Rule::in($allowed)],
+            'selectedStatus' => 'required|in:Draft,Approved',
         ]);
 
-        PurchaseOrderModel::findOrFail($this->selectedPO->id)
-            ->update(['status' => $this->selectedStatus]);
+        $purchaseOrder = PurchaseOrderModel::with([
+            'items',
+            'goodsReceives',
+            'purchaseInvoices',
+        ])->findOrFail($this->selectedPO->id);
 
-        session()->flash('success', 'Status berhasil diperbarui.');
-        $this->closeDetail();
+        if (!in_array($purchaseOrder->status, [
+            PurchaseOrderModel::STATUS_DRAFT,
+            PurchaseOrderModel::STATUS_APPROVED,
+        ])) {
+            $this->addError('selectedStatus', 'Status PO ini sudah tidak bisa diubah manual.');
+            return;
+        }
+
+        if ($purchaseOrder->status === $this->selectedStatus) {
+            return;
+        }
+
+        if (
+            $purchaseOrder->status === PurchaseOrderModel::STATUS_APPROVED &&
+            $this->selectedStatus === PurchaseOrderModel::STATUS_DRAFT
+        ) {
+            if ($purchaseOrder->goodsReceives()->exists()) {
+                $this->addError('selectedStatus', 'PO tidak bisa dikembalikan ke Draft karena sudah memiliki Goods Receive.');
+                return;
+            }
+
+            if ($purchaseOrder->purchaseInvoices()->exists()) {
+                $this->addError('selectedStatus', 'PO tidak bisa dikembalikan ke Draft karena sudah memiliki Purchase Invoice.');
+                return;
+            }
+        }
+
+        if (
+            $purchaseOrder->status === PurchaseOrderModel::STATUS_DRAFT &&
+            $this->selectedStatus === PurchaseOrderModel::STATUS_APPROVED
+        ) {
+            if ($purchaseOrder->items()->count() <= 0) {
+                $this->addError('selectedStatus', 'PO tidak bisa di-approve karena item masih kosong.');
+                return;
+            }
+
+            if ((int) $purchaseOrder->nett <= 0) {
+                $this->addError('selectedStatus', 'PO tidak bisa di-approve karena nett masih 0.');
+                return;
+            }
+        }
+
+        $purchaseOrder->update([
+            'status' => $this->selectedStatus,
+        ]);
+
+        $this->selectedPO = PurchaseOrderModel::with([
+            'supplier',
+            'user',
+            'items.product',
+            'goodsReceives',
+            'purchaseInvoices',
+        ])->find($purchaseOrder->id);
+
+        $this->showDetail = false;
+        $this->selectedPO = null;
+        $this->selectedStatus = '';
+
+        $this->dispatch('toast', message: 'Status Purchase Order berhasil diubah.', type: 'success');
     }
 
     public function confirmDelete(int $id): void

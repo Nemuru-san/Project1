@@ -64,7 +64,8 @@
             </thead>
             <tbody class="dark:bg-zinc-950 text-base">
                 @forelse ($categories as $cat)
-                    <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                    <tr
+                        class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $cat->trashed() ? 'opacity-50' : '' }}">
                         <td class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white uppercase">
                             {{ $cat->name }}</td>
                         <td class="px-4 py-4 max-w-xs truncate">{{ $cat->desc ?? '-' }}</td>

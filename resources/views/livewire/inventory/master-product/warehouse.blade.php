@@ -89,7 +89,8 @@
 
             <tbody class="dark:bg-zinc-950 text-base">
                 @forelse ($warehouses as $warehouse)
-                    <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                    <tr
+                        class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $warehouse->trashed() ? 'opacity-50' : '' }}">
                         <td class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                             {{ $warehouse->name }}
                         </td>

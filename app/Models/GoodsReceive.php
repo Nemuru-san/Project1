@@ -27,6 +27,17 @@ class GoodsReceive extends Model
         'date' => 'date',
     ];
 
+    const STATUS_DRAFT = 'Draft';
+    const STATUS_RECEIVED = 'Received';
+
+    public static function statusOptions(): array
+    {
+        return [
+            self::STATUS_DRAFT,
+            self::STATUS_RECEIVED,
+        ];
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(GoodsReceiveItem::class, 'goods_receive_id');

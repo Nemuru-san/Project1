@@ -70,7 +70,8 @@
             </thead>
             <tbody class="dark:bg-zinc-950 text-base">
                 @forelse ($units as $unit)
-                    <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                    <tr
+                        class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $unit->trashed() ? 'opacity-50' : '' }}">
                         <td class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white uppercase">
                             {{ $unit->code }}</td>
                         <td class="px-4 py-4 uppercase">{{ $unit->name }}</td>

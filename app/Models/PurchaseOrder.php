@@ -47,17 +47,6 @@ class PurchaseOrder extends Model
         ];
     }
 
-    protected static function booted(): void
-    {
-        static::deleting(function (PurchaseOrder $po) {
-            $po->items()->each(fn($item) => $item->delete());
-        });
-
-        static::restoring(function (PurchaseOrder $po) {
-            $po->items()->onlyTrashed()->each(fn($item) => $item->restore());
-        });
-    }
-
     public function items(): HasMany
     {
         return $this->hasMany(PurchaseOrderItem::class, 'purchase_order_id');
@@ -76,5 +65,10 @@ class PurchaseOrder extends Model
     public function purchaseInvoices(): HasMany
     {
         return $this->hasMany(PurchaseInvoice::class, 'purchase_order_id');
+    }
+
+    public function goodsReceives(): HasMany
+    {
+        return $this->hasMany(GoodsReceive::class, 'purchase_order_id');
     }
 }

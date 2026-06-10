@@ -175,6 +175,22 @@
                                         </div>
                                     @else
                                         <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
+                                            @if ($po->status === 'Draft')
+                                                <li>
+                                                    <button wire:click="confirmApprove({{ $po->id }})"
+                                                        @click="open = false"
+                                                        class="flex items-center gap-2 w-full py-2 px-4 text-blue-700 hover:bg-blue-600 hover:text-white dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white cursor-pointer">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        Approve PO
+                                                    </button>
+                                                </li>
+                                            @endif
+
                                             <li>
                                                 <button wire:click="openDetail({{ $po->id }})"
                                                     @click="open = false"
@@ -787,6 +803,47 @@
                     <button wire:click="closeDetail"
                         class="px-5 py-2 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white text-sm font-medium transition cursor-pointer">
                         Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if ($showApproveModal)
+        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-sm mx-4 p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="p-2 bg-blue-900 rounded-full">
+                        <svg class="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+
+                    <h3 class="text-base font-semibold dark:text-white">
+                        Approve Purchase Order?
+                    </h3>
+                </div>
+
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">
+                    Setelah Purchase Order di-approve, data tidak bisa diedit atau dihapus.
+                    PO akan siap digunakan untuk proses Goods Receive dan Purchase Invoice.
+                </p>
+
+                <div class="flex justify-end gap-2">
+                    <button wire:click="cancelApprove"
+                        class="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 cursor-pointer">
+                        Batal
+                    </button>
+
+                    <button wire:click="approve" wire:loading.attr="disabled"
+                        class="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
+                        <span wire:loading.remove wire:target="approve">
+                            Ya, Approve
+                        </span>
+                        <span wire:loading wire:target="approve">
+                            Meng-approve...
+                        </span>
                     </button>
                 </div>
             </div>
