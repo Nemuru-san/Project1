@@ -53,6 +53,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('pages.inventory.report.stockBalance');
     })->name('inventory.report.stock-balance');
 
+// Inventory - Transaction
+    Route::get('inventory/transaction/transfer-stock', function () {
+        return view('pages.inventory.inventoryTransaction.transferStock');
+    })->name('inventory.transaction.transfer-stock');
+
+    Route::get('inventory/transaction/adjustment-in', function () {
+        return view('pages.inventory.inventoryTransaction.adjustmentIn');
+    })->name('inventory.transaction.adjustment-in');
+
+    Route::get('inventory/transaction/adjustment-out', function () {
+        return view('pages.inventory.inventoryTransaction.adjustmentOut');
+    })->name('inventory.transaction.adjustment-out');
 
     // Finance
     Route::get('finance/master/accounts', function () {

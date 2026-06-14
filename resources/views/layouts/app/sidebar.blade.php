@@ -75,9 +75,9 @@
 
                 <flux:sidebar.group href="#" expandable heading="Inventory Transaction" class="grid"
                     :expanded="request()->routeIs('inventory.transaction.*')">
-                    <flux:sidebar.item href="#" wire:navigate>Transfer Stock</flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Adjustment In</flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Adjustment Out</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('inventory.transaction.transfer-stock') }}" wire:navigate>Transfer Stock</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('inventory.transaction.adjustment-in') }}" wire:navigate>Adjustment In</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('inventory.transaction.adjustment-out') }}" wire:navigate>Adjustment Out</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Report" class="grid"
