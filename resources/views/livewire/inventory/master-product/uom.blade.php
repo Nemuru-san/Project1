@@ -58,7 +58,7 @@
                         </div>
                     </th>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
-                        <div class="flex items-center gap-1">Description
+                        <div class="flex items-center gap-1">Name
                             @if ($sortField === 'name')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
@@ -196,7 +196,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">UOM Description</label>
+                            <label class="block mb-1 text-sm font-medium dark:text-white">UOM Name</label>
                             <input wire:model="name" type="text"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('name') border-red-500 @else border-gray-300 @enderror"
                                 placeholder="Contoh: Pieces">

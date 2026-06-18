@@ -35,6 +35,7 @@ class ProductMaster extends Component
     public string $sku       = '';
     public string $name      = '';
     public string $desc      = '';
+    public string $specification = '';
     public ?int   $category_id = null;
     public string $brand     = '';
 
@@ -115,6 +116,7 @@ class ProductMaster extends Component
         $this->editingId   = $id;
         $this->sku         = $product->sku      ?? '';
         $this->name        = $product->name     ?? '';
+        $this->specification = $product->specification ?? '';
         $this->desc        = $product->desc     ?? '';
         $this->category_id = $product->category_id;
         $this->brand       = $product->brand    ?? '';
@@ -143,7 +145,7 @@ class ProductMaster extends Component
     {
         $this->validate([
             'sku' => [
-                'required',
+                'nullable',
                 'string',
                 'max:100',
                 Rule::unique('products', 'sku')
@@ -158,6 +160,7 @@ class ProductMaster extends Component
                     ->whereNull('deleted_at')
                     ->ignore($this->editingId),
             ],
+            'specification' => 'nullable|string|max:255',
             'category_id' => 'required|integer|exists:product_categories,id',
             'brand'       => 'nullable|string|max:255',
             'desc'        => 'nullable|string',
@@ -192,8 +195,9 @@ class ProductMaster extends Component
 
         DB::transaction(function () use ($rows) {
             $data = [
-                'sku'         => $this->sku,
+                'sku'         => $this->sku ?: null,
                 'name'        => $this->name,
+                'specification' => $this->specification ?: null,
                 'desc'        => $this->desc,
                 'category_id' => $this->category_id,
                 'brand'       => $this->brand,
@@ -251,6 +255,7 @@ class ProductMaster extends Component
             'id'          => $product->id,
             'sku'         => $product->sku,
             'name'        => $product->name,
+            'specification' => $product->specification,
             'desc'        => $product->desc,
             'brand'       => $product->brand,
             'image'       => $product->image,
@@ -283,6 +288,7 @@ class ProductMaster extends Component
     {
         $this->sku          = '';
         $this->name         = '';
+        $this->specification = '';
         $this->desc         = '';
         $this->category_id  = null;
         $this->brand        = '';
@@ -309,6 +315,7 @@ class ProductMaster extends Component
             $query->where(function ($inner) {
                 $inner->where('sku', 'like', '%' . $this->search . '%')
                     ->orWhere('name', 'like', '%' . $this->search . '%')
+                    ->orWhere('specification', 'like', '%' . $this->search . '%')
                     ->orWhere('brand', 'like', '%' . $this->search . '%');
             });
         }

@@ -140,6 +140,7 @@
                         </div>
                     </th>
                     <th class="px-4 py-4">Kategori</th>
+                    <th class="px-4 py-4">Spesifikasi</th>
                     <th class="px-4 py-4">Brand</th>
                     <th class="px-4 py-4">Status</th>
                     <th class="px-4 py-4">Aksi</th>
@@ -155,6 +156,7 @@
                         <td class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                             {{ $product->name }}</td>
                         <td class="px-4 py-4">{{ $product->category?->name ?? '-' }}</td>
+                        <td class="px-4 py-4">{{ $product->specification ?: '-' }}</td>
                         <td class="px-4 py-4">{{ $product->brand ?: '-' }}</td>
                         <td class="px-4 py-4">
                             @if ($product->trashed())
@@ -216,7 +218,8 @@
                                             </li>
 
                                             <li>
-                                                <button wire:click="openEdit({{ $product->id }})" @click="open = false"
+                                                <button wire:click="openEdit({{ $product->id }})"
+                                                    @click="open = false"
                                                     class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
@@ -341,13 +344,13 @@
                             </div>
 
                             {{-- Nama Produk --}}
-                            <div>
+                            <div class="sm:col-span-2">
                                 <label class="block mb-1.5 text-sm font-medium text-gray-900 dark:text-white">
-                                    Product Code <span class="text-red-500">*</span>
+                                    Nama Produk <span class="text-red-500">*</span>
                                 </label>
                                 <input wire:model="name" type="text"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-zinc-700 dark:border-zinc-600 dark:text-white @error('name') border-red-500 @enderror"
-                                    placeholder="Masukkan kode produk" />
+                                    placeholder="Masukkan nama produk" />
                                 @error('name')
                                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                                 @enderror
@@ -356,12 +359,25 @@
                             {{-- SKU --}}
                             <div>
                                 <label class="block mb-1.5 text-sm font-medium text-gray-900 dark:text-white">
-                                    Product Description <span class="text-red-500">*</span>
+                                    SKU
                                 </label>
                                 <input wire:model="sku" type="text"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-zinc-700 dark:border-zinc-600 dark:text-white @error('sku') border-red-500 @enderror"
                                     placeholder="Gelas plastik" />
                                 @error('sku')
+                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- Specification --}}
+                            <div>
+                                <label class="block mb-1.5 text-sm font-medium text-gray-900 dark:text-white">
+                                    Specification
+                                </label>
+                                <input wire:model="specification" type="text"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-zinc-700 dark:border-zinc-600 dark:text-white @error('specification') border-red-500 @enderror"
+                                    placeholder="Contoh: 30 CM X 24 ROLL" />
+                                @error('specification')
                                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                                 @enderror
                             </div>

@@ -51,7 +51,7 @@
             <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
-                        <div class="flex items-center gap-1">Code
+                        <div class="flex items-center gap-1">Nama
                             @if ($sortField === 'name')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
@@ -168,7 +168,7 @@
                 <div class="flex-1 overflow-y-auto px-6 py-5">
                     <div class="flex flex-col gap-4">
                         <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">Category Code</label>
+                            <label class="block mb-1 text-sm font-medium dark:text-white">Nama Category</label>
                             <input wire:model="name" type="text"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('name') border-red-500 @else border-gray-300 @enderror"
                                 placeholder="Masukkan kode category">
