@@ -45,7 +45,7 @@ class PurchaseOrder extends Component
 
     // ─── Product modal state ──────────────────────────────────────────────────
     public string $searchProduct      = '';
-    public int|string $filterCategory = '';
+    public $filterCategory = '';
     public array $selectedProductIds = [];
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -184,6 +184,8 @@ class PurchaseOrder extends Component
         }
 
         $this->selectedProductIds = [];
+
+        $this->resetAddProductModal();
 
         $this->dispatch('toast', message: 'Produk berhasil ditambahkan.', type: 'success');
     }
@@ -406,6 +408,17 @@ class PurchaseOrder extends Component
         $this->showModal = true;
     }
 
+    public function resetAddProductModal()
+    {
+        $this->selectedProductIds = [];
+        $this->searchProduct = '';
+        $this->filterCategory = '';
+
+        $this->resetPage('productsPage'); // kalau pakai pagination dengan pageName
+        // atau cukup:
+        // $this->resetPage();
+    }
+
     // ─── Save ─────────────────────────────────────────────────────────────────
 
     public function save(): void
@@ -418,12 +431,19 @@ class PurchaseOrder extends Component
             DB::transaction(function () {
                 $afterDisc = $this->gross - $this->totalDisc;
 
+                $this->ppn = $this->tax
+                    ? round($afterDisc * 0.11)
+                    : 0;
+
+                $this->nett = $afterDisc + $this->ppn;
+
                 $data = [
                     'date'          => $this->date,
                     'supplier_id'   => $this->supplier_id,
                     'user_id'       => Auth::id(),
                     'total_price'   => $afterDisc,
                     'tax'           => $this->tax,
+                    'ppn'           => $this->ppn,
                     'purchase_note' => $this->purchase_note,
                     'gross'         => $this->gross,
                     'nett'          => $this->nett,
@@ -520,24 +540,6 @@ class PurchaseOrder extends Component
         $this->showDetail = false;
         $this->selectedPO = null;
     }
-
-    // public function updateStatus(): void
-    // {
-    //     $allowed = [
-    //         PurchaseOrderModel::STATUS_DRAFT,
-    //         PurchaseOrderModel::STATUS_APPROVED,
-    //     ];
-
-    //     $this->validate([
-    //         'selectedStatus' => ['required', \Illuminate\Validation\Rule::in($allowed)],
-    //     ]);
-
-    //     PurchaseOrderModel::findOrFail($this->selectedPO->id)
-    //         ->update(['status' => $this->selectedStatus]);
-
-    //     session()->flash('success', 'Status berhasil diperbarui.');
-    //     $this->closeDetail();
-    // }
 
     public function updateStatus(): void
     {

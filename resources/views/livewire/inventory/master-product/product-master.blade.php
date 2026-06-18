@@ -252,7 +252,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-10 text-center text-gray-400 dark:text-gray-500">
+                        <td colspan="8" class="px-4 py-10 text-center text-gray-400 dark:text-gray-500">
                             Tidak ada data produk ditemukan.
                         </td>
                     </tr>
@@ -464,7 +464,7 @@
                                         <tr class="hover:bg-gray-50 dark:hover:bg-zinc-700/40">
                                             <td
                                                 class="border border-gray-200 dark:border-zinc-600 px-3 py-2 text-center">
-                                                <button type="button" @click="removeRow(row._id)"
+                                                <button x-show="index > 0" type="button" @click="removeRow(row._id)"
                                                     class="text-red-500 hover:text-red-700">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">

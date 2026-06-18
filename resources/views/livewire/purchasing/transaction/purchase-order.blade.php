@@ -496,7 +496,8 @@
                                     <p class="text-sm text-gray-500 dark:text-gray-400">Cari produk dan pilih dari
                                         daftar.</p>
                                 </div>
-                                <button type="button" @click="showAddProductModal = false"
+                                <button type="button"
+                                    @click="$wire.resetAddProductModal(); showAddProductModal = false;"
                                     class="cursor-pointer text-gray-400 hover:text-white">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -597,7 +598,8 @@
                                 </div>
 
                                 <div class="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-zinc-700">
-                                    <button type="button" @click="showAddProductModal = false"
+                                    <button type="button"
+                                        @click="$wire.resetAddProductModal();showAddProductModal = false;"
                                         class="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-zinc-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700">
                                         Batal
                                     </button>
@@ -765,10 +767,17 @@
                                 <span>Gross</span>
                                 <span>Rp {{ number_format($selectedPO->gross, 0, ',', '.') }}</span>
                             </div>
+
                             <div class="flex justify-between text-gray-500 dark:text-gray-400">
-                                <span>Total Harga</span>
-                                <span>Rp {{ number_format($selectedPO->total_price, 0, ',', '.') }}</span>
+                                <span>Total Diskon</span>
+                                <span>Rp {{ number_format($selectedPO->total_disc ?? 0, 0, ',', '.') }}</span>
                             </div>
+
+                            <div class="flex justify-between text-gray-500 dark:text-gray-400">
+                                <span>PPN {{ $selectedPO->tax ? '(11%)' : '' }}</span>
+                                <span>Rp {{ number_format($selectedPO->ppn ?? 0, 0, ',', '.') }}</span>
+                            </div>
+
                             <div
                                 class="flex justify-between font-bold text-base text-gray-800 dark:text-white border-t dark:border-zinc-700 pt-2">
                                 <span>Nett</span>
@@ -776,7 +785,6 @@
                             </div>
                         </div>
                     </div>
-
                     @if (in_array($selectedPO->status, ['Draft', 'Approved']))
                         <div class="border-t dark:border-zinc-700 pt-5">
                             <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Ubah Status</h4>

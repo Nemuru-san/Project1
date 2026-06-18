@@ -406,9 +406,11 @@
                                     <label class="inline-flex items-center cursor-pointer">
                                         <span
                                             class="select-none text-base font-medium text-gray-600 dark:text-gray-400">No</span>
-                                        <input wire:model.live="tax" type="checkbox" class="sr-only peer">
-                                        <div
-                                            class="relative mx-3 w-9 h-5 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600">
+                                        <div class="relative mx-3">
+                                            <input type="checkbox" wire:model.live="tax" class="sr-only peer">
+                                            <div
+                                                class="w-9 h-5 bg-red-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-red-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-red-500 after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-red-500 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600">
+                                            </div>
                                         </div>
                                         <span
                                             class="select-none text-base font-medium text-gray-600 dark:text-gray-400">Yes</span>

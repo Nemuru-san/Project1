@@ -194,6 +194,7 @@ class PurchaseInvoice extends Component
     {
         if (!$value) {
             $this->supplier_id = null;
+            $this->tax = false;
             $this->itemRows = [];
             $this->recalculateTotals();
             return;
@@ -283,6 +284,7 @@ class PurchaseInvoice extends Component
             ->findOrFail($purchaseOrderId);
 
         $this->supplier_id = $po->supplier_id;
+        $this->tax = (bool) $po->tax;
 
         $this->itemRows = $po->items->map(function ($item) use ($po) {
             $qty = (int) $item->qty;

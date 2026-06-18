@@ -18,6 +18,7 @@ class PurchaseOrder extends Model
         'user_id',
         'total_price',
         'tax',
+        'ppn',
         'purchase_note',
         'gross',
         'nett',
