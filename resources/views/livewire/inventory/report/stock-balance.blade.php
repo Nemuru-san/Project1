@@ -120,7 +120,7 @@
                         @php
                             $product = $row->product;
                             $quantity = $row->quantity;
-                            $warehouseName = $row->warehouse?->desc ?? '-';
+                            $warehouseName = $row->warehouse?->name ?? '-';
                         @endphp
                     @endif
 
@@ -138,7 +138,7 @@
                         </td>
 
                         <td class="px-4 py-4 text-gray-900 dark:text-white">
-                            {{ $product?->category?->desc ?? '-' }}
+                            {{ $product?->category?->name ?? '-' }}
                         </td>
 
                         <td class="px-4 py-4 text-gray-900 dark:text-white">

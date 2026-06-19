@@ -49,4 +49,9 @@ class Product extends Model
     {
         return $this->hasMany(PurchaseInvoiceItem::class, 'product_id');
     }
+
+    public function stockTransferItems(): HasMany
+    {
+        return $this->hasMany(StockTransferItem::class);
+    }
 }

@@ -21,4 +21,9 @@ class ProductUnit extends Model
     {
         return $this->hasMany(PurchaseInvoiceItem::class, 'unit_id');
     }
+
+    public function stockTransferItems(): HasMany
+    {
+        return $this->hasMany(StockTransferItem::class, 'unit_id');
+    }
 }

@@ -10,7 +10,8 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Data Tabel Unit of Measure (UOM)</p>
+        <p class="dark:text-white text-base font-semibold">Data Tabel Transfer Stock</p>
+
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             <div class="relative w-full sm:w-72">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -22,19 +23,22 @@
                 </div>
                 <input wire:model.live.debounce.300ms="search" type="text"
                     class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg block w-full pl-10 p-2.5 placeholder-gray-400"
-                    placeholder="Cari kode, nama..." />
+                    placeholder="Cari TRF No, gudang..." />
             </div>
+
             <select wire:model.live="perPage"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 w-full sm:w-auto">
                 <option value="10">10 / hal</option>
                 <option value="25">25 / hal</option>
                 <option value="50">50 / hal</option>
             </select>
+
             <label class="flex items-center gap-2 text-sm dark:text-gray-300 cursor-pointer whitespace-nowrap">
                 <input type="checkbox" wire:model.live="showTrashed"
                     class="w-4 h-4 rounded border-gray-600 dark:bg-zinc-800 text-blue-600">
                 Tampilkan Terhapus
             </label>
+
             <button wire:click="openCreate"
                 class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,10 +56,10 @@
                 <tr>
                     <th class="px-4 py-4 w-12">No</th>
 
-                    <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('adjustment_no')">
+                    <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('trf_no')">
                         <div class="flex items-center gap-1">
-                            ADI No
-                            @if ($sortField === 'adjustment_no')
+                            TRF No
+                            @if ($sortField === 'trf_no')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
                         </div>
@@ -70,7 +74,8 @@
                         </div>
                     </th>
 
-                    <th class="px-4 py-4">Warehouse</th>
+                    <th class="px-4 py-4">Warehouse From</th>
+                    <th class="px-4 py-4">Warehouse To</th>
                     <th class="px-4 py-4">Notes</th>
                     <th class="px-4 py-4">Status</th>
                     <th class="px-4 py-4">Aksi</th>
@@ -78,45 +83,49 @@
             </thead>
 
             <tbody class="dark:bg-zinc-950 text-base">
-                @forelse($adjustments as $index => $adjustment)
+                @forelse($transfers as $index => $transfer)
                     <tr
-                        class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $adjustment->trashed() ? 'opacity-50' : '' }}">
+                        class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $transfer->trashed() ? 'opacity-50' : '' }}">
                         <td class="px-4 py-4 text-gray-500">
-                            {{ $adjustments->firstItem() + $index }}
+                            {{ $transfers->firstItem() + $index }}
                         </td>
 
                         <td class="px-4 py-4 font-mono font-medium text-gray-900 dark:text-white">
-                            {{ $adjustment->adjustment_no }}
+                            {{ $transfer->trf_no }}
                         </td>
 
                         <td class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {{ $adjustment->date?->format('d/m/Y') }}
+                            {{ $transfer->date?->format('d/m/Y') }}
                         </td>
 
                         <td class="px-4 py-4">
-                            {{ $adjustment->warehouse?->name ?? '-' }}
+                            {{ $transfer->warehouseFrom?->name ?? '-' }}
                         </td>
 
                         <td class="px-4 py-4">
-                            {{ $adjustment->notes ?: '-' }}
+                            {{ $transfer->warehouseTo?->name ?? '-' }}
                         </td>
 
                         <td class="px-4 py-4">
-                            @if ($adjustment->trashed())
+                            {{ $transfer->notes ?: '-' }}
+                        </td>
+
+                        <td class="px-4 py-4">
+                            @if ($transfer->trashed())
                                 <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-700 text-white">
                                     Terhapus
                                 </span>
-                            @elseif ($adjustment->status === 'draft')
+                            @elseif ($transfer->status === 'draft')
                                 <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-gray-600 text-white">
                                     Draft
                                 </span>
-                            @elseif ($adjustment->status === 'approved')
+                            @elseif ($transfer->status === 'approved')
                                 <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-blue-700 text-white">
                                     Approved
                                 </span>
                             @else
                                 <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-zinc-600 text-white">
-                                    {{ ucfirst($adjustment->status) }}
+                                    {{ ucfirst($transfer->status) }}
                                 </span>
                             @endif
                         </td>
@@ -128,8 +137,10 @@
                                 left: 0,
                                 toggle($el) {
                                     const rect = $el.getBoundingClientRect();
+                            
                                     this.top = rect.bottom + 6;
                                     this.left = rect.left - 128;
+                            
                                     this.open = !this.open;
                                 }
                             }">
@@ -145,15 +156,15 @@
                                 <div x-show="open" x-cloak :style="`position: fixed; top: ${top}px; left: ${left}px;`"
                                     class="z-50 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
 
-                                    @if ($adjustment->trashed())
+                                    @if ($transfer->trashed())
                                         <div class="px-4 py-2 text-sm text-gray-400">
                                             Data sudah terhapus
                                         </div>
                                     @else
                                         <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
-                                            @if ($adjustment->status === 'draft')
+                                            @if ($transfer->status === 'draft')
                                                 <li>
-                                                    <button wire:click="confirmApprove({{ $adjustment->id }})"
+                                                    <button wire:click="confirmApprove({{ $transfer->id }})"
                                                         @click="open = false"
                                                         class="flex items-center gap-2 w-full py-2 px-4 text-blue-700 hover:bg-blue-600 hover:text-white dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white cursor-pointer">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -166,8 +177,9 @@
                                                     </button>
                                                 </li>
                                             @endif
+
                                             <li>
-                                                <button wire:click="openDetail({{ $adjustment->id }})"
+                                                <button wire:click="openDetail({{ $transfer->id }})"
                                                     @click="open = false"
                                                     class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -181,9 +193,9 @@
                                                     Detail
                                                 </button>
                                             </li>
-                                            @if ($adjustment->status === 'draft')
+                                            @if ($transfer->status === 'draft')
                                                 <li>
-                                                    <button wire:click="edit({{ $adjustment->id }})"
+                                                    <button wire:click="edit({{ $transfer->id }})"
                                                         @click="open = false"
                                                         class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -212,8 +224,8 @@
                                         </ul>
 
                                         <div class="py-1">
-                                            @if ($adjustment->status === 'draft')
-                                                <button wire:click="confirmDelete({{ $adjustment->id }})"
+                                            @if ($transfer->status === 'draft')
+                                                <button wire:click="confirmDelete({{ $transfer->id }})"
                                                     @click="open = false"
                                                     class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -244,8 +256,8 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-10 text-center text-gray-400 dark:text-gray-500">
-                            Tidak ada data adjustment in ditemukan.
+                        <td colspan="8" class="px-4 py-10 text-center text-gray-400 dark:text-gray-500">
+                            Tidak ada data transfer stock ditemukan.
                         </td>
                     </tr>
                 @endforelse
@@ -254,7 +266,7 @@
     </div>
 
     <div class="mt-4">
-        {{ $adjustments->links() }}
+        {{ $transfers->links() }}
     </div>
 
     {{-- CREATE / EDIT MODAL --}}
@@ -265,9 +277,7 @@
 
                 <div
                     class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
-                    <h3 class="text-lg font-semibold dark:text-white">
-                        Adjustment In
-                    </h3>
+                    <h3 class="text-lg font-semibold dark:text-white">Transfer Stock</h3>
 
                     <button wire:click="$set('showModal', false)"
                         class="text-gray-400 hover:text-white cursor-pointer">
@@ -281,9 +291,8 @@
                 <div class="flex-1 overflow-y-auto px-6 py-5">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">ADI No</label>
-                            <input wire:model.defer="adjustment_no" type="text" disabled
-                                placeholder="autogenerated"
+                            <label class="block mb-1 text-sm font-medium dark:text-white">TRF No</label>
+                            <input wire:model.defer="trf_no" type="text" disabled placeholder="autogenerated"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white border-gray-300" />
                         </div>
 
@@ -297,24 +306,38 @@
                         </div>
 
                         <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">Warehouse</label>
-                            <select wire:model.live="warehouse_id"
+                            <label class="block mb-1 text-sm font-medium dark:text-white">Warehouse From</label>
+                            <select wire:model.live="warehouse_from_id"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white border-gray-300">
                                 <option value="">Pilih Gudang</option>
                                 @foreach ($warehouses as $warehouse)
                                     <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
                                 @endforeach
                             </select>
-                            @error('warehouse_id')
+                            @error('warehouse_from_id')
                                 <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div>
+                            <label class="block mb-1 text-sm font-medium dark:text-white">Warehouse To</label>
+                            <select wire:model.live="warehouse_to_id"
+                                class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white border-gray-300">
+                                <option value="">Pilih Gudang</option>
+                                @foreach ($warehouses as $warehouse)
+                                    <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('warehouse_to_id')
+                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="md:col-span-2">
                             <label class="block mb-1 text-sm font-medium dark:text-white">Notes</label>
-                            <input wire:model="notes" type="text"
+                            <textarea wire:model="notes" rows="4"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white border-gray-300"
-                                placeholder="Keterangan tambahan..." />
+                                placeholder="Keterangan tambahan..."></textarea>
                         </div>
                     </div>
 
@@ -334,6 +357,8 @@
                                         Produk</th>
                                     <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Nama
                                         Produk</th>
+                                    <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Stock
+                                        Available</th>
                                     <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Qty</th>
                                     <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">UOM</th>
                                 </tr>
@@ -363,10 +388,20 @@
                                         </td>
 
                                         <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
+                                            {{ $item['stock_available'] ?? 0 }}
+                                        </td>
+
+                                        <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
                                             <input wire:model.live="items.{{ $index }}.qty" type="number"
-                                                min="1"
-                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-24 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white"
+                                                min="1" @disabled(($item['stock_available'] ?? 0) <= 0)
+                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-24 p-2 disabled:bg-gray-200 disabled:cursor-not-allowed dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:disabled:bg-zinc-700"
                                                 placeholder="Qty" />
+
+                                            @if (($item['stock_available'] ?? 0) <= 0)
+                                                <p class="mt-1 text-xs text-red-500">
+                                                    Stock kosong, qty tidak bisa diisi.
+                                                </p>
+                                            @endif
                                         </td>
 
                                         <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
@@ -383,7 +418,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5"
+                                        <td colspan="6"
                                             class="border border-gray-300 dark:border-zinc-600 px-4 py-6 text-center text-gray-500">
                                             Belum ada produk dipilih.
                                         </td>
@@ -503,7 +538,7 @@
                                 </button>
 
                                 <button type="button" wire:click="addSelectedProducts"
-                                    @click="if ($wire.selectedProductIds.length > 0) showAddProductModal = false"
+                                    @click="showAddProductModal = false"
                                     class="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700">
                                     Simpan
                                 </button>
@@ -542,12 +577,12 @@
                     </div>
 
                     <h3 class="text-base font-semibold dark:text-white">
-                        Approve Adjustment In?
+                        Approve Transfer Stock?
                     </h3>
                 </div>
 
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">
-                    Setelah Adjustment In di-approve, stock produk akan bertambah ke warehouse yang dipilih.
+                    Setelah transfer stock di-approve, stock akan berpindah dari Warehouse From ke Warehouse To.
                     Data tidak bisa diedit atau dihapus.
                 </p>
 
@@ -571,16 +606,16 @@
         </div>
     @endif
 
-    @if ($showDetail && $selectedAdjustment)
+    @if ($showDetail && $selectedTransfer)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
             <div
                 class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
 
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
                     <div>
-                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Adjustment In</h2>
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Transfer Stock</h2>
                         <p class="text-sm text-gray-400 font-mono mt-0.5">
-                            {{ $selectedAdjustment->adjustment_no }}
+                            {{ $selectedTransfer->trf_no }}
                         </p>
                     </div>
 
@@ -597,30 +632,30 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-3">
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">ADI No</span>
+                                <span class="text-gray-400">TRF No</span>
                                 <span class="font-mono font-medium text-gray-800 dark:text-white">
-                                    {{ $selectedAdjustment->adjustment_no }}
+                                    {{ $selectedTransfer->trf_no }}
                                 </span>
                             </div>
 
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-400">Tanggal</span>
                                 <span class="text-gray-800 dark:text-white">
-                                    {{ $selectedAdjustment->date?->format('d F Y') }}
+                                    {{ $selectedTransfer->date?->format('d F Y') }}
                                 </span>
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Warehouse</span>
+                                <span class="text-gray-400">Warehouse From</span>
                                 <span class="text-gray-800 dark:text-white">
-                                    {{ $selectedAdjustment->warehouse?->name ?? '-' }}
+                                    {{ $selectedTransfer->warehouseFrom?->name ?? '-' }}
                                 </span>
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Dibuat Oleh</span>
+                                <span class="text-gray-400">Warehouse To</span>
                                 <span class="text-gray-800 dark:text-white">
-                                    {{ $selectedAdjustment->creator?->name ?? '-' }}
+                                    {{ $selectedTransfer->warehouseTo?->name ?? '-' }}
                                 </span>
                             </div>
                         </div>
@@ -629,15 +664,15 @@
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-400">Status</span>
                                 <span>
-                                    @if ($selectedAdjustment->trashed())
+                                    @if ($selectedTransfer->trashed())
                                         <span class="text-sm px-2.5 py-0.5 rounded bg-red-700 text-white">
                                             Terhapus
                                         </span>
-                                    @elseif ($selectedAdjustment->status === 'draft')
+                                    @elseif ($selectedTransfer->status === 'draft')
                                         <span class="text-sm px-2.5 py-0.5 rounded bg-gray-600 text-white">
                                             Draft
                                         </span>
-                                    @elseif ($selectedAdjustment->status === 'approved')
+                                    @elseif ($selectedTransfer->status === 'approved')
                                         <span class="text-sm px-2.5 py-0.5 rounded bg-blue-700 text-white">
                                             Approved
                                         </span>
@@ -646,14 +681,16 @@
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Type</span>
-                                <span class="text-gray-800 dark:text-white">Adjustment In</span>
+                                <span class="text-gray-400">Dibuat Oleh</span>
+                                <span class="text-gray-800 dark:text-white">
+                                    {{ $selectedTransfer->creator?->name ?? '-' }}
+                                </span>
                             </div>
 
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-400">Catatan</span>
                                 <span class="text-gray-800 dark:text-white text-right max-w-xs">
-                                    {{ $selectedAdjustment->notes ?: '-' }}
+                                    {{ $selectedTransfer->notes ?: '-' }}
                                 </span>
                             </div>
                         </div>
@@ -666,6 +703,7 @@
                                 <tr>
                                     <th class="px-4 py-3 w-8">No</th>
                                     <th class="px-4 py-3">Produk</th>
+                                    <th class="px-4 py-3 text-right">Stock Available</th>
                                     <th class="px-4 py-3 text-right">Qty</th>
                                     <th class="px-4 py-3">UOM</th>
                                     <th class="px-4 py-3 text-right">Conversion</th>
@@ -674,7 +712,7 @@
                             </thead>
 
                             <tbody class="dark:bg-zinc-900 divide-y divide-gray-100 dark:divide-zinc-700">
-                                @forelse($selectedAdjustment->items as $i => $item)
+                                @forelse($selectedTransfer->items as $i => $item)
                                     <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800">
                                         <td class="px-4 py-3 text-gray-400">{{ $i + 1 }}</td>
 
@@ -683,6 +721,10 @@
                                             <div class="text-xs text-gray-400 font-mono">
                                                 {{ $item->product?->sku ?? '-' }}
                                             </div>
+                                        </td>
+
+                                        <td class="px-4 py-3 text-right text-gray-800 dark:text-white">
+                                            {{ (int) $item->stock_available }}
                                         </td>
 
                                         <td class="px-4 py-3 text-right text-gray-800 dark:text-white">
@@ -703,7 +745,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-4 py-6 text-center text-gray-400">
+                                        <td colspan="7" class="px-4 py-6 text-center text-gray-400">
                                             Tidak ada item.
                                         </td>
                                     </tr>
@@ -727,10 +769,9 @@
     @if ($showDeleteModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div class="bg-white dark:bg-zinc-900 rounded-xl shadow-xl w-full max-w-md p-6">
-                <h3 class="text-lg font-semibold dark:text-white">Hapus Adjustment In?</h3>
-
+                <h3 class="text-lg font-semibold dark:text-white">Hapus Transfer Stock?</h3>
                 <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                    Data Adjustment In akan dipindahkan ke trash.
+                    Data akan dipindahkan ke trash.
                 </p>
 
                 <div class="flex justify-end gap-2 mt-6">
