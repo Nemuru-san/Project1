@@ -33,6 +33,8 @@
                 <option value="Approved">Approved</option>
                 <option value="Partially Received">Partially Received</option>
                 <option value="Received">Received</option>
+                <option value="Partial Paid">Partial Paid</option>
+                <option value="Paid">Paid</option>
             </select>
             {{-- Per Page --}}
             <select wire:model.live="perPage"
@@ -138,6 +140,16 @@
                                 <span
                                     class="text-sm font-normal px-2.5 py-0.5 rounded bg-yellow-100 text-yellow-700 dark:bg-yellow-600 dark:text-white">
                                     Partially Received
+                                </span>
+                            @elseif ($po->status === 'Partial Paid')
+                                <span
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-yellow-100 text-orange-500 dark:bg-orange-500 dark:text-white">
+                                    Partially Paid
+                                </span>
+                            @elseif ($po->status === 'Paid')
+                                <span
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-yellow-100 text-green-700 dark:bg-green-600 dark:text-white">
+                                    Paid
                                 </span>
                             @endif
                         </td>
@@ -382,7 +394,13 @@
                                 </thead>
                                 <tbody>
                                     @forelse ($items as $i => $item)
-                                        <tr class="hover:bg-gray-100 dark:hover:bg-zinc-800 text-sm">
+                                        <tr x-data="{
+                                            item: @js($item),
+                                            syncToWire() {
+                                                $wire.set('items.{{ $i }}', this.item);
+                                            }
+                                        }"
+                                            class="hover:bg-gray-100 dark:hover:bg-zinc-800 text-sm">
                                             <td
                                                 class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-center">
                                                 <button type="button" wire:click="removeItem({{ $i }})"
@@ -405,32 +423,61 @@
                                                 {{ $item['category'] }}</td>
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
                                                 <select wire:model.live="items.{{ $i }}.price_id"
-                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-36 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
+                                                    class="bg-gray-50 border @error('items.' . $i . '.price_id') border-red-500 @else border-gray-300 @enderror text-gray-900 text-xs rounded-lg block w-36 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                                     @foreach ($item['prices'] as $p)
                                                         <option value="{{ $p['id'] }}">{{ $p['unit_name'] }}
                                                         </option>
                                                     @endforeach
                                                 </select>
+                                                @error('items.' . $i . '.price_id')
+                                                    <span
+                                                        class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
+                                                @enderror
                                             </td>
+                                            {{-- QTY --}}
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                <input type="number" min="1"
-                                                    wire:model.live.debounce.200ms="items.{{ $i }}.qty"
+                                                <input type="text" inputmode="numeric" autocomplete="off"
+                                                    placeholder="Qty" x-model="item.qty_display"
+                                                    @input="
+                                                        let raw = item.qty_display.replace(/\./g, '').replace(/\D/g, '');
+                                                        item.qty = raw === '' ? null : Number(raw);
+                                                        item.qty_display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
+                                                    "
+                                                    @blur="syncToWire()"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-24 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                             </td>
+
+                                            {{-- PRICE --}}
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                <input type="number" min="1"
-                                                    wire:model.live.debounce.200ms="items.{{ $i }}.price"
-                                                    placeholder="Isi harga"
+                                                <input type="text" inputmode="numeric" autocomplete="off"
+                                                    placeholder="Isi harga" x-model="item.price_display"
+                                                    @input="
+                                                        let raw = item.price_display.replace(/\./g, '').replace(/\D/g, '');
+                                                        item.price = raw === '' ? null : Number(raw);
+                                                        item.price_display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
+                                                    "
+                                                    @blur="syncToWire()"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-28 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                             </td>
+
+                                            {{-- DISC --}}
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                <input type="number" min="0"
-                                                    wire:model.live.debounce.200ms="items.{{ $i }}.disc"
+                                                <input type="text" inputmode="numeric" autocomplete="off"
+                                                    placeholder="Disc" x-model="item.disc_display"
+                                                    @input="
+                                                        let raw = item.disc_display.replace(/\./g, '').replace(/\D/g, '');
+                                                        item.disc = raw === '' ? null : Number(raw);
+                                                        item.disc_display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
+                                                    "
+                                                    @blur="syncToWire()"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-28 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                             </td>
                                             <td
                                                 class="border border-gray-300 dark:border-zinc-600 px-4 py-3 font-medium">
-                                                Rp {{ number_format($item['subtotal'], 0, ',', '.') }}
+                                                Rp
+                                                <span
+                                                    x-text="Number(Math.max((Number(item.qty ?? 0) * Number(item.price ?? 0)) - Number(item.disc ?? 0), 0)).toLocaleString('id-ID')">
+                                                </span>
                                             </td>
                                         </tr>
                                     @empty
@@ -696,9 +743,8 @@
                                             'Draft' => 'bg-zinc-600 text-white',
                                             'Approved' => 'bg-blue-700 text-white',
                                             'Received' => 'bg-green-700 text-white',
-                                            'Tagihan' => 'bg-yellow-600 text-white',
-                                            'Bayar Full' => 'bg-emerald-700 text-white',
-                                            'Bayar Setengah' => 'bg-orange-600 text-white',
+                                            'Paid' => 'bg-emerald-700 text-white',
+                                            'Partial Paid' => 'bg-orange-600 text-white',
                                             default => 'bg-zinc-600 text-white',
                                         };
                                     @endphp

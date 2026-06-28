@@ -408,9 +408,15 @@
                                             </td>
 
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                <input type="number" min="0" step="1"
-                                                    max="{{ $item['qty_outstanding'] }}"
-                                                    wire:model.live="items.{{ $index }}.qty_received"
+                                                <input type="text" inputmode="numeric" autocomplete="off"
+                                                    x-data="{
+                                                        display: '{{ number_format($item['qty_received'] ?? 0, 0, ',', '.') }}'
+                                                    }" x-model="display"
+                                                    @input="
+                                                        let raw = display.replace(/\./g, '').replace(/\D/g, '');
+                                                        display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
+                                                        $wire.set('items.{{ $index }}.qty_received', raw === '' ? 0 : Number(raw));
+                                                    "
                                                     class="bg-gray-50 border text-gray-900 text-xs rounded-lg block w-24 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('items.' . $index . '.qty_received') border-red-500 @else border-gray-300 @enderror">
 
                                                 @error('items.' . $index . '.qty_received')

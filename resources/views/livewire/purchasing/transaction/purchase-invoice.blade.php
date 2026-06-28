@@ -511,15 +511,32 @@
                                                 <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
                                                     {{ number_format($row['qty'] ?? 0, 0, ',', '.') }}
                                                 </td>
+                                                {{-- PRICE --}}
                                                 <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                    <input type="number" min="0" step="1"
-                                                        wire:model.live.debounce.300ms="itemRows.{{ $realIndex }}.price"
-                                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-32 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                                    <input type="text" inputmode="numeric" autocomplete="off"
+                                                        x-data="{
+                                                            display: '{{ number_format($row['price'] ?? 0, 0, ',', '.') }}'
+                                                        }" x-model="display"
+                                                        @input="
+                                                            let raw = display.replace(/\./g, '').replace(/\D/g, '');
+                                                            display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
+                                                            $wire.set('itemRows.{{ $row['_index'] }}.price', raw === '' ? 0 : Number(raw));
+                                                        "
+                                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-32 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                                 </td>
+
+                                                {{-- DISCOUNT --}}
                                                 <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                    <input type="number" min="0" step="1"
-                                                        wire:model.live.debounce.300ms="itemRows.{{ $realIndex }}.discount"
-                                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-32 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                                    <input type="text" inputmode="numeric" autocomplete="off"
+                                                        x-data="{
+                                                            display: '{{ number_format($row['discount'] ?? 0, 0, ',', '.') }}'
+                                                        }" x-model="display"
+                                                        @input="
+                                                            let raw = display.replace(/\./g, '').replace(/\D/g, '');
+                                                            display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
+                                                            $wire.set('itemRows.{{ $row['_index'] }}.discount', raw === '' ? 0 : Number(raw));
+                                                        "
+                                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-32 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                                 </td>
                                                 <td
                                                     class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-right text-gray-900 dark:text-white">

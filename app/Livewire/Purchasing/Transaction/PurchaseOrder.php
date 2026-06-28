@@ -73,6 +73,44 @@ class PurchaseOrder extends Component
         ];
     }
 
+    protected function messages(): array
+    {
+        return [
+            'date.required' => 'Tanggal wajib diisi.',
+            'date.date' => 'Format tanggal tidak valid.',
+            'date.before_or_equal' => 'Tanggal tidak boleh lebih dari hari ini.',
+
+            'supplier_id.required' => 'Supplier wajib dipilih.',
+            'supplier_id.exists' => 'Supplier tidak valid.',
+
+            'items.required' => 'Detail produk wajib diisi.',
+            'items.array' => 'Format detail produk tidak valid.',
+            'items.min' => 'Minimal tambah 1 produk.',
+
+            'items.*.product_id.required' => 'Produk wajib dipilih.',
+            'items.*.product_id.exists' => 'Produk tidak valid.',
+
+            'items.*.price_id.required' => 'Satuan wajib dipilih.',
+            'items.*.price_id.exists' => 'Satuan harga tidak valid.',
+
+            'items.*.conversion.required' => 'Konversi wajib diisi.',
+            'items.*.conversion.integer' => 'Konversi harus angka.',
+            'items.*.conversion.min' => 'Konversi minimal 1.',
+
+            'items.*.qty.required' => 'Qty order wajib diisi.',
+            'items.*.qty.integer' => 'Qty order harus angka bulat.',
+            'items.*.qty.min' => 'Qty order minimal 1.',
+
+            'items.*.price.required' => 'Price wajib diisi.',
+            'items.*.price.numeric' => 'Price harus angka.',
+            'items.*.price.min' => 'Price tidak boleh minus.',
+
+            'items.*.disc.required' => 'Disc wajib diisi. Isi 0 jika tidak ada diskon.',
+            'items.*.disc.integer' => 'Disc harus angka bulat.',
+            'items.*.disc.min' => 'Disc tidak boleh minus.',
+        ];
+    }
+
     protected array $messages = [
         'date.before_or_equal' => 'Tanggal PO tidak boleh tanggal yang akan datang.',
         'items.min'            => 'Minimal 1 produk harus dipilih.',
@@ -157,21 +195,23 @@ class PurchaseOrder extends Component
         $defaultPrice = $product->prices->first();
 
         $this->items[] = [
-            'product_id'   => $product->id,
-            'product_code' => $product->sku,
-            'product_name' => $product->name,
-            'category'     => $product->category?->name ?? '-',
-            'prices'       => $prices,
-            'price_id'     => $defaultPrice->id,
-            'unit_id'      => $defaultPrice->unit_id,
-            'unit_name'    => $defaultPrice->unit?->name ?? '-',
-            'conversion'   => $defaultPrice->conversion ?? $defaultPrice->unit?->conversion ?? 1,
-            'qty'          => 1,
-            'qty_base'     => 1 * ($defaultPrice->conversion ?? $defaultPrice->unit?->conversion ?? 1),
-
-            'price'        => '',
-            'disc'         => 0,
-            'subtotal'     => 0,
+            'product_id'    => $product->id,
+            'product_code'  => $product->sku,
+            'product_name'  => $product->name,
+            'category'      => $product->category?->name ?? '-',
+            'prices'        => $prices,
+            'price_id'      => $defaultPrice->id,
+            'unit_id'       => $defaultPrice->unit_id,
+            'unit_name'     => $defaultPrice->unit?->name ?? '-',
+            'conversion'    => $defaultPrice->conversion ?? $defaultPrice->unit?->conversion ?? 1,
+            'qty'           => 1,
+            'qty_display'   => '1',
+            'qty_base'      => 1 * ($defaultPrice->conversion ?? $defaultPrice->unit?->conversion ?? 1),
+            'price'         => null,
+            'price_display' => '',
+            'disc'          => 0,
+            'disc_display'  => '0',
+            'subtotal'      => 0,
         ];
 
         $this->recalculate();
@@ -231,7 +271,10 @@ class PurchaseOrder extends Component
 
         $qty = max(1, (int) ($this->items[$index]['qty'] ?? 1));
         $conversion = max(1, (int) ($this->items[$index]['conversion'] ?? 1));
-        $price = max(0, (int) ($this->items[$index]['price'] ?: 0));
+        $rawPrice = $this->items[$index]['price'] ?? null;
+        $price = ($rawPrice === '' || $rawPrice === null)
+            ? null
+            : max(0, (int) $rawPrice);
         $disc = max(0, (int) ($this->items[$index]['disc'] ?? 0));
 
         $lineGross = $qty * $price;
@@ -398,9 +441,12 @@ class PurchaseOrder extends Component
                 'conversion'   => $item->conversion ?? 1,
                 'qty'          => $item->qty,
                 'qty_base'     => $item->qty_base ?? ($item->qty * ($item->conversion ?? 1)),
-                'price'        => $item->price,
-                'disc'         => $item->disc,
-                'subtotal'     => $item->total_harga,
+                'qty_display'   => number_format($item->qty, 0, ',', '.'),      // ← tambah
+                'price'         => $item->price,
+                'price_display' => $item->price ? number_format($item->price, 0, ',', '.') : '',  // ← tambah
+                'disc'          => $item->disc,
+                'disc_display'  => number_format($item->disc, 0, ',', '.'),     // ← tambah
+                'subtotal'      => $item->total_harga,
             ];
         })->filter()->values()->toArray();
 

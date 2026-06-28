@@ -473,6 +473,8 @@ class PurchaseInvoice extends Component
                     'status' => ModelsPurchaseInvoice::STATUS_POSTED,
                 ]);
 
+                $this->updatePurchaseOrderPaymentStatus($invoice);
+
                 $this->createPurchaseInvoiceJournal($invoice);
             });
 
@@ -495,6 +497,32 @@ class PurchaseInvoice extends Component
 
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         }
+    }
+
+    private function updatePurchaseOrderPaymentStatus(ModelsPurchaseInvoice $invoice): void
+    {
+        $invoice->refresh();
+
+        $purchaseOrder = $invoice->purchaseOrder;
+
+        if (!$purchaseOrder) {
+            return;
+        }
+
+        $paidAmount = (int) $invoice->paid_amount;
+        $grandTotal = (int) $invoice->grand_total;
+
+        if ($paidAmount <= 0) {
+            $paymentStatus = ModelsPurchaseInvoice::PAYMENT_UNPAID;
+        } elseif ($paidAmount < $grandTotal) {
+            $paymentStatus = ModelsPurchaseInvoice::PAYMENT_PARTIAL_PAID;
+        } else {
+            $paymentStatus = ModelsPurchaseInvoice::PAYMENT_PAID;
+        }
+
+        $purchaseOrder->update([
+            'payment_status' => $paymentStatus,
+        ]);
     }
 
     private function createPurchaseInvoiceJournal(ModelsPurchaseInvoice $invoice): void

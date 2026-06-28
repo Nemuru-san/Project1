@@ -47,7 +47,7 @@ class PurchaseInvoice extends Model
     const STATUS_POSTED = 'Posted';
 
     const PAYMENT_UNPAID = 'Unpaid';
-    const PAYMENT_PARTIAL = 'Partial Paid';
+    const PAYMENT_PARTIAL_PAID = 'Partial Paid';
     const PAYMENT_PAID = 'Paid';
 
     public static function statusOptions(): array
@@ -62,7 +62,7 @@ class PurchaseInvoice extends Model
     {
         return [
             self::PAYMENT_UNPAID,
-            self::PAYMENT_PARTIAL,
+            self::PAYMENT_PARTIAL_PAID,
             self::PAYMENT_PAID,
         ];
     }

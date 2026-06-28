@@ -447,8 +447,22 @@
                                             </td>
 
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                <input type="number" min="0" step="1"
-                                                    wire:model.live.debounce.300ms="detailRows.{{ $index }}.amount"
+                                                <input type="text" inputmode="numeric" autocomplete="off"
+                                                    x-data="{
+                                                        display: '{{ number_format($row['amount'] ?? 0, 0, ',', '.') }}',
+                                                        index: {{ $index }}
+                                                    }" x-model="display"
+                                                    @amount-updated.window="
+                                                        if ($event.detail.index === index) {
+                                                            let val = $event.detail.amount;
+                                                                display = val === 0 ? '' : Number(val).toLocaleString('id-ID');
+                                                            }
+                                                        "
+                                                    @input="
+                                                        let raw = display.replace(/\./g, '').replace(/\D/g, '');
+                                                        display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
+                                                        $wire.set('detailRows.{{ $index }}.amount', raw === '' ? 0 : Number(raw));
+                                                    "
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-36 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                                 @error("detailRows.$index.amount")
                                                     <p class="text-red-400 text-xs mt-1">{{ $message }}</p>

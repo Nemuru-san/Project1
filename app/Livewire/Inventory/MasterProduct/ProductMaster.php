@@ -279,7 +279,8 @@ class ProductMaster extends Component
             [
                 'unit_id'    => 1,
                 'conversion' => 1,
-                'price'      => 0,
+                'price'      => null,
+                'price_display' => '',
             ],
         ]);
     }

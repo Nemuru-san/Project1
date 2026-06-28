@@ -492,11 +492,17 @@ class GoodsReceive extends Component
             }
         }
 
-        $goodsReceive->update([
-            'status' => $this->selectedStatus,
-        ]);
+        DB::transaction(function () use ($goodsReceive) {
+            $goodsReceive->update([
+                'status' => $this->selectedStatus,
+            ]);
 
-        $this->updatePurchaseOrderStatus($goodsReceive->purchase_order_id);
+            if ($this->selectedStatus === GoodsReceiveModel::STATUS_RECEIVED) {
+                $this->addGoodsReceiveToStock($goodsReceive);
+            }
+
+            $this->updatePurchaseOrderStatus($goodsReceive->purchase_order_id);
+        });
 
         $this->showDetailModal = false;
         $this->selectedGR = null;
@@ -529,6 +535,31 @@ class GoodsReceive extends Component
         $this->receiveTargetId = null;
     }
 
+    private function addGoodsReceiveToStock(GoodsReceiveModel $goodsReceive): void
+    {
+        $goodsReceive->loadMissing('items');
+
+        foreach ($goodsReceive->items as $item) {
+            $qtyBase = (int) $item->qty_base;
+
+            if ($qtyBase <= 0) {
+                continue;
+            }
+
+            $stockBalance = StockBalance::firstOrCreate(
+                [
+                    'warehouse_id' => $item->warehouse_id,
+                    'product_id' => $item->product_id,
+                ],
+                [
+                    'quantity' => 0,
+                ]
+            );
+
+            $stockBalance->increment('quantity', $qtyBase);
+        }
+    }
+
     public function receive(): void
     {
         if (!$this->receiveTargetId) {
@@ -545,11 +576,15 @@ class GoodsReceive extends Component
             return;
         }
 
-        $goodsReceive->update([
-            'status' => GoodsReceiveModel::STATUS_RECEIVED,
-        ]);
+        DB::transaction(function () use ($goodsReceive) {
+            $goodsReceive->update([
+                'status' => GoodsReceiveModel::STATUS_RECEIVED,
+            ]);
 
-        $this->updatePurchaseOrderStatus($goodsReceive->purchase_order_id);
+            $this->addGoodsReceiveToStock($goodsReceive);
+
+            $this->updatePurchaseOrderStatus($goodsReceive->purchase_order_id);
+        });
 
         $this->showReceiveModal = false;
         $this->receiveTargetId = null;
@@ -662,6 +697,13 @@ class GoodsReceive extends Component
                 PurchaseOrder::STATUS_APPROVED,
                 PurchaseOrder::STATUS_PARTIALLY_RECEIVED,
             ])
+            ->whereDoesntHave('goodsReceives', function ($q) {
+                $q->whereIn('status', [
+                    GoodsReceiveModel::STATUS_DRAFT,
+                    GoodsReceiveModel::STATUS_RECEIVED,
+                ])
+                    ->when($this->editingId, fn($q) => $q->where('id', '!=', $this->editingId));
+            })
             ->orderByDesc('date')
             ->get();
 

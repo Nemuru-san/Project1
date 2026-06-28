@@ -510,8 +510,23 @@
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white" />
                                             </td>
                                             <td class="border border-gray-200 dark:border-zinc-600 px-3 py-2">
-                                                <input x-model="row.price" @change="syncToWire()" type="number"
-                                                    min="1" placeholder="e.g. 15000"
+                                                <input x-model="row.price_display" x-init="if (row.price === 0) row.price = null;
+                                                
+                                                row.price_display =
+                                                    row.price === null || row.price === undefined || row.price === '' ?
+                                                    '' :
+                                                    Number(row.price).toLocaleString('id-ID');"
+                                                    @input="
+                                                        let raw = row.price_display.replace(/\D/g, '');
+
+                                                        row.price = raw === '' ? null : Number(raw);
+
+                                                        row.price_display = raw === ''
+                                                            ? ''
+                                                            : Number(raw).toLocaleString('id-ID');
+                                                    "
+                                                    @blur="syncToWire()" type="text" inputmode="numeric"
+                                                    autocomplete="off" placeholder="e.g. 15.000"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white" />
                                             </td>
                                         </tr>

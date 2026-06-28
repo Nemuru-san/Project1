@@ -218,15 +218,39 @@ class APPayment extends Component
         $this->recalculateTotal();
     }
 
+    // public function payFull(int $index): void
+    // {
+    //     if (!isset($this->detailRows[$index])) {
+    //         return;
+    //     }
+
+    //     $this->detailRows[$index]['amount'] = (int) ($this->detailRows[$index]['remaining_amount'] ?? 0);
+
+    //     $this->recalculateTotal();
+    // }
+
+
+    // public function clearAmount(int $index): void
+    // {
+    //     if (!isset($this->detailRows[$index])) {
+    //         return;
+    //     }
+
+    //     $this->detailRows[$index]['amount'] = 0;
+
+    //     $this->recalculateTotal();
+    // }
+
     public function payFull(int $index): void
     {
         if (!isset($this->detailRows[$index])) {
             return;
         }
 
-        $this->detailRows[$index]['amount'] = (int) ($this->detailRows[$index]['remaining_amount'] ?? 0);
-
+        $amount = (int) ($this->detailRows[$index]['remaining_amount'] ?? 0);
+        $this->detailRows[$index]['amount'] = $amount;
         $this->recalculateTotal();
+        $this->dispatch('amount-updated', index: $index, amount: $amount);
     }
 
     public function clearAmount(int $index): void
@@ -236,8 +260,8 @@ class APPayment extends Component
         }
 
         $this->detailRows[$index]['amount'] = 0;
-
         $this->recalculateTotal();
+        $this->dispatch('amount-updated', index: $index, amount: 0);
     }
 
     public function recalculateTotal(): void
@@ -414,13 +438,25 @@ class APPayment extends Component
                     $newPaid = (int) $invoice->paid_amount + $amount;
                     $newRemaining = max(0, (int) $invoice->grand_total - $newPaid);
 
+                    $paymentStatus = $newRemaining <= 0
+                        ? PurchaseInvoice::PAYMENT_PAID
+                        : PurchaseInvoice::PAYMENT_PARTIAL_PAID;
+
                     $invoice->update([
                         'paid_amount' => $newPaid,
                         'remaining_amount' => $newRemaining,
-                        'payment_status' => $newRemaining <= 0
-                            ? PurchaseInvoice::PAYMENT_PAID
-                            : PurchaseInvoice::PAYMENT_PARTIAL,
+                        'payment_status' => $paymentStatus,
                     ]);
+
+                    if ($invoice->purchase_order_id) {
+                        $poStatus = $newRemaining <= 0
+                            ? 'Paid'
+                            : 'Partial Paid';
+
+                        $invoice->purchaseOrder()->update([
+                            'status' => $poStatus,
+                        ]);
+                    }
                 }
 
                 $payment->update([

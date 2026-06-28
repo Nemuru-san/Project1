@@ -360,15 +360,21 @@
                                         </td>
 
                                         <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                            <input wire:model.live="items.{{ $index }}.qty" type="number"
-                                                min="1" step="1" @disabled(($item['stock_available'] ?? 0) <= 0)
-                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-24 p-2 disabled:bg-gray-200 disabled:cursor-not-allowed dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:disabled:bg-zinc-700"
-                                                placeholder="Qty" />
+                                            <input type="text" inputmode="numeric" autocomplete="off"
+                                                placeholder="Qty" x-data="{
+                                                    display: '{{ number_format($item['qty'] ?? 0, 0, ',', '.') }}'
+                                                }" x-model="display"
+                                                @input="
+                                                    let raw = display.replace(/\./g, '').replace(/\D/g, '');
+                                                    display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
+                                                    $wire.set('items.{{ $index }}.qty', raw === '' ? 0 : Number(raw));
+                                                "
+                                                @disabled(($item['stock_available'] ?? 0) <= 0)
+                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-24 p-2 disabled:bg-gray-200 disabled:cursor-not-allowed dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:disabled:bg-zinc-700">
 
                                             @if (($item['stock_available'] ?? 0) <= 0)
-                                                <p class="mt-1 text-xs text-red-500">
-                                                    Stock kosong, qty tidak bisa diisi.
-                                                </p>
+                                                <p class="mt-1 text-xs text-red-500">Stock kosong, qty tidak bisa
+                                                    diisi.</p>
                                             @endif
                                         </td>
 

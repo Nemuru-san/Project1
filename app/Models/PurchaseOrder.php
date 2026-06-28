@@ -37,6 +37,8 @@ class PurchaseOrder extends Model
     const STATUS_APPROVED        = 'Approved';
     const STATUS_RECEIVED        = 'Received';
     const STATUS_PARTIALLY_RECEIVED = 'Partially Received';
+    const STATUS_PARITAL_PAID = 'Partially Paid';
+    const STATUS_PAID = 'Paid';
 
     public static function statusOptions(): array
     {
@@ -45,6 +47,8 @@ class PurchaseOrder extends Model
             self::STATUS_APPROVED,
             self::STATUS_RECEIVED,
             self::STATUS_PARTIALLY_RECEIVED,
+            self::STATUS_PARITAL_PAID,
+            self::STATUS_PAID
         ];
     }
 
