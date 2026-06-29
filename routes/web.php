@@ -1,5 +1,10 @@
 <?php
 
+
+use App\Models\GoodsReceive;
+use App\Models\PurchaseInvoice;
+use App\Models\PurchaseOrder;
+use App\Models\StockTransfer;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
@@ -24,13 +29,46 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('pages.purchase.purchaseOrder.purchaseOrder');
     })->name('purchases.transaction.purchase-order');
 
+    Route::get('purchases/transaction/purchase-order/{id}/print', function ($id) {
+        $po = PurchaseOrder::with([
+            'supplier',
+            'user',
+            'items.product',
+            'items.unit',
+        ])->findOrFail($id);
+
+        return view('prints.purchase-order', compact('po'));
+    })->name('purchases.transaction.purchase-order.print');
+
     Route::get('purchases/transaction/good-receive', function () {
         return view('pages.purchase.goodsReceive.goodsReceive');
     })->name('purchases.transaction.good-receive');
 
+    Route::get('purchases/transaction/good-receive/{id}/print', function ($id) {
+        $gr = GoodsReceive::with([
+            'supplier',
+            'purchaseOrder',
+            'items.product',
+            'items.unit',
+        ])->findOrFail($id);
+
+        return view('prints.goods-receive', compact('gr'));
+    })->name('purchases.transaction.good-receive.print');
+
     Route::get('purchases/transaction/purchase-invoice', function () {
         return view('pages.purchase.purchaseInvoice.purchaseInvoice');
     })->name('purchases.transaction.purchase-invoice');
+
+    Route::get('purchases/transaction/purchase-invoice/{id}/print', function ($id) {
+        $invoice = PurchaseInvoice::with([
+            'supplier',
+            'purchaseOrder',
+            'items.product',
+            'items.unit',
+        ])->findOrFail($id);
+
+        return view('prints.purchase-invoice', compact('invoice'));
+    })->name('purchases.transaction.purchase-invoice.print');
 
     // Inventory - Master
     Route::get('inventory/master/product-master', function () {
@@ -53,10 +91,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('pages.inventory.report.stockBalance');
     })->name('inventory.report.stock-balance');
 
-// Inventory - Transaction
+    // Inventory - Transaction
     Route::get('inventory/transaction/transfer-stock', function () {
         return view('pages.inventory.inventoryTransaction.transferStock');
     })->name('inventory.transaction.transfer-stock');
+
+    Route::get('inventory/transaction/transfer-stock/{id}/print', function ($id) {
+        $transfer = StockTransfer::with([
+            'warehouseFrom',
+            'warehouseTo',
+            'items.product',
+            'items.unit',
+        ])->findOrFail($id);
+
+        return view('prints.transfer-stock', compact('transfer'));
+    })->name('inventory.transaction.transfer-stock.print');
 
     Route::get('inventory/transaction/adjustment-in', function () {
         return view('pages.inventory.inventoryTransaction.adjustmentIn');

@@ -737,6 +737,11 @@ class PurchaseInvoice extends Component
         $this->itemPage = max(1, min($page, $lastPage));
     }
 
+    public function print(int $id)
+    {
+        return redirect()->route('purchases.transaction.purchase-invoice.print', $id);
+    }
+
     public function render()
     {
         $query = ModelsPurchaseInvoice::query()

@@ -690,6 +690,11 @@ class PurchaseOrder extends Component
         $this->dispatch('toast', message: 'Purchase Order dihapus.', type: 'success');
     }
 
+    public function print(int $id)
+    {
+        return redirect()->route('purchases.transaction.purchase-order.print', $id);
+    }
+
     // ─── Render ───────────────────────────────────────────────────────────────
 
     public function render()

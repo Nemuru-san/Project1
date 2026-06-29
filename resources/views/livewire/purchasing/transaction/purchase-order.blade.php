@@ -204,6 +204,20 @@
                                             @endif
 
                                             <li>
+                                                <a href="{{ route('purchases.transaction.purchase-order.print', $po->id) }}"
+                                                    target="_blank" @click="open = false"
+                                                    class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M6 9V4h12v5M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v6H6v-6z" />
+                                                    </svg>
+                                                    Print
+                                                </a>
+                                            </li>
+
+                                            <li>
                                                 <button wire:click="openDetail({{ $po->id }})"
                                                     @click="open = false"
                                                     class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">

@@ -661,6 +661,11 @@ class GoodsReceive extends Component
         return $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
     }
 
+    public function print(int $id)
+    {
+        return redirect()->route('purchases.transaction.goods-receive.print', $id);
+    }
+
     public function render()
     {
         $query = GoodsReceiveModel::query()

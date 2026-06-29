@@ -396,6 +396,11 @@ class TransferStock extends Component
         return $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
     }
 
+    public function print(int $id)
+    {
+        return redirect()->route('purchases.transaction.transfer-stock.print', $id);
+    }
+
     public function render()
     {
         $transfers = StockTransfer::with(['warehouseFrom', 'warehouseTo'])
