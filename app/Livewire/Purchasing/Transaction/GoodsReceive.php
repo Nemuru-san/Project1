@@ -20,32 +20,48 @@ class GoodsReceive extends Component
 
     // Table state
     public string $search = '';
+
     public string $statusFilter = '';
+
     public int $perPage = 10;
+
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
 
     // Modal state
     public bool $showModal = false;
+
     public bool $showDetailModal = false;
+
     public bool $showDeleteModal = false;
+
     public bool $showReceiveModal = false;
 
     public ?int $deleteTargetId = null;
+
     public ?int $receiveTargetId = null;
 
     public bool $showTrashed = false;
+
     // public bool $showDetail = false;
     public ?GoodsReceiveModel $selectedGR = null;
+
     public string $selectedStatus = '';
 
     // Form state
     public ?int $editingId = null;
+
     public string $code = '';
+
     public string $date = '';
+
     public ?int $purchase_order_id = null;
+
     public ?int $supplier_id = null;
+
     public string $supplier_name = '';
+
     public string $note = '';
 
     public array $items = [];
@@ -249,7 +265,7 @@ class GoodsReceive extends Component
             if (! $price) {
                 $this->dispatch(
                     'toast',
-                    message: 'Produk ' . ($poItem->product?->name ?? '-') . ' belum punya satuan / harga.',
+                    message: 'Produk '.($poItem->product?->name ?? '-').' belum punya satuan / harga.',
                     type: 'error'
                 );
 
@@ -281,7 +297,7 @@ class GoodsReceive extends Component
         $validated = $this->validate();
 
         $hasReceivedQty = collect($this->items)
-            ->contains(fn(array $item): bool => (int) $item['qty_received'] > 0);
+            ->contains(fn (array $item): bool => (int) $item['qty_received'] > 0);
 
         if (! $hasReceivedQty) {
             throw ValidationException::withMessages([
@@ -434,7 +450,7 @@ class GoodsReceive extends Component
 
     public function updateStatus(): void
     {
-        if (!$this->selectedGR) {
+        if (! $this->selectedGR) {
             return;
         }
 
@@ -451,16 +467,25 @@ class GoodsReceive extends Component
             'purchaseOrder',
         ])->findOrFail($this->selectedGR->id);
 
-        if (!in_array($goodsReceive->status, [
+        if (! in_array($goodsReceive->status, [
             GoodsReceiveModel::STATUS_DRAFT,
             GoodsReceiveModel::STATUS_RECEIVED,
         ], true)) {
             $this->addError('selectedStatus', 'Status Goods Receive ini tidak bisa diubah manual.');
+
             return;
         }
 
         if ($goodsReceive->status === $this->selectedStatus) {
             return;
+        }
+
+        if ($this->selectedStatus === GoodsReceiveModel::STATUS_CANCELLED) {
+            if ($goodsReceive->purchaseInvoices()->exists()) {
+                $this->addError('selectedStatus', 'Goods Receive tidak bisa di-cancel karena sudah memiliki Purchase Invoice.');
+
+                return;
+            }
         }
 
         if (
@@ -469,6 +494,7 @@ class GoodsReceive extends Component
         ) {
             if ($goodsReceive->purchaseInvoices()->exists()) {
                 $this->addError('selectedStatus', 'Goods Receive tidak bisa dikembalikan ke Draft karena sudah memiliki Purchase Invoice.');
+
                 return;
             }
         }
@@ -479,6 +505,7 @@ class GoodsReceive extends Component
         ) {
             if ($goodsReceive->items()->count() <= 0) {
                 $this->addError('selectedStatus', 'Goods Receive tidak bisa Received karena item masih kosong.');
+
                 return;
             }
 
@@ -488,21 +515,44 @@ class GoodsReceive extends Component
 
             if ($invalidItem) {
                 $this->addError('selectedStatus', 'Goods Receive tidak bisa Received karena masih ada qty received yang 0.');
+
                 return;
             }
         }
 
-        DB::transaction(function () use ($goodsReceive) {
-            $goodsReceive->update([
-                'status' => $this->selectedStatus,
-            ]);
+        try {
+            DB::transaction(function () use ($goodsReceive) {
+                $originalStatus = $goodsReceive->status;
+                $nextStatus = $this->selectedStatus;
 
-            if ($this->selectedStatus === GoodsReceiveModel::STATUS_RECEIVED) {
-                $this->addGoodsReceiveToStock($goodsReceive);
-            }
+                if (
+                    $originalStatus === GoodsReceiveModel::STATUS_RECEIVED
+                    && in_array($nextStatus, [
+                        GoodsReceiveModel::STATUS_DRAFT,
+                        GoodsReceiveModel::STATUS_CANCELLED,
+                    ], true)
+                ) {
+                    $this->removeGoodsReceiveFromStock($goodsReceive);
+                }
 
-            $this->updatePurchaseOrderStatus($goodsReceive->purchase_order_id);
-        });
+                $goodsReceive->update([
+                    'status' => $nextStatus,
+                ]);
+
+                if (
+                    $originalStatus !== GoodsReceiveModel::STATUS_RECEIVED
+                    && $nextStatus === GoodsReceiveModel::STATUS_RECEIVED
+                ) {
+                    $this->addGoodsReceiveToStock($goodsReceive);
+                }
+
+                $this->updatePurchaseOrderStatus($goodsReceive->purchase_order_id);
+            });
+        } catch (\Throwable $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+
+            return;
+        }
 
         $this->showDetailModal = false;
         $this->selectedGR = null;
@@ -517,11 +567,13 @@ class GoodsReceive extends Component
 
         if ($goodsReceive->status !== GoodsReceiveModel::STATUS_DRAFT) {
             $this->dispatch('toast', message: 'Hanya Goods Receive Draft yang bisa di-receive.', type: 'error');
+
             return;
         }
 
         if ($goodsReceive->items->isEmpty()) {
             $this->dispatch('toast', message: 'Goods Receive tidak bisa di-receive karena item masih kosong.', type: 'error');
+
             return;
         }
 
@@ -560,9 +612,33 @@ class GoodsReceive extends Component
         }
     }
 
+    private function removeGoodsReceiveFromStock(GoodsReceiveModel $goodsReceive): void
+    {
+        $goodsReceive->loadMissing('items.product');
+
+        foreach ($goodsReceive->items as $item) {
+            $qtyBase = (int) $item->qty_base;
+
+            if ($qtyBase <= 0) {
+                continue;
+            }
+
+            $stockBalance = StockBalance::where('warehouse_id', $item->warehouse_id)
+                ->where('product_id', $item->product_id)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $stockBalance || (int) $stockBalance->quantity < $qtyBase) {
+                throw new \Exception('Stok tidak cukup untuk cancel Goods Receive item '.($item->product?->name ?? '-'));
+            }
+
+            $stockBalance->decrement('quantity', $qtyBase);
+        }
+    }
+
     public function receive(): void
     {
-        if (!$this->receiveTargetId) {
+        if (! $this->receiveTargetId) {
             return;
         }
 
@@ -573,6 +649,7 @@ class GoodsReceive extends Component
             $this->receiveTargetId = null;
 
             $this->dispatch('toast', message: 'Hanya Goods Receive Draft yang bisa di-receive.', type: 'error');
+
             return;
         }
 
@@ -648,22 +725,22 @@ class GoodsReceive extends Component
 
     private function generateGrCode(): string
     {
-        $date   = now()->format('dmy');
+        $date = now()->format('dmy');
         $prefix = "GR-{$date}-";
 
         $last = GoodsReceiveModel::withTrashed()
-            ->where('code', 'like', $prefix . '%')
+            ->where('code', 'like', $prefix.'%')
             ->orderByDesc('code')
             ->value('code');
 
         $seq = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
 
-        return $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
+        return $prefix.str_pad($seq, 3, '0', STR_PAD_LEFT);
     }
 
     public function print(int $id)
     {
-        return redirect()->route('purchases.transaction.goods-receive.print', $id);
+        return redirect()->route('purchases.transaction.good-receive.print', $id);
     }
 
     public function render()
@@ -681,13 +758,13 @@ class GoodsReceive extends Component
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('code', 'like', '%' . $this->search . '%')
-                    ->orWhere('status', 'like', '%' . $this->search . '%')
+                $q->where('code', 'like', '%'.$this->search.'%')
+                    ->orWhere('status', 'like', '%'.$this->search.'%')
                     ->orWhereHas('supplier', function ($supplierQuery) {
-                        $supplierQuery->where('name', 'like', '%' . $this->search . '%');
+                        $supplierQuery->where('name', 'like', '%'.$this->search.'%');
                     })
                     ->orWhereHas('purchaseOrder', function ($poQuery) {
-                        $poQuery->where('code', 'like', '%' . $this->search . '%');
+                        $poQuery->where('code', 'like', '%'.$this->search.'%');
                     });
             });
         }
@@ -703,11 +780,8 @@ class GoodsReceive extends Component
                 PurchaseOrder::STATUS_PARTIALLY_RECEIVED,
             ])
             ->whereDoesntHave('goodsReceives', function ($q) {
-                $q->whereIn('status', [
-                    GoodsReceiveModel::STATUS_DRAFT,
-                    GoodsReceiveModel::STATUS_RECEIVED,
-                ])
-                    ->when($this->editingId, fn($q) => $q->where('id', '!=', $this->editingId));
+                $q->where('status', GoodsReceiveModel::STATUS_DRAFT)
+                    ->when($this->editingId, fn ($q) => $q->where('id', '!=', $this->editingId));
             })
             ->orderByDesc('date')
             ->get();

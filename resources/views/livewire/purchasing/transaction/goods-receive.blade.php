@@ -32,7 +32,7 @@
                 <option value="">Semua Status</option>
                 <option value="Draft">Draft</option>
                 <option value="Received">Received</option>
-                {{-- <option value="cancelled">Cancelled</option> --}}
+                <option value="Cancelled">Cancelled</option>
             </select>
 
             <select wire:model.live="perPage"
@@ -128,6 +128,11 @@
                                 <span
                                     class="text-sm font-normal px-2.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-700 dark:text-white">
                                     Received
+                                </span>
+                            @elseif ($gr->status === 'Cancelled')
+                                <span
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-700 dark:text-white">
+                                    Cancelled
                                 </span>
                             @else
                                 <span
@@ -317,7 +322,7 @@
                             </label>
                             <select wire:model.live="purchase_order_id" @disabled($editingId)
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('purchase_order_id') border-red-500 @else border-gray-300 @enderror">
-                                <option value="">-- Pilih PO Approved --</option>
+                                <option value="">-- Pilih PO Approved / Partially Received --</option>
                                 @foreach ($purchaseOrders as $po)
                                     <option value="{{ $po->id }}">
                                         {{ $po->code }} - {{ $po->supplier?->name ?? '-' }}
@@ -458,7 +463,7 @@
                                         <tr>
                                             <td colspan="9"
                                                 class="border border-gray-300 dark:border-zinc-600 px-4 py-8 text-center text-gray-400">
-                                                Pilih PO Approved terlebih dahulu.
+                                                Pilih PO Approved / Partially Received terlebih dahulu.
                                             </td>
                                         </tr>
                                     @endforelse
@@ -577,6 +582,7 @@
                                         $statusClass = match ($selectedGR->status) {
                                             'Draft' => 'bg-zinc-600 text-white',
                                             'Received' => 'bg-green-700 text-white',
+                                            'Cancelled' => 'bg-red-700 text-white',
                                             default => 'bg-zinc-600 text-white',
                                         };
                                     @endphp
@@ -677,7 +683,7 @@
                     </div>
 
                     {{-- Ubah Status --}}
-                    @if ($selectedGR->status === 'Draft')
+                    @if (in_array($selectedGR->status, ['Draft', 'Received'], true))
                         <div class="border-t dark:border-zinc-700 pt-5">
                             <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                                 Ubah Status
@@ -688,6 +694,7 @@
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white w-48">
                                     <option value="Draft">Draft</option>
                                     <option value="Received">Received</option>
+                                    <option value="Cancelled">Cancelled</option>
                                 </select>
 
                                 <button wire:click="updateStatus" wire:loading.attr="disabled"

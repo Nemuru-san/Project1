@@ -28,13 +28,17 @@ class GoodsReceive extends Model
     ];
 
     const STATUS_DRAFT = 'Draft';
+
     const STATUS_RECEIVED = 'Received';
+
+    const STATUS_CANCELLED = 'Cancelled';
 
     public static function statusOptions(): array
     {
         return [
             self::STATUS_DRAFT,
             self::STATUS_RECEIVED,
+            self::STATUS_CANCELLED,
         ];
     }
 
@@ -60,6 +64,6 @@ class GoodsReceive extends Model
 
     public function purchaseInvoices(): HasMany
     {
-        return $this->hasMany(PurchaseInvoice::class, 'goods_receive_id');
+        return $this->hasMany(PurchaseInvoice::class, 'purchase_order_id', 'purchase_order_id');
     }
 }

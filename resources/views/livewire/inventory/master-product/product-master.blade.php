@@ -11,6 +11,11 @@
 
         {{-- Watch for Livewire property changes (e.g. openEdit sets priceRowsJson) --}}
         this.$watch('$wire.priceRowsJson', () => this.syncFromWire());
+        this.$watch('$wire.base_unit_id', () => {
+            if (this.normalizeBaseUnitRows()) {
+                this.syncToWire();
+            }
+        });
     },
 
     {{-- syncFromWire() {
@@ -27,6 +32,10 @@
             conversion: r.conversion || 1,
             price: r.price ?? 0,
         }));
+
+        if (this.normalizeBaseUnitRows()) {
+            this.syncToWire();
+        }
     },
 
     syncToWire() {
@@ -56,11 +65,43 @@
         this.syncToWire();
     },
 
+    handleUnitChange(row) {
+        this.normalizeBaseUnitRow(row);
+        this.syncToWire();
+    },
+
+    handleConversionChange(row) {
+        this.normalizeBaseUnitRow(row);
+        this.syncToWire();
+    },
+
+    normalizeBaseUnitRows() {
+        return this.rows.reduce((changed, row) => this.normalizeBaseUnitRow(row) || changed, false);
+    },
+
+    normalizeBaseUnitRow(row) {
+        if (this.isBaseUnit(row) && Number(row.conversion) !== 1) {
+            row.conversion = 1;
+            return true;
+        }
+
+        return false;
+    },
+
     isUnitSelected(unitId, currentRowId) {
         return this.rows.some(row =>
             row._id !== currentRowId &&
             String(row.unit_id) === String(unitId)
         );
+    },
+
+    isBaseUnit(row) {
+        const baseUnitId = this.$wire.base_unit_id;
+
+        return row.unit_id !== '' &&
+            baseUnitId !== null &&
+            baseUnitId !== '' &&
+            String(row.unit_id) === String(baseUnitId);
     }
 }"
     @toast.window="toastMsg = $event.detail.message; toastType = $event.detail.type; setTimeout(() => toastMsg = '', 3000)">
@@ -125,7 +166,7 @@
                     <th class="px-4 py-4 w-12">No</th>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('sku')">
                         <div class="flex items-center gap-1">
-                            Product Description
+                            Product SKU
                             @if ($sortField === 'sku')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
@@ -133,13 +174,14 @@
                     </th>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
                         <div class="flex items-center gap-1">
-                            Code Product
+                            Nama Product
                             @if ($sortField === 'name')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
                         </div>
                     </th>
                     <th class="px-4 py-4">Kategori</th>
+                    <th class="px-4 py-4">Base Unit</th>
                     <th class="px-4 py-4">Spesifikasi</th>
                     <th class="px-4 py-4">Brand</th>
                     <th class="px-4 py-4">Status</th>
@@ -156,6 +198,9 @@
                         <td class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                             {{ $product->name }}</td>
                         <td class="px-4 py-4">{{ $product->category?->name ?? '-' }}</td>
+                        <td class="px-4 py-4">
+                            {{ $product->baseUnit ? $product->baseUnit->name . ' (' . $product->baseUnit->code . ')' : '-' }}
+                        </td>
                         <td class="px-4 py-4">{{ $product->specification ?: '-' }}</td>
                         <td class="px-4 py-4">{{ $product->brand ?: '-' }}</td>
                         <td class="px-4 py-4">
@@ -252,7 +297,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="px-4 py-10 text-center text-gray-400 dark:text-gray-500">
+                        <td colspan="9" class="px-4 py-10 text-center text-gray-400 dark:text-gray-500">
                             Tidak ada data produk ditemukan.
                         </td>
                     </tr>
@@ -399,6 +444,24 @@
                                 @enderror
                             </div>
 
+                            {{-- Base Unit --}}
+                            <div>
+                                <label class="block mb-1.5 text-sm font-medium text-gray-900 dark:text-white">
+                                    Base Unit <span class="text-red-500">*</span>
+                                </label>
+                                <select wire:model.live="base_unit_id"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-zinc-700 dark:border-zinc-600 dark:text-white @error('base_unit_id') border-red-500 @enderror">
+                                    <option value="">-- Pilih Base Unit --</option>
+                                    @foreach ($units as $unit)
+                                        <option value="{{ $unit['id'] }}">{{ $unit['name'] }} ({{ $unit['code'] }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('base_unit_id')
+                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+
                             {{-- Brand --}}
                             <div>
                                 <label
@@ -464,7 +527,7 @@
                                         <tr class="hover:bg-gray-50 dark:hover:bg-zinc-700/40">
                                             <td
                                                 class="border border-gray-200 dark:border-zinc-600 px-3 py-2 text-center">
-                                                <button x-show="index > 0" type="button" @click="removeRow(row._id)"
+                                                <button x-show="rows.length > 1" type="button" @click="removeRow(row._id)"
                                                     class="text-red-500 hover:text-red-700">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
@@ -477,15 +540,7 @@
                                             <td class="border border-gray-200 dark:border-zinc-600 px-3 py-2 text-center font-medium"
                                                 x-text="index + 1"></td>
                                             <td class="border border-gray-200 dark:border-zinc-600 px-3 py-2">
-                                                <select x-model="row.unit_id"
-                                                    @change="
-                                                        if (index === 0) {
-                                                            row.unit_id = 1;
-                                                        }
-                                                        syncToWire();
-                                                    "
-                                                    :disabled="index === 0"
-                                                    :class="index === 0 ? 'cursor-not-allowed opacity-70' : ''"
+                                                <select x-model="row.unit_id" @change="handleUnitChange(row)"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white">
                                                     <option value="">-- Pilih Unit --</option>
                                                     @foreach ($units as $unit)
@@ -496,17 +551,15 @@
                                                         </option>
                                                     @endforeach
                                                 </select>
+                                                <p x-show="isBaseUnit(row)"
+                                                    class="mt-1 text-[11px] text-blue-600 dark:text-blue-400">
+                                                    Base unit
+                                                </p>
                                             </td>
                                             <td class="border border-gray-200 dark:border-zinc-600 px-3 py-2">
-                                                <input x-model="row.conversion"
-                                                    @change="
-                                                        if (index === 0) {
-                                                            row.conversion = 1;
-                                                        }
-                                                        syncToWire();
-                                                    "
-                                                    type="number" min="1" :readonly="index === 0"
-                                                    :class="index === 0 ? 'cursor-not-allowed opacity-70' : ''"
+                                                <input x-model="row.conversion" @change="handleConversionChange(row)"
+                                                    type="number" min="1" :readonly="isBaseUnit(row)"
+                                                    :class="isBaseUnit(row) ? 'cursor-not-allowed opacity-70' : ''"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white" />
                                             </td>
                                             <td class="border border-gray-200 dark:border-zinc-600 px-3 py-2">
@@ -650,6 +703,12 @@
                                     class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400">
                                     {{ $detailProduct['category'] ?? '-' }}
                                 </span>
+                                @if ($detailProduct['base_unit'])
+                                    <span
+                                        class="px-2 py-0.5 text-xs rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                                        {{ $detailProduct['base_unit'] }}
+                                    </span>
+                                @endif
                                 @if ($detailProduct['brand'])
                                     <span
                                         class="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600 dark:bg-zinc-700 dark:text-gray-300">
@@ -690,6 +749,7 @@
                                         class="text-xs font-bold uppercase bg-gray-100 dark:bg-zinc-700 dark:text-gray-300">
                                         <tr>
                                             <th class="px-4 py-2.5">Unit</th>
+                                            <th class="px-4 py-2.5 text-center">Base</th>
                                             <th class="px-4 py-2.5 text-center">Konversi</th>
                                             <th class="px-4 py-2.5 text-right">Harga Retail</th>
                                         </tr>
@@ -698,6 +758,16 @@
                                         @foreach ($detailProduct['prices'] as $p)
                                             <tr class="hover:bg-gray-50 dark:hover:bg-zinc-700/40">
                                                 <td class="px-4 py-2.5">{{ $p['unit'] }}</td>
+                                                <td class="px-4 py-2.5 text-center">
+                                                    @if ($p['is_base_unit'])
+                                                        <span
+                                                            class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400">
+                                                            Ya
+                                                        </span>
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </td>
                                                 <td class="px-4 py-2.5 text-center">{{ $p['conversion'] }}</td>
                                                 <td class="px-4 py-2.5 text-right font-medium">
                                                     Rp {{ number_format($p['price'], 0, ',', '.') }}

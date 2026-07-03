@@ -410,8 +410,13 @@
                                     @forelse ($items as $i => $item)
                                         <tr x-data="{
                                             item: @js($item),
+                                            syncTimer: null,
                                             syncToWire() {
                                                 $wire.set('items.{{ $i }}', this.item);
+                                            },
+                                            scheduleSync() {
+                                                clearTimeout(this.syncTimer);
+                                                this.syncTimer = setTimeout(() => this.syncToWire(), 300);
                                             }
                                         }"
                                             class="hover:bg-gray-100 dark:hover:bg-zinc-800 text-sm">
@@ -453,10 +458,11 @@
                                                 <input type="text" inputmode="numeric" autocomplete="off"
                                                     placeholder="Qty" x-model="item.qty_display"
                                                     @input="
-                                                        let raw = item.qty_display.replace(/\./g, '').replace(/\D/g, '');
-                                                        item.qty = raw === '' ? null : Number(raw);
-                                                        item.qty_display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
-                                                    "
+                                                         let raw = item.qty_display.replace(/\./g, '').replace(/\D/g, '');
+                                                         item.qty = raw === '' ? null : Number(raw);
+                                                         item.qty_display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
+                                                         scheduleSync();
+                                                     "
                                                     @blur="syncToWire()"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-24 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                             </td>
@@ -466,10 +472,11 @@
                                                 <input type="text" inputmode="numeric" autocomplete="off"
                                                     placeholder="Isi harga" x-model="item.price_display"
                                                     @input="
-                                                        let raw = item.price_display.replace(/\./g, '').replace(/\D/g, '');
-                                                        item.price = raw === '' ? null : Number(raw);
-                                                        item.price_display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
-                                                    "
+                                                         let raw = item.price_display.replace(/\./g, '').replace(/\D/g, '');
+                                                         item.price = raw === '' ? null : Number(raw);
+                                                         item.price_display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
+                                                         scheduleSync();
+                                                     "
                                                     @blur="syncToWire()"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-28 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                             </td>
@@ -479,10 +486,11 @@
                                                 <input type="text" inputmode="numeric" autocomplete="off"
                                                     placeholder="Disc" x-model="item.disc_display"
                                                     @input="
-                                                        let raw = item.disc_display.replace(/\./g, '').replace(/\D/g, '');
-                                                        item.disc = raw === '' ? null : Number(raw);
-                                                        item.disc_display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
-                                                    "
+                                                         let raw = item.disc_display.replace(/\./g, '').replace(/\D/g, '');
+                                                         item.disc = raw === '' ? null : Number(raw);
+                                                         item.disc_display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
+                                                         scheduleSync();
+                                                     "
                                                     @blur="syncToWire()"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-28 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                             </td>
@@ -789,6 +797,7 @@
                                     <th class="px-4 py-3 w-8">No</th>
                                     <th class="px-4 py-3">Produk</th>
                                     <th class="px-4 py-3 text-right">Qty</th>
+                                    <th class="px-4 py-3 text-right">Unit</th>
                                     <th class="px-4 py-3 text-right">Diskon</th>
                                     <th class="px-4 py-3 text-right">Total Harga</th>
                                 </tr>
@@ -804,6 +813,8 @@
                                         </td>
                                         <td class="px-4 py-3 text-right text-gray-800 dark:text-white">
                                             {{ $item->qty }}</td>
+                                        <td class="px-4 py-3 text-right text-gray-800 dark:text-white">
+                                            {{ $item->unit->code }}</td>
                                         <td class="px-4 py-3 text-right text-gray-800 dark:text-white">
                                             Rp {{ number_format($item->disc, 0, ',', '.') }}
                                         </td>
@@ -822,26 +833,35 @@
                     </div>
 
                     <div class="flex justify-end">
+                        @php
+                            $selectedGross = $selectedPO->items->sum(
+                                fn($item) => (int) $item->qty * (int) $item->price,
+                            );
+                            $selectedDisc = $selectedPO->items->sum('disc');
+                            $selectedAfterDisc = max(0, $selectedGross - $selectedDisc);
+                            $selectedPpn = $selectedPO->tax ? (int) round($selectedAfterDisc * 0.11) : 0;
+                            $selectedNett = $selectedAfterDisc + $selectedPpn;
+                        @endphp
                         <div class="space-y-2 text-sm w-full max-w-xs">
                             <div class="flex justify-between text-gray-500 dark:text-gray-400">
                                 <span>Gross</span>
-                                <span>Rp {{ number_format($selectedPO->gross, 0, ',', '.') }}</span>
+                                <span>Rp {{ number_format($selectedGross, 0, ',', '.') }}</span>
                             </div>
 
                             <div class="flex justify-between text-gray-500 dark:text-gray-400">
                                 <span>Total Diskon</span>
-                                <span>Rp {{ number_format($selectedPO->total_disc ?? 0, 0, ',', '.') }}</span>
+                                <span>Rp {{ number_format($selectedDisc, 0, ',', '.') }}</span>
                             </div>
 
                             <div class="flex justify-between text-gray-500 dark:text-gray-400">
                                 <span>PPN {{ $selectedPO->tax ? '(11%)' : '' }}</span>
-                                <span>Rp {{ number_format($selectedPO->ppn ?? 0, 0, ',', '.') }}</span>
+                                <span>Rp {{ number_format($selectedPpn, 0, ',', '.') }}</span>
                             </div>
 
                             <div
                                 class="flex justify-between font-bold text-base text-gray-800 dark:text-white border-t dark:border-zinc-700 pt-2">
                                 <span>Nett</span>
-                                <span>Rp {{ number_format($selectedPO->nett, 0, ',', '.') }}</span>
+                                <span>Rp {{ number_format($selectedNett, 0, ',', '.') }}</span>
                             </div>
                         </div>
                     </div>
