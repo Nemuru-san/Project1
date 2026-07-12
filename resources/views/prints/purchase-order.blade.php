@@ -221,22 +221,30 @@
 
             <div class="divider" style="margin-top: 4px;"></div>
 
+            @php
+                $poGross = $po->items->sum(fn($item) => (int) $item->qty * (int) $item->price);
+                $poDiscount = $po->items->sum('disc');
+                $poAfterDiscount = max(0, $poGross - $poDiscount);
+                $poPpn = $po->tax ? (int) round($poAfterDiscount * 0.11) : 0;
+                $poNett = $poAfterDiscount + $poPpn;
+            @endphp
+
             <table class="summary">
                 <tr>
                     <td>SUB TOTAL</td>
-                    <td class="right">{{ number_format($po->gross, 0, ',', '.') }}</td>
+                    <td class="right">{{ number_format($poGross, 0, ',', '.') }}</td>
                 </tr>
                 <tr>
                     <td>DISCOUNT</td>
-                    <td class="right">{{ number_format($po->total_disc ?? 0, 0, ',', '.') }}</td>
+                    <td class="right">{{ number_format($poDiscount, 0, ',', '.') }}</td>
                 </tr>
                 <tr>
                     <td>PAJAK</td>
-                    <td class="right">{{ number_format($po->ppn ?? 0, 0, ',', '.') }}</td>
+                    <td class="right">{{ number_format($poPpn, 0, ',', '.') }}</td>
                 </tr>
                 <tr>
                     <td>TOTAL</td>
-                    <td class="right">{{ number_format($po->nett, 0, ',', '.') }}</td>
+                    <td class="right">{{ number_format($poNett, 0, ',', '.') }}</td>
                 </tr>
             </table>
         </div>

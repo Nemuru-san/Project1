@@ -647,7 +647,7 @@
                                 <div>
                                     <label for="ppn"
                                         class="block mb-4 text-base font-medium text-gray-900 dark:text-white">PPN
-                                        (10%)</label>
+                                        (11%)</label>
                                     <input type="text" id="ppn"
                                         value="Rp {{ number_format($tax_amount, 0, ',', '.') }}" disabled
                                         class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 cursor-not-allowed">

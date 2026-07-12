@@ -16,42 +16,62 @@ class PurchaseOrder extends Component
     use WithPagination;
 
     // ─── Table state ──────────────────────────────────────────────────────────
-    public string $search        = '';
-    public string $statusFilter  = '';
-    public int $perPage          = 10;
-    public string $sortField     = 'created_at';
+    public string $search = '';
+
+    public string $statusFilter = '';
+
+    public int $perPage = 10;
+
+    public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
-    public bool $showTrashed     = false;
+
+    public bool $showTrashed = false;
 
     // ─── Modal state ──────────────────────────────────────────────────────────
-    public bool $showModal       = false;
+    public bool $showModal = false;
+
     public bool $showDeleteModal = false;
-    public ?int $deleteTargetId  = null;
+
+    public ?int $deleteTargetId = null;
+
     public bool $showApproveModal = false;
+
     public ?int $approveTargetId = null;
 
     // ─── Create form ──────────────────────────────────────────────────────────
-    public string $date           = '';
+    public string $date = '';
+
     public int|string $supplier_id = '';
-    public bool $tax              = false;
-    public string $purchase_note  = '';
-    public array $items           = [];
+
+    public bool $tax = false;
+
+    public string $purchase_note = '';
+
+    public array $items = [];
 
     // Summary
-    public int $gross     = 0;
+    public int $gross = 0;
+
     public int $totalDisc = 0;
-    public int $ppn       = 0;
-    public int $nett      = 0;
+
+    public int $ppn = 0;
+
+    public int $nett = 0;
 
     // ─── Product modal state ──────────────────────────────────────────────────
-    public string $searchProduct      = '';
+    public string $searchProduct = '';
+
     public $filterCategory = '';
+
     public array $selectedProductIds = [];
 
     // ─────────────────────────────────────────────────────────────────────────
 
     public bool $showDetail = false;
+
     public ?PurchaseOrderModel $selectedPO = null;
+
     public string $selectedStatus = '';
 
     public ?int $editId = null;
@@ -59,17 +79,17 @@ class PurchaseOrder extends Component
     protected function rules(): array
     {
         return [
-            'date'               => 'required|date|before_or_equal:today',
-            'supplier_id'        => 'required|exists:suppliers,id',
-            'purchase_note'      => 'nullable|string',
-            'items'              => 'required|array|min:1',
+            'date' => 'required|date|before_or_equal:today',
+            'supplier_id' => 'required|exists:suppliers,id',
+            'purchase_note' => 'nullable|string',
+            'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
-            'items.*.price_id'   => 'required|exists:product_prices,id',
-            'items.*.unit_id'    => 'nullable|exists:product_units,id',
+            'items.*.price_id' => 'required|exists:product_prices,id',
+            'items.*.unit_id' => 'nullable|exists:product_units,id',
             'items.*.conversion' => 'required|integer|min:1',
-            'items.*.qty'        => 'required|integer|min:1',
-            'items.*.price'      => 'required|numeric|min:0',
-            'items.*.disc'       => 'required|integer|min:0',
+            'items.*.qty' => 'required|integer|min:1',
+            'items.*.price' => 'required|numeric|min:0',
+            'items.*.disc' => 'required|integer|min:0',
         ];
     }
 
@@ -113,7 +133,7 @@ class PurchaseOrder extends Component
 
     protected array $messages = [
         'date.before_or_equal' => 'Tanggal PO tidak boleh tanggal yang akan datang.',
-        'items.min'            => 'Minimal 1 produk harus dipilih.',
+        'items.min' => 'Minimal 1 produk harus dipilih.',
     ];
 
     // ─── Table actions ────────────────────────────────────────────────────────
@@ -122,6 +142,7 @@ class PurchaseOrder extends Component
     {
         $this->resetPage();
     }
+
     public function updatingStatusFilter(): void
     {
         $this->resetPage();
@@ -165,6 +186,7 @@ class PurchaseOrder extends Component
     {
         $this->resetPage('productsPage');
     }
+
     public function updatedFilterCategory(): void
     {
         $this->resetPage('productsPage');
@@ -180,38 +202,38 @@ class PurchaseOrder extends Component
 
         $product = Product::with(['category', 'prices.unit'])->find($productId);
 
-        if (!$product || $product->prices->isEmpty()) {
+        if (! $product || $product->prices->isEmpty()) {
             return;
         }
 
-        $prices = $product->prices->map(fn($p) => [
-            'id'         => $p->id,
-            'unit_id'    => $p->unit_id,
-            'unit_name'  => $p->unit?->name ?? '-',
-            'price'      => $p->price,
+        $prices = $product->prices->map(fn ($p) => [
+            'id' => $p->id,
+            'unit_id' => $p->unit_id,
+            'unit_name' => $p->unit?->name ?? '-',
+            'price' => $p->price,
             'conversion' => $p->conversion ?? $p->unit?->conversion ?? 1,
         ])->toArray();
 
         $defaultPrice = $product->prices->first();
 
         $this->items[] = [
-            'product_id'    => $product->id,
-            'product_code'  => $product->sku,
-            'product_name'  => $product->name,
-            'category'      => $product->category?->name ?? '-',
-            'prices'        => $prices,
-            'price_id'      => $defaultPrice->id,
-            'unit_id'       => $defaultPrice->unit_id,
-            'unit_name'     => $defaultPrice->unit?->name ?? '-',
-            'conversion'    => $defaultPrice->conversion ?? $defaultPrice->unit?->conversion ?? 1,
-            'qty'           => 1,
-            'qty_display'   => '1',
-            'qty_base'      => 1 * ($defaultPrice->conversion ?? $defaultPrice->unit?->conversion ?? 1),
-            'price'         => null,
+            'product_id' => $product->id,
+            'product_code' => $product->sku,
+            'product_name' => $product->name,
+            'category' => $product->category?->name ?? '-',
+            'prices' => $prices,
+            'price_id' => $defaultPrice->id,
+            'unit_id' => $defaultPrice->unit_id,
+            'unit_name' => $defaultPrice->unit?->name ?? '-',
+            'conversion' => $defaultPrice->conversion ?? $defaultPrice->unit?->conversion ?? 1,
+            'qty' => 1,
+            'qty_display' => '1',
+            'qty_base' => 1 * ($defaultPrice->conversion ?? $defaultPrice->unit?->conversion ?? 1),
+            'price' => null,
             'price_display' => '',
-            'disc'          => 0,
-            'disc_display'  => '0',
-            'subtotal'      => 0,
+            'disc' => 0,
+            'disc_display' => '0',
+            'subtotal' => 0,
         ];
 
         $this->recalculate();
@@ -241,6 +263,13 @@ class PurchaseOrder extends Component
     {
         $parts = explode('.', $key);
 
+        if (count($parts) === 1) {
+            $this->normalizeItemRow((int) $parts[0]);
+            $this->recalculate();
+
+            return;
+        }
+
         if (count($parts) !== 2) {
             return;
         }
@@ -248,7 +277,7 @@ class PurchaseOrder extends Component
         [$index, $field] = $parts;
         $index = (int) $index;
 
-        if (!isset($this->items[$index])) {
+        if (! isset($this->items[$index])) {
             return;
         }
 
@@ -269,23 +298,7 @@ class PurchaseOrder extends Component
             }
         }
 
-        $qty = max(1, (int) ($this->items[$index]['qty'] ?? 1));
-        $conversion = max(1, (int) ($this->items[$index]['conversion'] ?? 1));
-        $rawPrice = $this->items[$index]['price'] ?? null;
-        $price = ($rawPrice === '' || $rawPrice === null)
-            ? null
-            : max(0, (int) $rawPrice);
-        $disc = max(0, (int) ($this->items[$index]['disc'] ?? 0));
-
-        $lineGross = $qty * $price;
-        $disc = min($disc, $lineGross);
-
-        $this->items[$index]['qty'] = $qty;
-        $this->items[$index]['qty_base'] = $qty * $conversion;
-        $this->items[$index]['price'] = $price;
-        $this->items[$index]['disc'] = $disc;
-        $this->items[$index]['subtotal'] = $lineGross - $disc;
-
+        $this->normalizeItemRow($index);
         $this->recalculate();
     }
 
@@ -308,32 +321,57 @@ class PurchaseOrder extends Component
 
             $subtotalBeforeDisc = $qty * $price;
             $disc = min($disc, $subtotalBeforeDisc);
-            $subtotal = $subtotalBeforeDisc - $disc;
 
-            $gross += $subtotal;
+            $gross += $subtotalBeforeDisc;
             $totalDisc += $disc;
         }
 
+        $afterDisc = max(0, $gross - $totalDisc);
+
         $this->gross = $gross;
         $this->totalDisc = $totalDisc;
-        $this->ppn = $this->tax ? (int) round($gross * 0.11) : 0;
-        $this->nett = $gross + $this->ppn;
+        $this->ppn = $this->tax ? (int) round($afterDisc * 0.11) : 0;
+        $this->nett = $afterDisc + $this->ppn;
+    }
+
+    private function normalizeItemRow(int $index): void
+    {
+        if (! isset($this->items[$index])) {
+            return;
+        }
+
+        $qty = max(1, (int) ($this->items[$index]['qty'] ?? 1));
+        $conversion = max(1, (int) ($this->items[$index]['conversion'] ?? 1));
+        $rawPrice = $this->items[$index]['price'] ?? null;
+        $price = ($rawPrice === '' || $rawPrice === null)
+            ? null
+            : max(0, (int) $rawPrice);
+        $disc = max(0, (int) ($this->items[$index]['disc'] ?? 0));
+
+        $lineGross = $qty * (int) ($price ?? 0);
+        $disc = min($disc, $lineGross);
+
+        $this->items[$index]['qty'] = $qty;
+        $this->items[$index]['qty_base'] = $qty * $conversion;
+        $this->items[$index]['price'] = $price;
+        $this->items[$index]['disc'] = $disc;
+        $this->items[$index]['subtotal'] = $lineGross - $disc;
     }
 
     // ─── Generate code ────────────────────────────────────────────────────────
 
     private function generateCode(): string
     {
-        $date   = now()->format('dmy');
+        $date = now()->format('dmy');
         $prefix = "PO-{$date}-";
-        $last   = PurchaseOrderModel::withTrashed()
-            ->where('code', 'like', $prefix . '%')
+        $last = PurchaseOrderModel::withTrashed()
+            ->where('code', 'like', $prefix.'%')
             ->orderByDesc('code')
             ->value('code');
 
         $seq = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
 
-        return $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
+        return $prefix.str_pad($seq, 3, '0', STR_PAD_LEFT);
     }
 
     public function confirmApprove(int $id): void
@@ -342,16 +380,19 @@ class PurchaseOrder extends Component
 
         if ($purchaseOrder->status !== PurchaseOrderModel::STATUS_DRAFT) {
             $this->dispatch('toast', message: 'Hanya Purchase Order Draft yang bisa di-approve.', type: 'error');
+
             return;
         }
 
         if ($purchaseOrder->items->isEmpty()) {
             $this->dispatch('toast', message: 'Purchase Order tidak bisa di-approve karena item masih kosong.', type: 'error');
+
             return;
         }
 
         if ((int) $purchaseOrder->nett <= 0) {
             $this->dispatch('toast', message: 'Purchase Order tidak bisa di-approve karena nett masih 0.', type: 'error');
+
             return;
         }
 
@@ -367,7 +408,7 @@ class PurchaseOrder extends Component
 
     public function approve(): void
     {
-        if (!$this->approveTargetId) {
+        if (! $this->approveTargetId) {
             return;
         }
 
@@ -378,6 +419,7 @@ class PurchaseOrder extends Component
             $this->approveTargetId = null;
 
             $this->dispatch('toast', message: 'Hanya Purchase Order Draft yang bisa di-approve.', type: 'error');
+
             return;
         }
 
@@ -386,6 +428,7 @@ class PurchaseOrder extends Component
             $this->approveTargetId = null;
 
             $this->dispatch('toast', message: 'Purchase Order tidak bisa di-approve karena item masih kosong.', type: 'error');
+
             return;
         }
 
@@ -394,6 +437,7 @@ class PurchaseOrder extends Component
             $this->approveTargetId = null;
 
             $this->dispatch('toast', message: 'Purchase Order tidak bisa di-approve karena nett masih 0.', type: 'error');
+
             return;
         }
 
@@ -411,42 +455,44 @@ class PurchaseOrder extends Component
     {
         $po = PurchaseOrderModel::with(['items.product.prices.unit', 'items.unit'])->findOrFail($id);
 
-        $this->editId        = $po->id;
-        $this->date          = $po->date->toDateString();
-        $this->supplier_id   = $po->supplier_id;
-        $this->tax           = (bool) $po->tax;
+        $this->editId = $po->id;
+        $this->date = $po->date->toDateString();
+        $this->supplier_id = $po->supplier_id;
+        $this->tax = (bool) $po->tax;
         $this->purchase_note = $po->purchase_note ?? '';
 
         $this->items = $po->items->map(function ($item) {
             $product = $item->product;
-            if (!$product) return null;
+            if (! $product) {
+                return null;
+            }
 
-            $prices = $product->prices->map(fn($p) => [
-                'id'         => $p->id,
-                'unit_id'    => $p->unit_id,
-                'unit_name'  => $p->unit?->name ?? '-',
-                'price'      => $p->price,
+            $prices = $product->prices->map(fn ($p) => [
+                'id' => $p->id,
+                'unit_id' => $p->unit_id,
+                'unit_name' => $p->unit?->name ?? '-',
+                'price' => $p->price,
                 'conversion' => $p->conversion ?? $p->unit?->conversion ?? 1,
             ])->toArray();
 
             return [
-                'product_id'   => $product->id,
+                'product_id' => $product->id,
                 'product_code' => $product->sku,
                 'product_name' => $product->name,
-                'category'     => $product->category?->name ?? '-',
-                'prices'       => $prices,
-                'price_id'     => $item->price_id,
-                'unit_id'      => $item->unit_id,
-                'unit_name'    => $item->unit?->name ?? '-',
-                'conversion'   => $item->conversion ?? 1,
-                'qty'          => $item->qty,
-                'qty_base'     => $item->qty_base ?? ($item->qty * ($item->conversion ?? 1)),
-                'qty_display'   => number_format($item->qty, 0, ',', '.'),      // ← tambah
-                'price'         => $item->price,
+                'category' => $product->category?->name ?? '-',
+                'prices' => $prices,
+                'price_id' => $item->price_id,
+                'unit_id' => $item->unit_id,
+                'unit_name' => $item->unit?->name ?? '-',
+                'conversion' => $item->conversion ?? 1,
+                'qty' => $item->qty,
+                'qty_base' => $item->qty_base ?? ($item->qty * ($item->conversion ?? 1)),
+                'qty_display' => number_format($item->qty, 0, ',', '.'),      // ← tambah
+                'price' => $item->price,
                 'price_display' => $item->price ? number_format($item->price, 0, ',', '.') : '',  // ← tambah
-                'disc'          => $item->disc,
-                'disc_display'  => number_format($item->disc, 0, ',', '.'),     // ← tambah
-                'subtotal'      => $item->total_harga,
+                'disc' => $item->disc,
+                'disc_display' => number_format($item->disc, 0, ',', '.'),     // ← tambah
+                'subtotal' => $item->total_harga,
             ];
         })->filter()->values()->toArray();
 
@@ -475,24 +521,26 @@ class PurchaseOrder extends Component
 
         try {
             DB::transaction(function () {
-                $afterDisc = $this->gross - $this->totalDisc;
+                $this->recalculate();
+
+                $afterDisc = max(0, $this->gross - $this->totalDisc);
 
                 $this->ppn = $this->tax
-                    ? round($afterDisc * 0.11)
+                    ? (int) round($afterDisc * 0.11)
                     : 0;
 
                 $this->nett = $afterDisc + $this->ppn;
 
                 $data = [
-                    'date'          => $this->date,
-                    'supplier_id'   => $this->supplier_id,
-                    'user_id'       => Auth::id(),
-                    'total_price'   => $afterDisc,
-                    'tax'           => $this->tax,
-                    'ppn'           => $this->ppn,
+                    'date' => $this->date,
+                    'supplier_id' => $this->supplier_id,
+                    'user_id' => Auth::id(),
+                    'total_price' => $afterDisc,
+                    'tax' => $this->tax,
+                    'ppn' => $this->ppn,
                     'purchase_note' => $this->purchase_note,
-                    'gross'         => $this->gross,
-                    'nett'          => $this->nett,
+                    'gross' => $this->gross,
+                    'nett' => $this->nett,
                 ];
 
                 if ($this->editId) {
@@ -528,20 +576,21 @@ class PurchaseOrder extends Component
                     $subtotal = $lineGross - $disc;
 
                     $po->items()->create([
-                        'product_id'  => $item['product_id'],
-                        'price_id'    => $item['price_id'],
-                        'unit_id'     => $item['unit_id'] ?? null,
-                        'qty'         => $qty,
-                        'price'       => $price,
-                        'conversion'  => $conversion,
-                        'qty_base'    => $qty * $conversion,
+                        'product_id' => $item['product_id'],
+                        'price_id' => $item['price_id'],
+                        'unit_id' => $item['unit_id'] ?? null,
+                        'qty' => $qty,
+                        'price' => $price,
+                        'conversion' => $conversion,
+                        'qty_base' => $qty * $conversion,
                         'total_harga' => $subtotal,
-                        'disc'        => $disc,
+                        'disc' => $disc,
                     ]);
                 }
             });
         } catch (\Throwable $e) {
-            session()->flash('error', 'Gagal: ' . $e->getMessage());
+            session()->flash('error', 'Gagal: '.$e->getMessage());
+
             return;
         }
 
@@ -558,16 +607,16 @@ class PurchaseOrder extends Component
 
     private function resetCreateForm(): void
     {
-        $this->date          = now()->toDateString();
-        $this->supplier_id   = '';
-        $this->tax           = false;
+        $this->date = now()->toDateString();
+        $this->supplier_id = '';
+        $this->tax = false;
         $this->purchase_note = '';
-        $this->items         = [];
-        $this->gross         = 0;
-        $this->totalDisc     = 0;
-        $this->ppn           = 0;
-        $this->nett          = 0;
-        $this->searchProduct  = '';
+        $this->items = [];
+        $this->gross = 0;
+        $this->totalDisc = 0;
+        $this->ppn = 0;
+        $this->nett = 0;
+        $this->searchProduct = '';
         $this->filterCategory = '';
         $this->selectedProductIds = [];
         $this->resetValidation();
@@ -589,7 +638,7 @@ class PurchaseOrder extends Component
 
     public function updateStatus(): void
     {
-        if (!$this->selectedPO) {
+        if (! $this->selectedPO) {
             return;
         }
 
@@ -603,11 +652,12 @@ class PurchaseOrder extends Component
             'purchaseInvoices',
         ])->findOrFail($this->selectedPO->id);
 
-        if (!in_array($purchaseOrder->status, [
+        if (! in_array($purchaseOrder->status, [
             PurchaseOrderModel::STATUS_DRAFT,
             PurchaseOrderModel::STATUS_APPROVED,
         ])) {
             $this->addError('selectedStatus', 'Status PO ini sudah tidak bisa diubah manual.');
+
             return;
         }
 
@@ -621,11 +671,13 @@ class PurchaseOrder extends Component
         ) {
             if ($purchaseOrder->goodsReceives()->exists()) {
                 $this->addError('selectedStatus', 'PO tidak bisa dikembalikan ke Draft karena sudah memiliki Goods Receive.');
+
                 return;
             }
 
             if ($purchaseOrder->purchaseInvoices()->exists()) {
                 $this->addError('selectedStatus', 'PO tidak bisa dikembalikan ke Draft karena sudah memiliki Purchase Invoice.');
+
                 return;
             }
         }
@@ -636,11 +688,13 @@ class PurchaseOrder extends Component
         ) {
             if ($purchaseOrder->items()->count() <= 0) {
                 $this->addError('selectedStatus', 'PO tidak bisa di-approve karena item masih kosong.');
+
                 return;
             }
 
             if ((int) $purchaseOrder->nett <= 0) {
                 $this->addError('selectedStatus', 'PO tidak bisa di-approve karena nett masih 0.');
+
                 return;
             }
         }
@@ -678,14 +732,14 @@ class PurchaseOrder extends Component
 
     public function delete(): void
     {
-        if (!$this->deleteTargetId) {
+        if (! $this->deleteTargetId) {
             return;
         }
 
         PurchaseOrderModel::findOrFail($this->deleteTargetId)->delete();
 
         $this->showDeleteModal = false;
-        $this->deleteTargetId  = null;
+        $this->deleteTargetId = null;
 
         $this->dispatch('toast', message: 'Purchase Order dihapus.', type: 'success');
     }
@@ -700,42 +754,38 @@ class PurchaseOrder extends Component
     public function render()
     {
         $purchaseOrders = PurchaseOrderModel::with(['supplier'])
-            ->when($this->showTrashed, fn($q) => $q->withTrashed())
+            ->when($this->showTrashed, fn ($q) => $q->withTrashed())
             ->when(
                 $this->search,
-                fn($q) =>
-                $q->where('code', 'like', "%{$this->search}%")
+                fn ($q) => $q->where('code', 'like', "%{$this->search}%")
             )
             ->when(
                 $this->statusFilter,
-                fn($q) =>
-                $q->where('status', $this->statusFilter)
+                fn ($q) => $q->where('status', $this->statusFilter)
             )
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 
-        $suppliers  = Supplier::orderBy('name')->get();
+        $suppliers = Supplier::orderBy('name')->get();
         $categories = ProductCategory::orderBy('name')->get();
 
         $products = Product::with(['category', 'prices.unit'])
             ->when(
                 $this->searchProduct,
-                fn($q) =>
-                $q->where('name', 'like', "%{$this->searchProduct}%")
+                fn ($q) => $q->where('name', 'like', "%{$this->searchProduct}%")
                     ->orWhere('sku', 'like', "%{$this->searchProduct}%")
             )
             ->when(
                 $this->filterCategory,
-                fn($q) =>
-                $q->where('category_id', $this->filterCategory)
+                fn ($q) => $q->where('category_id', $this->filterCategory)
             )
             ->paginate(10, ['*'], 'productsPage');
 
         return view('livewire.purchasing.transaction.purchase-order', [
             'purchaseOrders' => $purchaseOrders,
-            'suppliers'      => $suppliers,
-            'categories'     => $categories,
-            'products'       => $products,
+            'suppliers' => $suppliers,
+            'categories' => $categories,
+            'products' => $products,
         ]);
     }
 }

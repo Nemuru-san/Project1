@@ -2,44 +2,58 @@
 
 namespace App\Livewire\Inventory\MasterProduct;
 
-use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductUnit;
-use App\Models\ProductPrice;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 
 class ProductMaster extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithFileUploads, WithPagination;
 
     // ── Table state ────────────────────────────────────────────────────────────
-    public string $search        = '';
-    public int    $perPage       = 10;
-    public string $sortField     = 'created_at';
+    public string $search = '';
+
+    public int $perPage = 10;
+
+    public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
-    public bool   $showTrashed   = false;
+
+    public bool $showTrashed = false;
 
     // ── Modal state ────────────────────────────────────────────────────────────
-    public bool  $showModal       = false;
-    public bool  $showDeleteModal = false;
-    public ?int  $deleteTargetId  = null;
-    public ?int  $editingId       = null;
+    public bool $showModal = false;
+
+    public bool $showDeleteModal = false;
+
+    public ?int $deleteTargetId = null;
+
+    public ?int $editingId = null;
 
     // ── Form fields ────────────────────────────────────────────────────────────
-    public string $sku       = '';
-    public string $name      = '';
-    public string $desc      = '';
+    public string $sku = '';
+
+    public string $name = '';
+
+    public string $desc = '';
+
     public string $specification = '';
-    public ?int   $category_id = null;
-    public string $brand     = '';
+
+    public ?int $category_id = null;
+
+    public ?int $base_unit_id = null;
+
+    public string $brand = '';
 
     public $image = null;
+
     public ?string $existingImage = null;
 
     // ── Price rows (Alpine-synced via JSON) ────────────────────────────────────
@@ -48,12 +62,13 @@ class ProductMaster extends Component
 
     // ── Dropdown data ──────────────────────────────────────────────────────────
     public array $categories = [];
-    public array $units      = [];
+
+    public array $units = [];
 
     // ── Modal state ───────────────────────────────────────────────
     public bool $showDetailModal = false;
-    public ?array $detailProduct = null;
 
+    public ?array $detailProduct = null;
 
     // ── Lifecycle ──────────────────────────────────────────────────────────────
 
@@ -111,26 +126,27 @@ class ProductMaster extends Component
 
     public function openEdit(int $id): void
     {
-        $product = Product::with('prices.unit')->findOrFail($id);
+        $product = Product::with(['baseUnit', 'prices.unit'])->findOrFail($id);
 
-        $this->editingId   = $id;
-        $this->sku         = $product->sku      ?? '';
-        $this->name        = $product->name     ?? '';
+        $this->editingId = $id;
+        $this->sku = $product->sku ?? '';
+        $this->name = $product->name ?? '';
         $this->specification = $product->specification ?? '';
-        $this->desc        = $product->desc     ?? '';
+        $this->desc = $product->desc ?? '';
         $this->category_id = $product->category_id;
-        $this->brand       = $product->brand    ?? '';
+        $this->base_unit_id = $product->base_unit_id;
+        $this->brand = $product->brand ?? '';
         $this->existingImage = $product->image;
         $this->image = null;
 
-        $rows = $product->prices->map(fn($p) => [
-            'unit_id'    => $p->unit_id,
+        $rows = $product->prices->map(fn ($p) => [
+            'unit_id' => $p->unit_id,
             'conversion' => $p->conversion,
-            'price'      => $p->price,
+            'price' => $p->price,
         ])->values()->toArray();
 
         $this->priceRowsJson = json_encode($rows);
-        $this->showModal     = true;
+        $this->showModal = true;
     }
 
     public function confirmDelete(int $id): void
@@ -162,46 +178,92 @@ class ProductMaster extends Component
             ],
             'specification' => 'nullable|string|max:255',
             'category_id' => 'required|integer|exists:product_categories,id',
-            'brand'       => 'nullable|string|max:255',
-            'desc'        => 'nullable|string',
-            'image'       => 'nullable|image|max:2048',
+            'base_unit_id' => [
+                'required',
+                'integer',
+                Rule::exists('product_units', 'id')->whereNull('deleted_at'),
+            ],
+            'brand' => 'nullable|string|max:255',
+            'desc' => 'nullable|string',
+            'image' => 'nullable|image|max:2048',
         ]);
 
         $rows = json_decode($this->priceRowsJson, true) ?? [];
 
         if (empty($rows)) {
             $this->addError('priceRowsJson', 'Minimal harus ada 1 baris unit.');
+
             return;
         }
 
-        $rows[0]['unit_id'] = 1;
-        $rows[0]['conversion'] = 1;
-
         // Validate price rows
+        $usedUnitIds = [];
+        $hasBaseUnitRow = false;
+
         foreach ($rows as $index => $row) {
             if (empty($row['unit_id'])) {
-                $this->addError('priceRowsJson', "Baris " . ($index + 1) . ": Unit harus dipilih.");
+                $this->addError('priceRowsJson', 'Baris '.($index + 1).': Unit harus dipilih.');
+
                 return;
             }
-            if (!is_numeric($row['conversion']) || (int)$row['conversion'] <= 0) {
-                $this->addError('priceRowsJson', "Baris " . ($index + 1) . ": Konversi harus angka positif.");
+
+            $unitId = (int) $row['unit_id'];
+
+            if (! ProductUnit::whereKey($unitId)->exists()) {
+                $this->addError('priceRowsJson', 'Baris '.($index + 1).': Unit tidak valid.');
+
                 return;
             }
-            if (!is_numeric($row['price']) || (int) $row['price'] <= 0) {
-                $this->addError('priceRowsJson', "Baris " . ($index + 1) . ": Retail Price harus lebih dari 0.");
+
+            if (in_array($unitId, $usedUnitIds, true)) {
+                $this->addError('priceRowsJson', 'Baris '.($index + 1).': Unit tidak boleh duplikat.');
+
+                return;
+            }
+
+            $usedUnitIds[] = $unitId;
+
+            if (! is_numeric($row['conversion']) || (int) $row['conversion'] <= 0) {
+                $this->addError('priceRowsJson', 'Baris '.($index + 1).': Konversi harus angka positif.');
+
+                return;
+            }
+
+            if ($unitId === (int) $this->base_unit_id) {
+                $hasBaseUnitRow = true;
+
+                if ((int) $row['conversion'] !== 1) {
+                    $this->addError('priceRowsJson', 'Baris '.($index + 1).': Konversi base unit harus 1.');
+
+                    return;
+                }
+            }
+
+            if (! is_numeric($row['price']) || (int) $row['price'] <= 0) {
+                $this->addError('priceRowsJson', 'Baris '.($index + 1).': Retail Price harus lebih dari 0.');
+
                 return;
             }
         }
 
+        if (! $hasBaseUnitRow) {
+            $this->addError('priceRowsJson', 'Base unit harus ada di Unit & Harga.');
+
+            return;
+        }
+
+        $wasEditing = (bool) $this->editingId;
+
         DB::transaction(function () use ($rows) {
             $data = [
-                'sku'         => $this->sku ?: null,
-                'name'        => $this->name,
+                'sku' => $this->sku ?: null,
+                'name' => $this->name,
                 'specification' => $this->specification ?: null,
-                'desc'        => $this->desc,
+                'desc' => $this->desc,
                 'category_id' => $this->category_id,
-                'brand'       => $this->brand,
-                'created_by'  => Auth::id(),
+                'base_unit_id' => $this->base_unit_id,
+                'brand' => $this->brand,
+                'created_by' => Auth::id(),
             ];
 
             if ($this->image) {
@@ -222,49 +284,53 @@ class ProductMaster extends Component
 
             foreach ($rows as $row) {
                 $product->prices()->create([
-                    'unit_id'    => (int) $row['unit_id'],
+                    'unit_id' => (int) $row['unit_id'],
                     'conversion' => (int) $row['conversion'],
-                    'price'      => (int) $row['price'],
+                    'price' => (int) $row['price'],
                 ]);
             }
         });
 
         $this->showModal = false;
         $this->resetForm();
-        $this->dispatch('toast', message: $this->editingId ? 'Produk berhasil diperbarui.' : 'Produk berhasil ditambahkan.', type: 'success');
+        $this->dispatch('toast', message: $wasEditing ? 'Produk berhasil diperbarui.' : 'Produk berhasil ditambahkan.', type: 'success');
     }
 
     // ── Delete ─────────────────────────────────────────────────────────────────
 
     public function delete(): void
     {
-        if (!$this->deleteTargetId) return;
+        if (! $this->deleteTargetId) {
+            return;
+        }
 
         Product::findOrFail($this->deleteTargetId)->delete();
 
         $this->showDeleteModal = false;
-        $this->deleteTargetId  = null;
+        $this->deleteTargetId = null;
         $this->dispatch('toast', message: 'Produk berhasil dihapus.', type: 'success');
     }
 
     public function openDetail(int $id): void
     {
-        $product = Product::with(['category', 'prices.unit'])->findOrFail($id);
+        $product = Product::with(['category', 'baseUnit', 'prices.unit'])->findOrFail($id);
 
         $this->detailProduct = [
-            'id'          => $product->id,
-            'sku'         => $product->sku,
-            'name'        => $product->name,
+            'id' => $product->id,
+            'sku' => $product->sku,
+            'name' => $product->name,
             'specification' => $product->specification,
-            'desc'        => $product->desc,
-            'brand'       => $product->brand,
-            'image'       => $product->image,
-            'category'    => $product->category?->name,
-            'created_at'  => $product->created_at?->format('d M Y'),
-            'prices'      => $product->prices->map(fn($p) => [
-                'unit'       => $p->unit?->name . ' (' . $p->unit?->code . ')',
+            'desc' => $product->desc,
+            'brand' => $product->brand,
+            'image' => $product->image,
+            'category' => $product->category?->name,
+            'base_unit' => $product->baseUnit ? $product->baseUnit->name.' ('.$product->baseUnit->code.')' : null,
+            'created_at' => $product->created_at?->format('d M Y'),
+            'prices' => $product->prices->map(fn ($p) => [
+                'unit' => $p->unit?->name.' ('.$p->unit?->code.')',
                 'conversion' => $p->conversion,
-                'price'      => $p->price,
+                'price' => $p->price,
+                'is_base_unit' => (int) $p->unit_id === (int) $product->base_unit_id,
             ])->toArray(),
         ];
 
@@ -277,9 +343,9 @@ class ProductMaster extends Component
     {
         return json_encode([
             [
-                'unit_id'    => 1,
+                'unit_id' => '',
                 'conversion' => 1,
-                'price'      => null,
+                'price' => null,
                 'price_display' => '',
             ],
         ]);
@@ -287,16 +353,17 @@ class ProductMaster extends Component
 
     private function resetForm(): void
     {
-        $this->sku          = '';
-        $this->name         = '';
+        $this->sku = '';
+        $this->name = '';
         $this->specification = '';
-        $this->desc         = '';
-        $this->category_id  = null;
-        $this->brand        = '';
+        $this->desc = '';
+        $this->category_id = null;
+        $this->base_unit_id = null;
+        $this->brand = '';
 
         $this->priceRowsJson = $this->defaultPriceRowsJson();
 
-        $this->editingId    = null;
+        $this->editingId = null;
         $this->resetErrorBag();
         $this->image = null;
         $this->existingImage = null;
@@ -306,7 +373,7 @@ class ProductMaster extends Component
 
     public function render()
     {
-        $query = Product::with('category');
+        $query = Product::with(['category', 'baseUnit']);
 
         if ($this->showTrashed) {
             $query->withTrashed();
@@ -314,10 +381,10 @@ class ProductMaster extends Component
 
         if ($this->search) {
             $query->where(function ($inner) {
-                $inner->where('sku', 'like', '%' . $this->search . '%')
-                    ->orWhere('name', 'like', '%' . $this->search . '%')
-                    ->orWhere('specification', 'like', '%' . $this->search . '%')
-                    ->orWhere('brand', 'like', '%' . $this->search . '%');
+                $inner->where('sku', 'like', '%'.$this->search.'%')
+                    ->orWhere('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('specification', 'like', '%'.$this->search.'%')
+                    ->orWhere('brand', 'like', '%'.$this->search.'%');
             });
         }
 

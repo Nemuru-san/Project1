@@ -7,40 +7,57 @@ use App\Models\BankAccount;
 use App\Models\ChartOfAccount;
 use App\Models\JournalEntry;
 use App\Models\PurchaseInvoice;
+use App\Models\PurchaseOrder;
 use App\Models\Supplier;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-
 class APPayment extends Component
 {
     use WithPagination;
 
     public string $search = '';
+
     public int $perPage = 10;
+
     public string $sortField = 'payment_date';
+
     public string $sortDirection = 'desc';
+
     public string $statusFilter = '';
+
     public bool $showTrashed = false;
 
     public bool $showModal = false;
+
     public bool $showDeleteModal = false;
+
     public bool $showPostModal = false;
+
     public bool $showDetail = false;
 
     public ?int $paymentId = null;
+
     public ?int $deleteTargetId = null;
+
     public ?int $postTargetId = null;
+
     public ?ModelsAPPayment $selectedPayment = null;
 
     public string $code = '';
+
     public string $payment_date = '';
+
     public ?int $supplier_id = null;
+
     public ?int $bank_account_id = null;
+
     public string $payment_method = 'Transfer';
+
     public int $total_amount = 0;
+
     public string $note = '';
 
     public array $detailRows = [];
@@ -87,7 +104,7 @@ class APPayment extends Component
 
     public function updatedSupplierId(): void
     {
-        if (!$this->paymentId) {
+        if (! $this->paymentId) {
             $this->loadSupplierInvoices();
         }
     }
@@ -101,6 +118,7 @@ class APPayment extends Component
     {
         if ($this->sortField === $field) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+
             return;
         }
 
@@ -125,6 +143,7 @@ class APPayment extends Component
 
         if ($payment->status !== ModelsAPPayment::STATUS_DRAFT) {
             $this->dispatch('toast', message: 'Payment yang sudah posted tidak bisa diedit.', type: 'error');
+
             return;
         }
 
@@ -186,8 +205,9 @@ class APPayment extends Component
     {
         $this->detailRows = [];
 
-        if (!$this->supplier_id) {
+        if (! $this->supplier_id) {
             $this->recalculateTotal();
+
             return;
         }
 
@@ -229,7 +249,6 @@ class APPayment extends Component
     //     $this->recalculateTotal();
     // }
 
-
     // public function clearAmount(int $index): void
     // {
     //     if (!isset($this->detailRows[$index])) {
@@ -243,7 +262,7 @@ class APPayment extends Component
 
     public function payFull(int $index): void
     {
-        if (!isset($this->detailRows[$index])) {
+        if (! isset($this->detailRows[$index])) {
             return;
         }
 
@@ -255,7 +274,7 @@ class APPayment extends Component
 
     public function clearAmount(int $index): void
     {
-        if (!isset($this->detailRows[$index])) {
+        if (! isset($this->detailRows[$index])) {
             return;
         }
 
@@ -267,7 +286,7 @@ class APPayment extends Component
     public function recalculateTotal(): void
     {
         $this->total_amount = collect($this->detailRows)
-            ->sum(fn($row) => (int) ($row['amount'] ?? 0));
+            ->sum(fn ($row) => (int) ($row['amount'] ?? 0));
     }
 
     public function save(): void
@@ -278,6 +297,7 @@ class APPayment extends Component
 
         if ($this->total_amount <= 0) {
             $this->addError('total_amount', 'Total pembayaran harus lebih dari 0.');
+
             return;
         }
 
@@ -287,21 +307,24 @@ class APPayment extends Component
 
             if ($amount < 0) {
                 $this->addError("detailRows.$index.amount", 'Amount tidak boleh minus.');
+
                 return;
             }
 
             if ($amount > $remaining) {
                 $this->addError("detailRows.$index.amount", 'Amount tidak boleh melebihi sisa tagihan.');
+
                 return;
             }
         }
 
         $payingRows = collect($this->detailRows)
-            ->filter(fn($row) => (int) ($row['amount'] ?? 0) > 0)
+            ->filter(fn ($row) => (int) ($row['amount'] ?? 0) > 0)
             ->values();
 
         if ($payingRows->isEmpty()) {
             $this->addError('total_amount', 'Minimal isi satu amount pembayaran.');
+
             return;
         }
 
@@ -310,6 +333,7 @@ class APPayment extends Component
 
             if ($payment->status !== ModelsAPPayment::STATUS_DRAFT) {
                 $this->dispatch('toast', message: 'Payment yang sudah posted tidak bisa diedit.', type: 'error');
+
                 return;
             }
         }
@@ -358,11 +382,13 @@ class APPayment extends Component
 
         if ($payment->status !== ModelsAPPayment::STATUS_DRAFT) {
             $this->dispatch('toast', message: 'Hanya payment Draft yang bisa di-post.', type: 'error');
+
             return;
         }
 
         if ($payment->details->isEmpty()) {
             $this->dispatch('toast', message: 'Payment tidak bisa di-post karena detail masih kosong.', type: 'error');
+
             return;
         }
 
@@ -378,7 +404,7 @@ class APPayment extends Component
 
     public function postPayment(): void
     {
-        if (!$this->postTargetId) {
+        if (! $this->postTargetId) {
             return;
         }
 
@@ -404,11 +430,11 @@ class APPayment extends Component
                     throw new \Exception('Payment tidak bisa di-post karena total amount masih 0.');
                 }
 
-                if (!$payment->bankAccount) {
+                if (! $payment->bankAccount) {
                     throw new \Exception('Bank account tidak ditemukan.');
                 }
 
-                if (!$payment->bankAccount->chart_of_account_id) {
+                if (! $payment->bankAccount->chart_of_account_id) {
                     throw new \Exception('Bank account belum terhubung ke Chart of Account.');
                 }
 
@@ -450,8 +476,8 @@ class APPayment extends Component
 
                     if ($invoice->purchase_order_id) {
                         $poStatus = $newRemaining <= 0
-                            ? 'Paid'
-                            : 'Partial Paid';
+                            ? PurchaseOrder::STATUS_PAID
+                            : PurchaseOrder::STATUS_PARTIAL_PAID;
 
                         $invoice->purchaseOrder()->update([
                             'status' => $poStatus,
@@ -505,7 +531,7 @@ class APPayment extends Component
             'date' => $payment->payment_date,
             'source_type' => JournalEntry::SOURCE_AP_PAYMENT,
             'source_id' => $payment->id,
-            'description' => 'AP Payment ' . $payment->code,
+            'description' => 'AP Payment '.$payment->code,
             'status' => JournalEntry::STATUS_POSTED,
             'created_by' => Auth::id(),
         ]);
@@ -514,14 +540,14 @@ class APPayment extends Component
             'chart_of_account_id' => $accountPayableAccountId,
             'debit' => (int) $payment->total_amount,
             'credit' => 0,
-            'description' => 'Pembayaran hutang supplier ' . ($payment->supplier?->name ?? '-'),
+            'description' => 'Pembayaran hutang supplier '.($payment->supplier?->name ?? '-'),
         ]);
 
         $journal->lines()->create([
             'chart_of_account_id' => $bankAccountCoaId,
             'debit' => 0,
             'credit' => (int) $payment->total_amount,
-            'description' => 'Pembayaran via ' . (
+            'description' => 'Pembayaran via '.(
                 $payment->bankAccount?->name
                 ?? $payment->bankAccount?->bank_name
                 ?? '-'
@@ -536,7 +562,7 @@ class APPayment extends Component
             ->where('is_postable', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             throw new \Exception("Chart of Account {$code} tidak ditemukan / tidak aktif / tidak postable.");
         }
 
@@ -545,17 +571,17 @@ class APPayment extends Component
 
     private function generateJournalCode(): string
     {
-        $date   = now()->format('dmy');
+        $date = now()->format('dmy');
         $prefix = "JE-{$date}-";
 
         $last = JournalEntry::withTrashed()
-            ->where('code', 'like', $prefix . '%')
+            ->where('code', 'like', $prefix.'%')
             ->orderByDesc('code')
             ->value('code');
 
         $seq = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
 
-        return $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
+        return $prefix.str_pad($seq, 3, '0', STR_PAD_LEFT);
     }
 
     public function confirmDelete(int $id): void
@@ -564,6 +590,7 @@ class APPayment extends Component
 
         if ($payment->status !== ModelsAPPayment::STATUS_DRAFT) {
             $this->dispatch('toast', message: 'Payment yang sudah posted tidak bisa dihapus.', type: 'error');
+
             return;
         }
 
@@ -573,7 +600,7 @@ class APPayment extends Component
 
     public function delete(): void
     {
-        if (!$this->deleteTargetId) {
+        if (! $this->deleteTargetId) {
             return;
         }
 
@@ -584,6 +611,7 @@ class APPayment extends Component
             $this->deleteTargetId = null;
 
             $this->dispatch('toast', message: 'Payment yang sudah posted tidak bisa dihapus.', type: 'error');
+
             return;
         }
 
@@ -618,34 +646,34 @@ class APPayment extends Component
 
     private function generateCode(): string
     {
-        $date   = now()->format('dmy');
+        $date = now()->format('dmy');
         $prefix = "APP-{$date}-";
 
         $last = ModelsAPPayment::withTrashed()
-            ->where('code', 'like', $prefix . '%')
+            ->where('code', 'like', $prefix.'%')
             ->orderByDesc('code')
             ->value('code');
 
         $seq = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
 
-        return $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
+        return $prefix.str_pad($seq, 3, '0', STR_PAD_LEFT);
     }
 
     public function render()
     {
         $payments = ModelsAPPayment::query()
             ->with(['supplier', 'bankAccount'])
-            ->when($this->showTrashed, fn($query) => $query->withTrashed())
+            ->when($this->showTrashed, fn ($query) => $query->withTrashed())
             ->when($this->search, function ($query) {
                 $query->where(function ($subQuery) {
-                    $subQuery->where('code', 'like', '%' . $this->search . '%')
-                        ->orWhere('payment_method', 'like', '%' . $this->search . '%')
+                    $subQuery->where('code', 'like', '%'.$this->search.'%')
+                        ->orWhere('payment_method', 'like', '%'.$this->search.'%')
                         ->orWhereHas('supplier', function ($supplierQuery) {
-                            $supplierQuery->where('name', 'like', '%' . $this->search . '%');
+                            $supplierQuery->where('name', 'like', '%'.$this->search.'%');
                         });
                 });
             })
-            ->when($this->statusFilter, fn($query) => $query->where('status', $this->statusFilter))
+            ->when($this->statusFilter, fn ($query) => $query->where('status', $this->statusFilter))
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 

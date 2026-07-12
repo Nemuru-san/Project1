@@ -2,12 +2,10 @@
 
 namespace App\Models;
 
-use App\Models\ProductPrice;
-
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
@@ -20,6 +18,7 @@ class Product extends Model
         'specification',
         'desc',
         'category_id',
+        'base_unit_id',
         'brand',
         'barcode',
         'created_by',
@@ -28,6 +27,11 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(ProductCategory::class, 'category_id');
+    }
+
+    public function baseUnit(): BelongsTo
+    {
+        return $this->belongsTo(ProductUnit::class, 'base_unit_id');
     }
 
     public function prices(): HasMany
