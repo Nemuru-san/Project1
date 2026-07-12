@@ -115,6 +115,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('pages.inventory.inventoryTransaction.adjustmentOut');
     })->name('inventory.transaction.adjustment-out');
 
+
+    // Sales 
+    Route::get('sales/master/customer', function () {
+        return view('pages.sales.salesMaster.customer');
+    })->name('sales.master.customer');
+
+    Route::get('sales/master/customer-delivery-address', function () {
+        return view('pages.sales.salesMaster.customerDeliveryAddress');
+    })->name('sales.master.customer-delivery-address');
+
     // Finance
     Route::get('finance/master/accounts', function () {
         return view('pages.finance.master.chartOfAccount');

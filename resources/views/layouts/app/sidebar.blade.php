@@ -94,12 +94,15 @@
                 :expanded="request()->routeIs('sales.*')">
                 <flux:sidebar.group href="#" expandable heading="Master" class="grid"
                     :expanded="request()->routeIs('sales.master.*')">
-                    <flux:sidebar.item href="#" wire:navigate>Suplier Category</flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Supplier</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('sales.master.customer') }}" wire:navigate>Customer</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('sales.master.customer-delivery-address') }}" wire:navigate>Customer Address</flux:sidebar.item>
+                    <flux:sidebar.item href="#" wire:navigate>Sales Person</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Transaction" class="grid"
                     :expanded="request()->routeIs('sales.transaction.*')">
+                    <flux:sidebar.item href="#" wire:navigate>Sales Canvas</flux:sidebar.item>
+                    <flux:sidebar.item href="#" wire:navigate>Pre Order</flux:sidebar.item>
                     <flux:sidebar.item href="#" wire:navigate>Sales Order</flux:sidebar.item>
                     <flux:sidebar.item href="#" wire:navigate>Delivery Order</flux:sidebar.item>
                     <flux:sidebar.item href="#" wire:navigate>Sales Invoice</flux:sidebar.item>
