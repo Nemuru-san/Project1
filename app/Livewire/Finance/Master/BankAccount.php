@@ -13,23 +13,35 @@ class BankAccount extends Component
 
     // Table state
     public string $search = '';
+
     public int $perPage = 10;
+
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
+
     public bool $showTrashed = false;
 
     // Form state
     public ?int $bankAccountId = null;
+
     public string $name = '';
+
     public string $bank_name = '';
+
     public string $account_number = '';
+
     public string $account_holder = '';
+
     public ?int $chart_of_account_id = null;
+
     public bool $is_active = true;
 
     // Modal state
     public bool $showModal = false;
+
     public bool $showDeleteModal = false;
+
     public ?int $deleteTargetId = null;
 
     protected function rules(): array
@@ -67,7 +79,7 @@ class BankAccount extends Component
 
     public function sortBy(string $field): void
     {
-        if (!in_array($field, ['name', 'bank_name', 'account_number', 'account_holder', 'is_active', 'created_at'], true)) {
+        if (! in_array($field, ['name', 'bank_name', 'account_number', 'account_holder', 'is_active', 'created_at'], true)) {
             return;
         }
 
@@ -105,8 +117,9 @@ class BankAccount extends Component
 
         $coa = ChartOfAccount::findOrFail($this->chart_of_account_id);
 
-        if (!$coa->is_active || !$coa->is_postable || $coa->type !== 'Asset') {
+        if (! $coa->is_active || ! $coa->is_postable || $coa->type !== 'Asset') {
             $this->addError('chart_of_account_id', 'CoA harus akun Asset yang aktif dan postable.');
+
             return;
         }
 
@@ -147,7 +160,7 @@ class BankAccount extends Component
 
     public function delete(): void
     {
-        if (!$this->deleteTargetId) {
+        if (! $this->deleteTargetId) {
             return;
         }
 
@@ -158,6 +171,7 @@ class BankAccount extends Component
             $this->deleteTargetId = null;
 
             $this->dispatch('toast', message: 'Bank account tidak bisa dihapus karena sudah dipakai AP Payment.', type: 'error');
+
             return;
         }
 
@@ -193,13 +207,13 @@ class BankAccount extends Component
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')
-                    ->orWhere('bank_name', 'like', '%' . $this->search . '%')
-                    ->orWhere('account_number', 'like', '%' . $this->search . '%')
-                    ->orWhere('account_holder', 'like', '%' . $this->search . '%')
+                $q->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('bank_name', 'like', '%'.$this->search.'%')
+                    ->orWhere('account_number', 'like', '%'.$this->search.'%')
+                    ->orWhere('account_holder', 'like', '%'.$this->search.'%')
                     ->orWhereHas('chartOfAccount', function ($coa) {
-                        $coa->where('code', 'like', '%' . $this->search . '%')
-                            ->orWhere('name', 'like', '%' . $this->search . '%');
+                        $coa->where('code', 'like', '%'.$this->search.'%')
+                            ->orWhere('name', 'like', '%'.$this->search.'%');
                     });
             });
         }

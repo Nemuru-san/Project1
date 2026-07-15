@@ -31,7 +31,9 @@ class APPayment extends Model
     ];
 
     const STATUS_DRAFT = 'Draft';
+
     const STATUS_POSTED = 'Posted';
+
     const STATUS_CANCELLED = 'Cancelled';
 
     public static function statusOptions(): array
@@ -46,11 +48,11 @@ class APPayment extends Model
     protected static function booted(): void
     {
         static::deleting(function (APPayment $payment) {
-            $payment->details()->each(fn($detail) => $detail->delete());
+            $payment->details()->each(fn ($detail) => $detail->delete());
         });
 
         static::restoring(function (APPayment $payment) {
-            $payment->details()->onlyTrashed()->each(fn($detail) => $detail->restore());
+            $payment->details()->onlyTrashed()->each(fn ($detail) => $detail->restore());
         });
     }
 

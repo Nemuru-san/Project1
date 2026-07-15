@@ -19,34 +19,49 @@ class TransferStock extends Component
     use WithPagination;
 
     public string $search = '';
+
     public int $perPage = 10;
+
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
+
     public bool $showTrashed = false;
 
     public bool $showModal = false;
+
     public bool $showDeleteModal = false;
+
     public ?int $deleteTargetId = null;
 
     public ?int $editingId = null;
 
     public string $trf_no = '';
+
     public string $date = '';
+
     public ?int $warehouse_from_id = null;
+
     public ?int $warehouse_to_id = null;
+
     public ?string $notes = null;
+
     public string $status = 'draft';
 
     public array $items = [];
 
     public string $productSearch = '';
+
     public ?int $categoryFilter = null;
+
     public array $selectedProductIds = [];
 
     public bool $showApproveModal = false;
+
     public ?int $approveTargetId = null;
 
     public bool $showDetail = false;
+
     public ?StockTransfer $selectedTransfer = null;
 
     protected function rules(): array
@@ -114,7 +129,7 @@ class TransferStock extends Component
         $this->notes = $transfer->notes;
         $this->status = $transfer->status;
 
-        $this->items = $transfer->items->map(fn($item) => [
+        $this->items = $transfer->items->map(fn ($item) => [
             'product_id' => $item->product_id,
             'sku' => $item->product?->sku,
             'name' => $item->product?->name,
@@ -131,6 +146,7 @@ class TransferStock extends Component
     {
         if (empty($this->selectedProductIds)) {
             $this->dispatch('toast', message: 'Pilih produk terlebih dahulu.', type: 'error');
+
             return;
         }
 
@@ -148,6 +164,7 @@ class TransferStock extends Component
         foreach ($this->items as $item) {
             if ((int) $item['product_id'] === $productId) {
                 $this->dispatch('toast', message: 'Produk sudah ada di detail.', type: 'error');
+
                 return;
             }
         }
@@ -173,7 +190,7 @@ class TransferStock extends Component
             'conversion' => $defaultPrice?->conversion ?? 1,
 
             'unit_options' => $product->prices
-                ->map(fn($price) => [
+                ->map(fn ($price) => [
                     'unit_id' => $price->unit_id,
                     'unit_name' => $price->unit?->name ?? '-',
                     'conversion' => $price->conversion,
@@ -200,7 +217,7 @@ class TransferStock extends Component
 
     public function updatedItems($value, string $key): void
     {
-        if (!str_ends_with($key, '.unit_id')) {
+        if (! str_ends_with($key, '.unit_id')) {
             return;
         }
 
@@ -208,7 +225,7 @@ class TransferStock extends Component
 
         $productId = $this->items[$index]['product_id'] ?? null;
 
-        if (!$productId || !$value) {
+        if (! $productId || ! $value) {
             return;
         }
 
@@ -263,7 +280,7 @@ class TransferStock extends Component
 
     public function delete(): void
     {
-        if (!$this->deleteTargetId) {
+        if (! $this->deleteTargetId) {
             return;
         }
 
@@ -332,7 +349,7 @@ class TransferStock extends Component
 
     public function approve(): void
     {
-        if (!$this->approveTargetId) {
+        if (! $this->approveTargetId) {
             return;
         }
 
@@ -351,7 +368,7 @@ class TransferStock extends Component
                     ->lockForUpdate()
                     ->first();
 
-                if (!$fromStock || $fromStock->quantity < $qtyBase) {
+                if (! $fromStock || $fromStock->quantity < $qtyBase) {
                     throw new \Exception('Stock tidak cukup untuk salah satu produk.');
                 }
 
@@ -387,13 +404,13 @@ class TransferStock extends Component
         $prefix = "TRF-{$date}-";
 
         $last = StockTransfer::withTrashed()
-            ->where('trf_no', 'like', $prefix . '%')
+            ->where('trf_no', 'like', $prefix.'%')
             ->orderByDesc('trf_no')
             ->value('trf_no');
 
         $seq = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
 
-        return $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
+        return $prefix.str_pad($seq, 3, '0', STR_PAD_LEFT);
     }
 
     public function print(int $id)
@@ -404,12 +421,12 @@ class TransferStock extends Component
     public function render()
     {
         $transfers = StockTransfer::with(['warehouseFrom', 'warehouseTo'])
-            ->when($this->showTrashed, fn($q) => $q->withTrashed())
+            ->when($this->showTrashed, fn ($q) => $q->withTrashed())
             ->when($this->search, function ($q) {
                 $q->where(function ($query) {
-                    $query->where('trf_no', 'like', '%' . $this->search . '%')
-                        ->orWhereHas('warehouseFrom', fn($w) => $w->where('name', 'like', '%' . $this->search . '%'))
-                        ->orWhereHas('warehouseTo', fn($w) => $w->where('name', 'like', '%' . $this->search . '%'));
+                    $query->where('trf_no', 'like', '%'.$this->search.'%')
+                        ->orWhereHas('warehouseFrom', fn ($w) => $w->where('name', 'like', '%'.$this->search.'%'))
+                        ->orWhereHas('warehouseTo', fn ($w) => $w->where('name', 'like', '%'.$this->search.'%'));
                 });
             })
             ->orderBy($this->sortField, $this->sortDirection)
@@ -422,11 +439,11 @@ class TransferStock extends Component
             'products' => Product::with('category')
                 ->when($this->productSearch, function ($q) {
                     $q->where(function ($query) {
-                        $query->where('name', 'like', '%' . $this->productSearch . '%')
-                            ->orWhere('sku', 'like', '%' . $this->productSearch . '%');
+                        $query->where('name', 'like', '%'.$this->productSearch.'%')
+                            ->orWhere('sku', 'like', '%'.$this->productSearch.'%');
                     });
                 })
-                ->when($this->categoryFilter, fn($q) => $q->where('category_id', $this->categoryFilter))
+                ->when($this->categoryFilter, fn ($q) => $q->where('category_id', $this->categoryFilter))
                 ->limit(20)
                 ->get(),
             'categories' => ProductCategory::orderBy('name')->get(),

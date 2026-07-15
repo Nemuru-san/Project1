@@ -29,13 +29,19 @@ class ChartOfAccount extends Model
     ];
 
     const TYPE_ASSET = 'Asset';
+
     const TYPE_LIABILITY = 'Liability';
+
     const TYPE_EQUITY = 'Equity';
+
     const TYPE_REVENUE = 'Revenue';
+
     const TYPE_EXPENSE = 'Expense';
+
     const TYPE_COGS = 'COGS';
 
     const NORMAL_DEBIT = 'Debit';
+
     const NORMAL_CREDIT = 'Credit';
 
     public static function typeOptions(): array

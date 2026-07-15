@@ -79,8 +79,8 @@ class ProductMaster extends Component
 
     private function loadDropdowns(): void
     {
-        $this->categories = ProductCategory::orderBy('desc')
-            ->get(['id', 'desc'])
+        $this->categories = ProductCategory::orderBy('name')
+            ->get(['id', 'code', 'name'])
             ->toArray();
 
         $this->units = ProductUnit::orderBy('name')

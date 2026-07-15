@@ -57,7 +57,7 @@ class ChartOfAccountSeeder extends Seeder
             }
 
             foreach ($accounts as $account) {
-                if (!$account['parent_code']) {
+                if (! $account['parent_code']) {
                     continue;
                 }
 

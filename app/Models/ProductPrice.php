@@ -15,7 +15,7 @@ class ProductPrice extends Model
     ];
 
     protected $casts = [
-        'price'      => 'integer',
+        'price' => 'integer',
         'conversion' => 'integer',
     ];
 

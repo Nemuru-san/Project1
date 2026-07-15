@@ -19,32 +19,47 @@ class AdjustmentOut extends Component
     use WithPagination;
 
     public string $search = '';
+
     public int $perPage = 10;
+
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
+
     public bool $showTrashed = false;
 
     public bool $showModal = false;
+
     public bool $showDeleteModal = false;
+
     public bool $showApproveModal = false;
+
     public bool $showDetail = false;
 
     public ?int $deleteTargetId = null;
+
     public ?int $approveTargetId = null;
+
     public ?int $editingId = null;
 
     public ?StockAdjustment $selectedAdjustment = null;
 
     public string $adjustment_no = '';
+
     public string $date = '';
+
     public ?int $warehouse_id = null;
+
     public ?string $notes = null;
+
     public string $status = 'draft';
 
     public array $items = [];
 
     public string $productSearch = '';
+
     public ?int $categoryFilter = null;
+
     public array $selectedProductIds = [];
 
     protected function rules(): array
@@ -107,6 +122,7 @@ class AdjustmentOut extends Component
 
         if ($adjustment->status !== 'draft') {
             $this->dispatch('toast', message: 'Adjustment yang sudah approved tidak bisa diedit.', type: 'error');
+
             return;
         }
 
@@ -134,7 +150,7 @@ class AdjustmentOut extends Component
                 'conversion' => (int) $item->conversion,
 
                 'unit_options' => $product?->prices
-                    ->map(fn($price) => [
+                    ->map(fn ($price) => [
                         'unit_id' => $price->unit_id,
                         'unit_name' => $price->unit?->name ?? '-',
                         'conversion' => $price->conversion,
@@ -151,6 +167,7 @@ class AdjustmentOut extends Component
     {
         if (empty($this->selectedProductIds)) {
             $this->dispatch('toast', message: 'Pilih produk terlebih dahulu.', type: 'error');
+
             return;
         }
 
@@ -165,8 +182,9 @@ class AdjustmentOut extends Component
 
     public function addProduct(int $productId): void
     {
-        if (collect($this->items)->contains(fn($item) => (int) $item['product_id'] === $productId)) {
+        if (collect($this->items)->contains(fn ($item) => (int) $item['product_id'] === $productId)) {
             $this->dispatch('toast', message: 'Produk sudah ada di detail.', type: 'error');
+
             return;
         }
 
@@ -191,7 +209,7 @@ class AdjustmentOut extends Component
             'conversion' => $defaultPrice?->conversion ?? 1,
 
             'unit_options' => $product->prices
-                ->map(fn($price) => [
+                ->map(fn ($price) => [
                     'unit_id' => $price->unit_id,
                     'unit_name' => $price->unit?->name ?? '-',
                     'conversion' => $price->conversion,
@@ -226,7 +244,7 @@ class AdjustmentOut extends Component
 
     public function updatedItems($value, string $key): void
     {
-        if (!str_ends_with($key, '.unit_id')) {
+        if (! str_ends_with($key, '.unit_id')) {
             return;
         }
 
@@ -234,7 +252,7 @@ class AdjustmentOut extends Component
 
         $productId = $this->items[$index]['product_id'] ?? null;
 
-        if (!$productId || !$value) {
+        if (! $productId || ! $value) {
             return;
         }
 
@@ -294,7 +312,7 @@ class AdjustmentOut extends Component
 
     public function approve(): void
     {
-        if (!$this->approveTargetId) {
+        if (! $this->approveTargetId) {
             return;
         }
 
@@ -316,7 +334,7 @@ class AdjustmentOut extends Component
                         ->lockForUpdate()
                         ->first();
 
-                    if (!$stock || $stock->quantity < $qtyBase) {
+                    if (! $stock || $stock->quantity < $qtyBase) {
                         throw new \Exception('Stock tidak cukup untuk salah satu produk.');
                     }
 
@@ -345,7 +363,7 @@ class AdjustmentOut extends Component
 
     public function delete(): void
     {
-        if (!$this->deleteTargetId) {
+        if (! $this->deleteTargetId) {
             return;
         }
 
@@ -353,6 +371,7 @@ class AdjustmentOut extends Component
 
         if ($adjustment->status !== 'draft') {
             $this->dispatch('toast', message: 'Adjustment approved tidak bisa dihapus.', type: 'error');
+
             return;
         }
 
@@ -417,24 +436,24 @@ class AdjustmentOut extends Component
 
         $last = StockAdjustment::withTrashed()
             ->where('type', 'out')
-            ->where('adjustment_no', 'like', $prefix . '%')
+            ->where('adjustment_no', 'like', $prefix.'%')
             ->orderByDesc('adjustment_no')
             ->value('adjustment_no');
 
         $seq = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
 
-        return $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
+        return $prefix.str_pad($seq, 3, '0', STR_PAD_LEFT);
     }
 
     public function render()
     {
         $adjustments = StockAdjustment::with('warehouse')
             ->where('type', 'out')
-            ->when($this->showTrashed, fn($q) => $q->withTrashed())
+            ->when($this->showTrashed, fn ($q) => $q->withTrashed())
             ->when($this->search, function ($q) {
                 $q->where(function ($query) {
-                    $query->where('adjustment_no', 'like', '%' . $this->search . '%')
-                        ->orWhereHas('warehouse', fn($w) => $w->where('name', 'like', '%' . $this->search . '%'));
+                    $query->where('adjustment_no', 'like', '%'.$this->search.'%')
+                        ->orWhereHas('warehouse', fn ($w) => $w->where('name', 'like', '%'.$this->search.'%'));
                 });
             })
             ->orderBy($this->sortField, $this->sortDirection)
@@ -447,11 +466,11 @@ class AdjustmentOut extends Component
             'products' => Product::with('category')
                 ->when($this->productSearch, function ($q) {
                     $q->where(function ($query) {
-                        $query->where('name', 'like', '%' . $this->productSearch . '%')
-                            ->orWhere('sku', 'like', '%' . $this->productSearch . '%');
+                        $query->where('name', 'like', '%'.$this->productSearch.'%')
+                            ->orWhere('sku', 'like', '%'.$this->productSearch.'%');
                     });
                 })
-                ->when($this->categoryFilter, fn($q) => $q->where('category_id', $this->categoryFilter))
+                ->when($this->categoryFilter, fn ($q) => $q->where('category_id', $this->categoryFilter))
                 ->limit(20)
                 ->get(),
             'categories' => ProductCategory::orderBy('name')->get(),

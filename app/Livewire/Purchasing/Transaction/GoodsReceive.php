@@ -23,6 +23,10 @@ class GoodsReceive extends Component
 
     public string $statusFilter = '';
 
+    public string $dateFrom = '';
+
+    public string $dateTo = '';
+
     public int $perPage = 10;
 
     public string $sortField = 'created_at';
@@ -105,6 +109,16 @@ class GoodsReceive extends Component
         $this->resetPage();
     }
 
+    public function updatingDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDateTo(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatingPerPage(): void
     {
         $this->resetPage();
@@ -112,6 +126,12 @@ class GoodsReceive extends Component
 
     public function updatingShowTrashed(): void
     {
+        $this->resetPage();
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'statusFilter', 'dateFrom', 'dateTo', 'showTrashed']);
         $this->resetPage();
     }
 
@@ -754,6 +774,14 @@ class GoodsReceive extends Component
 
         if ($this->statusFilter !== '') {
             $query->where('status', $this->statusFilter);
+        }
+
+        if ($this->dateFrom !== '') {
+            $query->whereDate('date', '>=', $this->dateFrom);
+        }
+
+        if ($this->dateTo !== '') {
+            $query->whereDate('date', '<=', $this->dateTo);
         }
 
         if ($this->search) {

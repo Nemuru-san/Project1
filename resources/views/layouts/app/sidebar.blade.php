@@ -30,7 +30,7 @@
                 <flux:sidebar.group href="#" expandable heading="Master" class="grid"
                     :expanded="request()->routeIs('purchases.master.*')">
                     <flux:sidebar.item href="{{ route('purchases.master.supplier') }}"
-                        :current="request()->routeIs('purchases.master.supplier')" wire:navigate>Pemasok
+                        :current="request()->routeIs('purchases.master.supplier')" wire:navigate>Supplier
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
@@ -40,7 +40,8 @@
                         Pembelian</flux:sidebar.item>
                     <flux:sidebar.item href="{{ route('purchases.transaction.good-receive') }}" wire:navigate>Penerimaan
                         Barang</flux:sidebar.item>
-                    <flux:sidebar.item href="{{ route('purchases.transaction.purchase-invoice') }}" wire:navigate>Faktur Pembelian</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('purchases.transaction.purchase-invoice') }}" wire:navigate>Faktur
+                        Pembelian</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Retur" class="grid"
@@ -51,8 +52,10 @@
 
                 <flux:sidebar.group href="#" expandable heading="Laporan" class="grid"
                     :expanded="request()->routeIs('purchases.report.*')">
-                    <flux:sidebar.item href="#">PO Belum Selesai</flux:sidebar.item>
-                    <flux:sidebar.item href="#">Faktur Belum Selesai</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('purchases.report.unfinished-purchase-order') }}"
+                        :current="request()->routeIs('purchases.report.unfinished-purchase-order')" wire:navigate>PO Belum Selesai</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('purchases.report.unfinished-purchase-invoice') }}"
+                        :current="request()->routeIs('purchases.report.unfinished-purchase-invoice')" wire:navigate>Faktur Belum Selesai</flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.group>
 
@@ -67,33 +70,40 @@
                     <flux:sidebar.item href="{{ route('inventory.product.productCategory') }}" wire:navigate>Kategori
                         Produk
                     </flux:sidebar.item>
-                    <flux:sidebar.item href="{{ route('inventory.product.uom') }}" wire:navigate>Satuan</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('inventory.product.uom') }}" wire:navigate>Satuan
+                    </flux:sidebar.item>
                     <flux:sidebar.item href="{{ route('inventory.product.warehouse') }}" wire:navigate>Gudang
                     </flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Transaksi Persediaan" class="grid"
                     :expanded="request()->routeIs('inventory.transaction.*')">
-                    <flux:sidebar.item href="{{ route('inventory.transaction.transfer-stock') }}" wire:navigate>Transfer Stok</flux:sidebar.item>
-                    <flux:sidebar.item href="{{ route('inventory.transaction.adjustment-in') }}" wire:navigate>Penyesuaian Stok Masuk</flux:sidebar.item>
-                    <flux:sidebar.item href="{{ route('inventory.transaction.adjustment-out') }}" wire:navigate>Penyesuaian Stok Keluar</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('inventory.transaction.transfer-stock') }}" wire:navigate>
+                        Transfer Stok</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('inventory.transaction.adjustment-in') }}" wire:navigate>
+                        Penyesuaian Stok Masuk</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('inventory.transaction.adjustment-out') }}" wire:navigate>
+                        Penyesuaian Stok Keluar</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Laporan" class="grid"
                     :expanded="request()->routeIs('inventory.report.*')">
                     <flux:sidebar.item href="{{ route('inventory.report.stock-balance') }}" wire:navigate>Saldo Stok
                     </flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Kartu Stok</flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Pergerakan Stok</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('inventory.report.stock-card') }}"
+                        :current="request()->routeIs('inventory.report.stock-card')" wire:navigate>Kartu Stok</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('inventory.report.stock-movement') }}"
+                        :current="request()->routeIs('inventory.report.stock-movement')" wire:navigate>Pergerakan Stok</flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.group>
 
             {{-- sales --}}
-            <flux:sidebar.group icon="presentation-chart-line" href="#" expandable heading="Penjualan" class="grid"
-                :expanded="request()->routeIs('sales.*')">
+            <flux:sidebar.group icon="presentation-chart-line" href="#" expandable heading="Penjualan"
+                class="grid" :expanded="request()->routeIs('sales.*')">
                 <flux:sidebar.group href="#" expandable heading="Master" class="grid"
                     :expanded="request()->routeIs('sales.master.*')">
-                    <flux:sidebar.item href="{{ route('sales.master.customer') }}" wire:navigate>Customer</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('sales.master.customer') }}" wire:navigate>Customer
+                    </flux:sidebar.item>
                     <flux:sidebar.item href="#" wire:navigate>Sales Person</flux:sidebar.item>
                 </flux:sidebar.group>
 
@@ -127,7 +137,8 @@
 
                 <flux:sidebar.group href="#" expandable heading="Transaksi" class="grid"
                     :expanded="request()->routeIs('finance.transaction.*')">
-                    <flux:sidebar.item href="{{ route('finance.transaction.ap-payment') }}" wire:navigate>Pembayaran Utang
+                    <flux:sidebar.item href="{{ route('finance.transaction.ap-payment') }}" wire:navigate>Pembayaran
+                        Utang
                     </flux:sidebar.item>
                     <flux:sidebar.item href="#" wire:navigate>Pembayaran Piutang</flux:sidebar.item>
                 </flux:sidebar.group>
@@ -140,8 +151,8 @@
             </flux:sidebar.group>
 
             {{-- user --}}
-            <flux:sidebar.group icon="presentation-chart-line" href="#" expandable heading="Pengguna" class="grid"
-                :expanded="request()->routeIs('user.*')">
+            <flux:sidebar.group icon="presentation-chart-line" href="#" expandable heading="Pengguna"
+                class="grid" :expanded="request()->routeIs('user.*')">
                 <flux:sidebar.group href="#" expandable heading="Aksi" class="grid"
                     :expanded="request()->routeIs('user.action.*')">
                     <flux:sidebar.item href="{{ route('user.action.user') }}"

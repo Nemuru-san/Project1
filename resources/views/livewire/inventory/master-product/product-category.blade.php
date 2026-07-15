@@ -10,7 +10,6 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Tabel Data Kategori Produk</p>
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             <div class="relative w-full sm:w-72">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -22,7 +21,7 @@
                 </div>
                 <input wire:model.live.debounce.300ms="search" type="text"
                     class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg block w-full pl-10 p-2.5 placeholder-gray-400"
-                    placeholder="Cari nama..." />
+                    placeholder="Cari kode atau nama..." />
             </div>
             <select wire:model.live="perPage"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 w-full sm:w-auto">
@@ -50,6 +49,13 @@
         <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
             <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
+                    <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('code')">
+                        <div class="flex items-center gap-1">Kode
+                            @if ($sortField === 'code')
+                                <span class="text-xs">{!! $sortDirection === 'asc' ? '&uarr;' : '&darr;' !!}</span>
+                            @endif
+                        </div>
+                    </th>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
                         <div class="flex items-center gap-1">Nama
                             @if ($sortField === 'name')
@@ -66,6 +72,8 @@
                 @forelse ($categories as $cat)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $cat->trashed() ? 'opacity-50' : '' }}">
+                        <td class="px-4 py-4 font-mono font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                            {{ $cat->code }}</td>
                         <td class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white uppercase">
                             {{ $cat->name }}</td>
                         <td class="px-4 py-4 max-w-xs truncate">{{ $cat->desc ?? '-' }}</td>
@@ -130,7 +138,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="text-center py-8 text-gray-400 dark:text-gray-500">
+                        <td colspan="5" class="text-center py-8 text-gray-400 dark:text-gray-500">
                             Tidak ada data category.
                         </td>
                     </tr>
@@ -166,10 +174,19 @@
                 <div class="flex-1 overflow-y-auto px-6 py-5">
                     <div class="flex flex-col gap-4">
                         <div>
+                            <label class="block mb-1 text-sm font-medium dark:text-white">Kode Kategori</label>
+                            <input wire:model="code" type="text"
+                                class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 font-mono uppercase dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('code') border-red-500 @else border-gray-300 @enderror"
+                                placeholder="Contoh: MAKANAN">
+                            @error('code')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
                             <label class="block mb-1 text-sm font-medium dark:text-white">Nama Kategori</label>
                             <input wire:model="name" type="text"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('name') border-red-500 @else border-gray-300 @enderror"
-                                placeholder="Masukkan kode category">
+                                placeholder="Masukkan nama kategori">
                             @error('name')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror

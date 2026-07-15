@@ -11,6 +11,7 @@ it('saves base unit without forcing it into the first price row', function () {
     $user = User::factory()->create();
 
     $category = ProductCategory::create([
+        'code' => 'PACKAGING',
         'name' => 'Packaging',
     ]);
 
@@ -27,6 +28,8 @@ it('saves base unit without forcing it into the first price row', function () {
     $this->actingAs($user);
 
     Livewire::test(ProductMasterComponent::class)
+        ->call('openCreate')
+        ->assertSee('PACKAGING - Packaging')
         ->set('sku', 'SKU-FLEX-001')
         ->set('name', 'Flexible Price Product')
         ->set('category_id', $category->id)

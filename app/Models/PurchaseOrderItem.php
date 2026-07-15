@@ -22,12 +22,12 @@ class PurchaseOrderItem extends Model
     ];
 
     protected $casts = [
-        'qty'         => 'integer',
-        'price'       => 'integer',
-        'conversion'  => 'integer',
-        'qty_base'    => 'integer',
+        'qty' => 'integer',
+        'price' => 'integer',
+        'conversion' => 'integer',
+        'qty_base' => 'integer',
         'total_harga' => 'integer',
-        'disc'        => 'integer',
+        'disc' => 'integer',
     ];
 
     public function purchaseOrder(): BelongsTo

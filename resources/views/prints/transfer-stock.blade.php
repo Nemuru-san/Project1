@@ -4,6 +4,8 @@
 
 <head>
     <title>{{ $transfer->trf_no }}</title>
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet" />
     <style>
         @page {
             size: 210mm 140mm;
@@ -21,7 +23,7 @@
         }
 
         body {
-            font-family: "Courier New", monospace;
+            font-family: "Inter", Arial, sans-serif;
             font-size: 11px;
             color: #111;
             margin: 0;

@@ -26,11 +26,15 @@ class JournalEntry extends Model
     ];
 
     const STATUS_DRAFT = 'Draft';
+
     const STATUS_POSTED = 'Posted';
+
     const STATUS_CANCELLED = 'Cancelled';
 
     const SOURCE_PURCHASE_INVOICE = 'PurchaseInvoice';
+
     const SOURCE_AP_PAYMENT = 'APPayment';
+
     const SOURCE_MANUAL_JOURNAL = 'ManualJournal';
 
     public static function statusOptions(): array

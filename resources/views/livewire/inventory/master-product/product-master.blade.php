@@ -115,7 +115,6 @@
     {{-- ═══════════════════════ FILTER BAR ═══════════════════════ --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Tabel Data Master Produk</p>
 
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             {{-- Search --}}
@@ -433,7 +432,7 @@
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-zinc-700 dark:border-zinc-600 dark:text-white @error('category_id') border-red-500 @enderror">
                                     <option value="">-- Pilih Kategori --</option>
                                     @foreach ($categories as $cat)
-                                        <option value="{{ $cat['id'] }}">{{ $cat['desc'] }}</option>
+                                        <option value="{{ $cat['id'] }}">{{ $cat['code'] }} - {{ $cat['name'] }}</option>
                                     @endforeach
                                 </select>
                                 @error('category_id')

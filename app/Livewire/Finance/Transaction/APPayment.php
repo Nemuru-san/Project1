@@ -28,6 +28,10 @@ class APPayment extends Component
 
     public string $statusFilter = '';
 
+    public string $dateFrom = '';
+
+    public string $dateTo = '';
+
     public bool $showTrashed = false;
 
     public bool $showModal = false;
@@ -97,8 +101,24 @@ class APPayment extends Component
         $this->resetPage();
     }
 
+    public function updatedDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateTo(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatedShowTrashed(): void
     {
+        $this->resetPage();
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'statusFilter', 'dateFrom', 'dateTo', 'showTrashed']);
         $this->resetPage();
     }
 
@@ -674,6 +694,8 @@ class APPayment extends Component
                 });
             })
             ->when($this->statusFilter, fn ($query) => $query->where('status', $this->statusFilter))
+            ->when($this->dateFrom, fn ($query) => $query->whereDate('payment_date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn ($query) => $query->whereDate('payment_date', '<=', $this->dateTo))
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 

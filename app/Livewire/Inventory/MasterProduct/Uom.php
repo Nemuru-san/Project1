@@ -2,28 +2,35 @@
 
 namespace App\Livewire\Inventory\MasterProduct;
 
+use App\Models\ProductUnit;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Illuminate\Validation\Rule;
-use App\Models\ProductUnit;
 
 class Uom extends Component
 {
     use WithPagination;
 
     public string $search = '';
+
     public int $perPage = 10;
+
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
 
     public bool $showTrashed = false;
 
     public bool $showModal = false;
+
     public bool $showDeleteModal = false;
+
     public ?int $deleteTargetId = null;
 
     public ?int $editingId = null;
+
     public string $code = '';
+
     public string $name = '';
 
     protected function rules(): array
@@ -43,7 +50,7 @@ class Uom extends Component
 
     protected array $messages = [
         'code.required' => 'UOM code wajib diisi.',
-        'code.unique'   => 'UOM code sudah digunakan.',
+        'code.unique' => 'UOM code sudah digunakan.',
         'name.required' => 'UOM description wajib diisi.',
     ];
 
@@ -148,8 +155,8 @@ class Uom extends Component
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('code', 'like', '%' . $this->search . '%')
-                    ->orWhere('name', 'like', '%' . $this->search . '%');
+                $q->where('code', 'like', '%'.$this->search.'%')
+                    ->orWhere('name', 'like', '%'.$this->search.'%');
             });
         }
 

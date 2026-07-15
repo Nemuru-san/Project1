@@ -10,9 +10,14 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-2 md:space-y-0 md:space-x-2 my-2 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Data Tabel Penerimaan Barang</p>
-
-        <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+        <div class="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 w-full">
+            <button wire:click="openCreate"
+                class="order-last sm:ml-auto inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Tambah Transaksi
+            </button>
             <div class="relative w-full sm:w-72">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <svg aria-hidden="true" class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -48,14 +53,20 @@
                 Tampilkan Terhapus
             </label>
 
-            <button wire:click="openCreate"
-                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Tambah Transaksi
-            </button>
         </div>
+    </div>
+
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
+        <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Rentang tanggal</span>
+        <input wire:model.live="dateFrom" type="date" title="Tanggal mulai" aria-label="Tanggal mulai"
+            class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-3 py-2.5 w-full sm:w-auto">
+        <span class="hidden sm:inline text-gray-400">s.d.</span>
+        <input wire:model.live="dateTo" type="date" title="Tanggal akhir" aria-label="Tanggal akhir"
+            class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-3 py-2.5 w-full sm:w-auto">
+        <button wire:click="resetFilters" type="button"
+            class="rounded-lg border border-gray-600 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-zinc-800 cursor-pointer">
+            Bersihkan Filter
+        </button>
     </div>
 
     {{-- TABLE --}}

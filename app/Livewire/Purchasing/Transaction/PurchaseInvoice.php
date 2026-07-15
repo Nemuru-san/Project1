@@ -4,8 +4,9 @@ namespace App\Livewire\Purchasing\Transaction;
 
 use App\Models\ChartOfAccount;
 use App\Models\JournalEntry;
-use App\Models\PurchaseOrder;
 use App\Models\PurchaseInvoice as ModelsPurchaseInvoice;
+use App\Models\PurchaseOrder;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -23,33 +24,59 @@ class PurchaseInvoice extends Component
 
     // Table state
     public string $search = '';
+
     public string $statusFilter = '';
+
     public string $paymentStatusFilter = '';
+
+    public string $dateFrom = '';
+
+    public string $dateTo = '';
+
     public int $perPage = 10;
+
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
+
     public bool $showTrashed = false;
 
     // Modal state
     public bool $showModal = false;
+
     public bool $showDeleteModal = false;
+
     public ?int $deleteTargetId = null;
+
     public bool $showDetail = false;
+
     public ?ModelsPurchaseInvoice $selectedInvoice = null;
+
     public bool $showPostModal = false;
+
     public ?int $postTargetId = null;
 
     // Form state
     public ?int $invoiceId = null;
+
     public string $code = '';
+
     public string $supplier_invoice_number = '';
+
     public string $date = '';
+
     public ?int $supplier_id = null;
+
     public ?int $purchase_order_id = null;
+
     public bool $tax = false;
+
     public string $note = '';
+
     public string $top_term = '';
+
     public string $custom_top = '';
+
     public string $due_date = '';
 
     // Detail rows
@@ -57,13 +84,19 @@ class PurchaseInvoice extends Component
 
     // Totals
     public int $sub_total = 0;
+
     public int $discount_total = 0;
+
     public int $tax_amount = 0;
+
     public int $grand_total = 0;
+
     public int $paid_amount = 0;
+
     public int $remaining_amount = 0;
 
     public int $itemPage = 1;
+
     public int $itemPerPage = 10;
 
     protected function rules(): array
@@ -103,6 +136,16 @@ class PurchaseInvoice extends Component
         $this->resetPage();
     }
 
+    public function updatingDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDateTo(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatingPerPage(): void
     {
         $this->resetPage();
@@ -113,9 +156,22 @@ class PurchaseInvoice extends Component
         $this->resetPage();
     }
 
+    public function resetFilters(): void
+    {
+        $this->reset([
+            'search',
+            'statusFilter',
+            'paymentStatusFilter',
+            'dateFrom',
+            'dateTo',
+            'showTrashed',
+        ]);
+        $this->resetPage();
+    }
+
     public function sortBy(string $field): void
     {
-        if (!in_array($field, ['code', 'date', 'supplier_invoice_number', 'grand_total', 'status', 'payment_status', 'created_at'], true)) {
+        if (! in_array($field, ['code', 'date', 'supplier_invoice_number', 'grand_total', 'status', 'payment_status', 'created_at'], true)) {
             return;
         }
 
@@ -146,6 +202,7 @@ class PurchaseInvoice extends Component
 
         if ($invoice->status !== ModelsPurchaseInvoice::STATUS_DRAFT) {
             $this->dispatch('toast', message: 'Invoice yang sudah posted tidak bisa diedit.', type: 'error');
+
             return;
         }
 
@@ -192,11 +249,12 @@ class PurchaseInvoice extends Component
 
     public function updatedPurchaseOrderId($value): void
     {
-        if (!$value) {
+        if (! $value) {
             $this->supplier_id = null;
             $this->tax = false;
             $this->itemRows = [];
             $this->recalculateTotals();
+
             return;
         }
 
@@ -212,7 +270,7 @@ class PurchaseInvoice extends Component
     {
         $index = explode('.', $key)[0] ?? null;
 
-        if ($index === null || !isset($this->itemRows[$index])) {
+        if ($index === null || ! isset($this->itemRows[$index])) {
             return;
         }
 
@@ -236,21 +294,23 @@ class PurchaseInvoice extends Component
 
     public function updatedTopTerm($value): void
     {
-        if (!$value || !$this->date) {
+        if (! $value || ! $this->date) {
             $this->due_date = '';
             $this->custom_top = '';
+
             return;
         }
 
         if ($value === 'custom') {
             $this->due_date = '';
             $this->custom_top = '';
+
             return;
         }
 
         $this->custom_top = '';
 
-        $this->due_date = \Carbon\Carbon::parse($this->date)
+        $this->due_date = Carbon::parse($this->date)
             ->addDays((int) $value)
             ->format('Y-m-d');
     }
@@ -264,11 +324,11 @@ class PurchaseInvoice extends Component
 
     public function updatedDate(): void
     {
-        if (!$this->top_term || $this->top_term === 'custom') {
+        if (! $this->top_term || $this->top_term === 'custom') {
             return;
         }
 
-        $this->due_date = \Carbon\Carbon::parse($this->date)
+        $this->due_date = Carbon::parse($this->date)
             ->addDays((int) $this->top_term)
             ->format('Y-m-d');
     }
@@ -325,8 +385,8 @@ class PurchaseInvoice extends Component
             $this->recalculateItemRow((int) $index);
         }
 
-        $this->sub_total = collect($this->itemRows)->sum(fn($row) => (int) ($row['total'] ?? 0));
-        $this->discount_total = collect($this->itemRows)->sum(fn($row) => (int) ($row['discount'] ?? 0));
+        $this->sub_total = collect($this->itemRows)->sum(fn ($row) => (int) ($row['total'] ?? 0));
+        $this->discount_total = collect($this->itemRows)->sum(fn ($row) => (int) ($row['discount'] ?? 0));
 
         $this->tax_amount = $this->tax
             ? (int) round($this->sub_total * 0.11)
@@ -344,16 +404,18 @@ class PurchaseInvoice extends Component
             ->whereIn('status', self::ALLOWED_PURCHASE_ORDER_STATUSES)
             ->exists();
 
-        if (!$validPurchaseOrder) {
+        if (! $validPurchaseOrder) {
             $this->addError('purchase_order_id', 'Purchase Order harus berstatus Approved, Received, atau Partially Received.');
+
             return;
         }
 
-        if (!$this->invoiceId) {
+        if (! $this->invoiceId) {
             $exists = ModelsPurchaseInvoice::where('purchase_order_id', $this->purchase_order_id)->exists();
 
             if ($exists) {
                 $this->addError('purchase_order_id', 'Purchase Order ini sudah punya Purchase Invoice.');
+
                 return;
             }
         }
@@ -363,6 +425,7 @@ class PurchaseInvoice extends Component
 
             if ($invoice->status !== ModelsPurchaseInvoice::STATUS_DRAFT) {
                 $this->dispatch('toast', message: 'Invoice yang sudah posted tidak bisa diedit.', type: 'error');
+
                 return;
             }
         }
@@ -443,7 +506,7 @@ class PurchaseInvoice extends Component
 
     public function postInvoice(): void
     {
-        if (!$this->postTargetId) {
+        if (! $this->postTargetId) {
             return;
         }
 
@@ -505,7 +568,7 @@ class PurchaseInvoice extends Component
 
         $purchaseOrder = $invoice->purchaseOrder;
 
-        if (!$purchaseOrder) {
+        if (! $purchaseOrder) {
             return;
         }
 
@@ -544,7 +607,7 @@ class PurchaseInvoice extends Component
             'date' => $invoice->date,
             'source_type' => JournalEntry::SOURCE_PURCHASE_INVOICE,
             'source_id' => $invoice->id,
-            'description' => 'Purchase Invoice ' . $invoice->code,
+            'description' => 'Purchase Invoice '.$invoice->code,
             'status' => JournalEntry::STATUS_POSTED,
             'created_by' => Auth::id(),
         ]);
@@ -554,7 +617,7 @@ class PurchaseInvoice extends Component
                 'chart_of_account_id' => $inventoryAccountId,
                 'debit' => (int) $invoice->sub_total,
                 'credit' => 0,
-                'description' => 'Inventory dari Purchase Invoice ' . $invoice->code,
+                'description' => 'Inventory dari Purchase Invoice '.$invoice->code,
             ]);
         }
 
@@ -563,7 +626,7 @@ class PurchaseInvoice extends Component
                 'chart_of_account_id' => $taxInAccountId,
                 'debit' => (int) $invoice->tax_amount,
                 'credit' => 0,
-                'description' => 'Tax In dari Purchase Invoice ' . $invoice->code,
+                'description' => 'Tax In dari Purchase Invoice '.$invoice->code,
             ]);
         }
 
@@ -571,7 +634,7 @@ class PurchaseInvoice extends Component
             'chart_of_account_id' => $accountPayableAccountId,
             'debit' => 0,
             'credit' => (int) $invoice->grand_total,
-            'description' => 'Account Payable ke supplier ' . ($invoice->supplier?->name ?? '-'),
+            'description' => 'Account Payable ke supplier '.($invoice->supplier?->name ?? '-'),
         ]);
     }
 
@@ -582,7 +645,7 @@ class PurchaseInvoice extends Component
             ->where('is_postable', true)
             ->first();
 
-        if (!$account) {
+        if (! $account) {
             throw new \Exception("Chart of Account {$code} tidak ditemukan / tidak aktif / tidak postable.");
         }
 
@@ -591,10 +654,10 @@ class PurchaseInvoice extends Component
 
     private function generateJournalCode(): string
     {
-        $prefix = 'JE/' . now()->format('ym') . '/';
+        $prefix = 'JE/'.now()->format('ym').'/';
 
         $last = JournalEntry::withTrashed()
-            ->where('code', 'like', $prefix . '%')
+            ->where('code', 'like', $prefix.'%')
             ->orderByDesc('id')
             ->first();
 
@@ -605,7 +668,7 @@ class PurchaseInvoice extends Component
             $number = $lastNumber + 1;
         }
 
-        return $prefix . str_pad($number, 4, '0', STR_PAD_LEFT);
+        return $prefix.str_pad($number, 4, '0', STR_PAD_LEFT);
     }
 
     public function confirmPost(int $id): void
@@ -614,6 +677,7 @@ class PurchaseInvoice extends Component
 
         if ($invoice->status !== ModelsPurchaseInvoice::STATUS_DRAFT) {
             $this->dispatch('toast', message: 'Hanya invoice Draft yang bisa di-post.', type: 'error');
+
             return;
         }
 
@@ -637,6 +701,7 @@ class PurchaseInvoice extends Component
 
         if ($invoice->status !== ModelsPurchaseInvoice::STATUS_DRAFT) {
             $this->dispatch('toast', message: 'Invoice yang sudah posted tidak bisa dihapus.', type: 'error');
+
             return;
         }
 
@@ -646,7 +711,7 @@ class PurchaseInvoice extends Component
 
     public function delete(): void
     {
-        if (!$this->deleteTargetId) {
+        if (! $this->deleteTargetId) {
             return;
         }
 
@@ -657,6 +722,7 @@ class PurchaseInvoice extends Component
             $this->deleteTargetId = null;
 
             $this->dispatch('toast', message: 'Invoice yang sudah posted tidak bisa dihapus.', type: 'error');
+
             return;
         }
 
@@ -670,17 +736,17 @@ class PurchaseInvoice extends Component
 
     private function generateCode(): string
     {
-        $date   = now()->format('dmy');
+        $date = now()->format('dmy');
         $prefix = "PIV-{$date}-";
 
         $last = ModelsPurchaseInvoice::withTrashed()
-            ->where('code', 'like', $prefix . '%')
+            ->where('code', 'like', $prefix.'%')
             ->orderByDesc('code')
             ->value('code');
 
         $seq = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
 
-        return $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
+        return $prefix.str_pad($seq, 3, '0', STR_PAD_LEFT);
     }
 
     private function resetForm(): void
@@ -759,16 +825,24 @@ class PurchaseInvoice extends Component
             $query->where('payment_status', $this->paymentStatusFilter);
         }
 
+        if ($this->dateFrom !== '') {
+            $query->whereDate('date', '>=', $this->dateFrom);
+        }
+
+        if ($this->dateTo !== '') {
+            $query->whereDate('date', '<=', $this->dateTo);
+        }
+
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('code', 'like', '%' . $this->search . '%')
-                    ->orWhere('supplier_invoice_number', 'like', '%' . $this->search . '%')
+                $q->where('code', 'like', '%'.$this->search.'%')
+                    ->orWhere('supplier_invoice_number', 'like', '%'.$this->search.'%')
                     ->orWhereHas('supplier', function ($supplier) {
-                        $supplier->where('name', 'like', '%' . $this->search . '%')
-                            ->orWhere('code', 'like', '%' . $this->search . '%');
+                        $supplier->where('name', 'like', '%'.$this->search.'%')
+                            ->orWhere('code', 'like', '%'.$this->search.'%');
                     })
                     ->orWhereHas('purchaseOrder', function ($po) {
-                        $po->where('code', 'like', '%' . $this->search . '%');
+                        $po->where('code', 'like', '%'.$this->search.'%');
                     });
             });
         }
@@ -788,7 +862,7 @@ class PurchaseInvoice extends Component
         if ($this->invoiceId && $this->purchase_order_id) {
             $currentPo = PurchaseOrder::with('supplier')->find($this->purchase_order_id);
 
-            if ($currentPo && !$purchaseOrders->contains('id', $currentPo->id)) {
+            if ($currentPo && ! $purchaseOrders->contains('id', $currentPo->id)) {
                 $purchaseOrders->prepend($currentPo);
             }
         }
@@ -803,6 +877,7 @@ class PurchaseInvoice extends Component
         $visibleItemRows = collect($this->itemRows)
             ->map(function ($row, $index) {
                 $row['_index'] = $index;
+
                 return $row;
             })
             ->slice(($this->itemPage - 1) * $this->itemPerPage, $this->itemPerPage)

@@ -13,21 +13,31 @@ class Warehouse extends Component
 
     // Table state
     public string $search = '';
+
     public string $statusFilter = '';
+
     public int $perPage = 10;
+
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
+
     public bool $showTrashed = false;
 
     // Modal state
     public bool $showModal = false;
+
     public bool $showDeleteModal = false;
+
     public ?int $deleteTargetId = null;
 
     // Form state
     public ?int $editingId = null;
+
     public string $name = '';
+
     public string $desc = '';
+
     public string $address = '';
 
     protected function rules(): array
@@ -171,9 +181,9 @@ class Warehouse extends Component
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')
-                    ->orWhere('desc', 'like', '%' . $this->search . '%')
-                    ->orWhere('address', 'like', '%' . $this->search . '%');
+                $q->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('desc', 'like', '%'.$this->search.'%')
+                    ->orWhere('address', 'like', '%'.$this->search.'%');
             });
         }
 

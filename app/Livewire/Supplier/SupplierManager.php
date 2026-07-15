@@ -3,9 +3,9 @@
 namespace App\Livewire\Supplier;
 
 use App\Models\Supplier;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SupplierManager extends Component
@@ -14,37 +14,47 @@ class SupplierManager extends Component
 
     // Table state
     public string $search = '';
+
     public int $perPage = 10;
+
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
+
     public bool $showTrashed = false;
 
     // Form state
     public ?int $supplierId = null;
+
     public string $code = '';
+
     public string $name = '';
+
     public string $address = '';
+
     public string $contact = '';
 
     // Modal state
     public bool $showModal = false;
+
     public bool $showDeleteModal = false;
+
     public ?int $deleteTargetId = null;
 
     protected function rules(): array
     {
         return [
-            'code'    => 'required|string|max:50|unique:suppliers,code,' . ($this->supplierId ?? 'NULL') . ',id,deleted_at,NULL',
-            'name'    => 'required|string|max:255',
+            'code' => 'required|string|max:50|unique:suppliers,code,'.($this->supplierId ?? 'NULL').',id,deleted_at,NULL',
+            'name' => 'required|string|max:255',
             'address' => 'required|string|max:500',
             'contact' => 'required|string|max:100',
         ];
     }
 
     protected $messages = [
-        'code.required'    => 'Kode supplier wajib diisi.',
-        'code.unique'      => 'Kode supplier sudah digunakan.',
-        'name.required'    => 'Nama supplier wajib diisi.',
+        'code.required' => 'Kode supplier wajib diisi.',
+        'code.unique' => 'Kode supplier sudah digunakan.',
+        'name.required' => 'Nama supplier wajib diisi.',
         'address.required' => 'Alamat wajib diisi.',
         'contact.required' => 'Kontak wajib diisi.',
     ];
@@ -84,11 +94,11 @@ class SupplierManager extends Component
         $supplier = Supplier::findOrFail($id);
 
         $this->supplierId = $supplier->id;
-        $this->code       = $supplier->code;
-        $this->name       = $supplier->name;
-        $this->address    = $supplier->address;
-        $this->contact    = $supplier->contact;
-        $this->showModal  = true;
+        $this->code = $supplier->code;
+        $this->name = $supplier->name;
+        $this->address = $supplier->address;
+        $this->contact = $supplier->contact;
+        $this->showModal = true;
     }
 
     public function save(): void
@@ -96,8 +106,8 @@ class SupplierManager extends Component
         $this->validate();
 
         $data = [
-            'code'    => $this->code,
-            'name'    => $this->name,
+            'code' => $this->code,
+            'name' => $this->name,
             'address' => $this->address,
             'contact' => $this->contact,
         ];
@@ -132,7 +142,7 @@ class SupplierManager extends Component
 
     public function delete(): void
     {
-        if (!$this->deleteTargetId) {
+        if (! $this->deleteTargetId) {
             return;
         }
 
@@ -147,18 +157,18 @@ class SupplierManager extends Component
     public function export(): StreamedResponse
     {
         $suppliers = Supplier::query()
-            ->when($this->showTrashed, fn($q) => $q->withTrashed())
+            ->when($this->showTrashed, fn ($q) => $q->withTrashed())
             ->when($this->search, function ($q) {
                 $q->where(function ($inner) {
-                    $inner->where('name', 'like', '%' . $this->search . '%')
-                        ->orWhere('code', 'like', '%' . $this->search . '%')
-                        ->orWhere('contact', 'like', '%' . $this->search . '%');
+                    $inner->where('name', 'like', '%'.$this->search.'%')
+                        ->orWhere('code', 'like', '%'.$this->search.'%')
+                        ->orWhere('contact', 'like', '%'.$this->search.'%');
                 });
             })
             ->orderBy($this->sortField, $this->sortDirection)
             ->get();
 
-        $filename = 'suppliers_' . now()->format('Ymd_His') . '.csv';
+        $filename = 'suppliers_'.now()->format('Ymd_His').'.csv';
 
         return response()->streamDownload(function () use ($suppliers) {
             $handle = fopen('php://output', 'w');
@@ -184,10 +194,10 @@ class SupplierManager extends Component
     private function resetForm(): void
     {
         $this->supplierId = null;
-        $this->code       = '';
-        $this->name       = '';
-        $this->address    = '';
-        $this->contact    = '';
+        $this->code = '';
+        $this->name = '';
+        $this->address = '';
+        $this->contact = '';
 
         $this->resetErrorBag();
     }
@@ -202,9 +212,9 @@ class SupplierManager extends Component
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')
-                    ->orWhere('code', 'like', '%' . $this->search . '%')
-                    ->orWhere('contact', 'like', '%' . $this->search . '%');
+                $q->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('code', 'like', '%'.$this->search.'%')
+                    ->orWhere('contact', 'like', '%'.$this->search.'%');
             });
         }
 

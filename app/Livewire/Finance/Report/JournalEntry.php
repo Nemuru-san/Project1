@@ -11,18 +11,25 @@ class JournalEntry extends Component
     use WithPagination;
 
     public string $search = '';
+
     public int $perPage = 10;
+
     public string $sortField = 'date';
+
     public string $sortDirection = 'desc';
 
     public string $statusFilter = '';
+
     public string $sourceFilter = '';
+
     public bool $showTrashed = false;
 
     public bool $showDetail = false;
+
     public bool $showDeleteModal = false;
 
     public ?int $deleteTargetId = null;
+
     public ?ModelsJournalEntry $selectedJournal = null;
 
     public function updatedSearch(): void
@@ -54,6 +61,7 @@ class JournalEntry extends Component
     {
         if ($this->sortField === $field) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+
             return;
         }
 
@@ -85,6 +93,7 @@ class JournalEntry extends Component
 
         if ($journal->status !== ModelsJournalEntry::STATUS_DRAFT) {
             $this->dispatch('toast', message: 'Journal yang sudah posted tidak bisa dihapus.', type: 'error');
+
             return;
         }
 
@@ -94,7 +103,7 @@ class JournalEntry extends Component
 
     public function delete(): void
     {
-        if (!$this->deleteTargetId) {
+        if (! $this->deleteTargetId) {
             return;
         }
 
@@ -105,6 +114,7 @@ class JournalEntry extends Component
             $this->deleteTargetId = null;
 
             $this->dispatch('toast', message: 'Journal yang sudah posted tidak bisa dihapus.', type: 'error');
+
             return;
         }
 
@@ -118,7 +128,7 @@ class JournalEntry extends Component
 
     public function getSelectedJournalDebitTotalProperty(): int
     {
-        if (!$this->selectedJournal) {
+        if (! $this->selectedJournal) {
             return 0;
         }
 
@@ -127,7 +137,7 @@ class JournalEntry extends Component
 
     public function getSelectedJournalCreditTotalProperty(): int
     {
-        if (!$this->selectedJournal) {
+        if (! $this->selectedJournal) {
             return 0;
         }
 
@@ -144,16 +154,16 @@ class JournalEntry extends Component
         $journals = ModelsJournalEntry::query()
             ->with(['creator'])
             ->withCount('lines')
-            ->when($this->showTrashed, fn($query) => $query->withTrashed())
+            ->when($this->showTrashed, fn ($query) => $query->withTrashed())
             ->when($this->search, function ($query) {
                 $query->where(function ($subQuery) {
-                    $subQuery->where('code', 'like', '%' . $this->search . '%')
-                        ->orWhere('description', 'like', '%' . $this->search . '%')
-                        ->orWhere('source_type', 'like', '%' . $this->search . '%');
+                    $subQuery->where('code', 'like', '%'.$this->search.'%')
+                        ->orWhere('description', 'like', '%'.$this->search.'%')
+                        ->orWhere('source_type', 'like', '%'.$this->search.'%');
                 });
             })
-            ->when($this->statusFilter, fn($query) => $query->where('status', $this->statusFilter))
-            ->when($this->sourceFilter, fn($query) => $query->where('source_type', $this->sourceFilter))
+            ->when($this->statusFilter, fn ($query) => $query->where('status', $this->statusFilter))
+            ->when($this->sourceFilter, fn ($query) => $query->where('source_type', $this->sourceFilter))
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 

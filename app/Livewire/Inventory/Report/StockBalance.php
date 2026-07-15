@@ -14,18 +14,25 @@ class StockBalance extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $warehouseFilter = '';
+
     public string $categoryFilter = '';
+
     public string $productFilter = '';
+
     public int $perPage = 10;
 
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
 
     public bool $showZeroBalance = false;
 
     public bool $showDetailModal = false;
+
     public ?array $selectedStock = null;
+
     public array $stockBookings = [];
 
     public function updatingSearch(): void
@@ -91,7 +98,7 @@ class StockBalance extends Component
         }
 
         $prices = $product->prices
-            ->filter(fn($price) => $price->conversion > 0 && $price->unit)
+            ->filter(fn ($price) => $price->conversion > 0 && $price->unit)
             ->sortByDesc('conversion')
             ->values();
 
@@ -104,7 +111,7 @@ class StockBalance extends Component
                 ?? $prices->sortBy('conversion')->first()?->unit?->name
                 ?? '';
 
-            return '0 ' . $smallestUnit;
+            return '0 '.$smallestUnit;
         }
 
         $remaining = $quantity;
@@ -122,7 +129,7 @@ class StockBalance extends Component
             if ($unitQty > 0) {
                 $unitName = $price->unit?->code ?: $price->unit?->name;
 
-                $result[] = number_format($unitQty, 0, ',', '.') . ' ' . $unitName;
+                $result[] = number_format($unitQty, 0, ',', '.').' '.$unitName;
 
                 $remaining = $remaining % $conversion;
             }
@@ -206,10 +213,10 @@ class StockBalance extends Component
 
             if ($this->search) {
                 $query->where(function ($q) {
-                    $q->where('sku', 'like', '%' . $this->search . '%')
-                        ->orWhere('name', 'like', '%' . $this->search . '%')
+                    $q->where('sku', 'like', '%'.$this->search.'%')
+                        ->orWhere('name', 'like', '%'.$this->search.'%')
                         ->orWhereHas('category', function ($categoryQuery) {
-                            $categoryQuery->where('name', 'like', '%' . $this->search . '%');
+                            $categoryQuery->where('name', 'like', '%'.$this->search.'%');
                         });
                 });
             }
@@ -233,7 +240,6 @@ class StockBalance extends Component
                 'isZeroMode' => true,
             ]);
         }
-
 
         $query = StockBalanceModel::query()
             ->with([
@@ -259,14 +265,14 @@ class StockBalance extends Component
         if ($this->search) {
             $query->where(function ($q) {
                 $q->whereHas('product', function ($productQuery) {
-                    $productQuery->where('sku', 'like', '%' . $this->search . '%')
-                        ->orWhere('name', 'like', '%' . $this->search . '%');
+                    $productQuery->where('sku', 'like', '%'.$this->search.'%')
+                        ->orWhere('name', 'like', '%'.$this->search.'%');
                 })
                     ->orWhereHas('product.category', function ($categoryQuery) {
-                        $categoryQuery->where('name', 'like', '%' . $this->search . '%');
+                        $categoryQuery->where('name', 'like', '%'.$this->search.'%');
                     })
                     ->orWhereHas('warehouse', function ($warehouseQuery) {
-                        $warehouseQuery->where('name', 'like', '%' . $this->search . '%');
+                        $warehouseQuery->where('name', 'like', '%'.$this->search.'%');
                     });
             });
         }

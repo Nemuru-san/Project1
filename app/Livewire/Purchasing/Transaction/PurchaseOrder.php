@@ -20,6 +20,10 @@ class PurchaseOrder extends Component
 
     public string $statusFilter = '';
 
+    public string $dateFrom = '';
+
+    public string $dateTo = '';
+
     public int $perPage = 10;
 
     public string $sortField = 'created_at';
@@ -148,6 +152,16 @@ class PurchaseOrder extends Component
         $this->resetPage();
     }
 
+    public function updatingDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDateTo(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatingPerPage(): void
     {
         $this->resetPage();
@@ -155,6 +169,12 @@ class PurchaseOrder extends Component
 
     public function updatingShowTrashed(): void
     {
+        $this->resetPage();
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'statusFilter', 'dateFrom', 'dateTo', 'showTrashed']);
         $this->resetPage();
     }
 
@@ -763,6 +783,8 @@ class PurchaseOrder extends Component
                 $this->statusFilter,
                 fn ($q) => $q->where('status', $this->statusFilter)
             )
+            ->when($this->dateFrom, fn ($q) => $q->whereDate('date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn ($q) => $q->whereDate('date', '<=', $this->dateTo))
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 

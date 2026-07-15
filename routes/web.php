@@ -1,6 +1,5 @@
 <?php
 
-
 use App\Models\GoodsReceive;
 use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
@@ -70,6 +69,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('prints.purchase-invoice', compact('invoice'));
     })->name('purchases.transaction.purchase-invoice.print');
 
+    Route::view('purchases/report/unfinished-purchase-order', 'pages.purchase.report.unfinishedPurchaseOrder')
+        ->name('purchases.report.unfinished-purchase-order');
+
+    Route::view('purchases/report/unfinished-purchase-invoice', 'pages.purchase.report.unfinishedPurchaseInvoice')
+        ->name('purchases.report.unfinished-purchase-invoice');
+
     // Inventory - Master
     Route::get('inventory/master/product-master', function () {
         return view('pages.inventory.productMaster.productMaster');
@@ -90,6 +95,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('inventory/report/stock-balance', function () {
         return view('pages.inventory.report.stockBalance');
     })->name('inventory.report.stock-balance');
+
+    Route::view('inventory/report/stock-card', 'pages.inventory.report.stockCard')
+        ->name('inventory.report.stock-card');
+
+    Route::view('inventory/report/stock-movement', 'pages.inventory.report.stockMovement')
+        ->name('inventory.report.stock-movement');
 
     // Inventory - Transaction
     Route::get('inventory/transaction/transfer-stock', function () {
@@ -115,8 +126,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('pages.inventory.inventoryTransaction.adjustmentOut');
     })->name('inventory.transaction.adjustment-out');
 
-
-    // Sales 
+    // Sales
     Route::get('sales/master/customer', function () {
         return view('pages.sales.salesMaster.customer');
     })->name('sales.master.customer');
@@ -148,4 +158,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('user.action.role');
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

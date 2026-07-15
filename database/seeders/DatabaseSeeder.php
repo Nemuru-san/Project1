@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             ProductUnitSeeder::class,
-            ChartOfAccountSeeder::class
+            ChartOfAccountSeeder::class,
         ]);
     }
 }

@@ -24,6 +24,7 @@ it('cancels a received goods receive by reversing stock and recalculating purcha
     ]);
 
     $category = ProductCategory::create([
+        'code' => 'TEST-CAT',
         'name' => 'Test Category',
     ]);
 
@@ -128,6 +129,7 @@ it('keeps partially received purchase orders available for the next goods receiv
     ]);
 
     $category = ProductCategory::create([
+        'code' => 'TEST-CAT',
         'name' => 'Test Category',
     ]);
 

@@ -12,17 +12,25 @@ class RoleUser extends Component
     use WithPagination;
 
     public string $search = '';
+
     public int $perPage = 10;
+
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
+
     public bool $showTrashed = false;
 
     public bool $showModal = false;
+
     public bool $showDeleteModal = false;
+
     public ?int $deleteTargetId = null;
 
     public ?int $editingId = null;
+
     public string $name = '';
+
     public array $selectedPermissions = [];
 
     public array $permissionGroups = [
@@ -196,6 +204,7 @@ class RoleUser extends Component
 
         if ($role->users_count > 0) {
             $this->dispatch('toast', message: 'Role masih dipakai user, tidak bisa dihapus.', type: 'error');
+
             return;
         }
 
@@ -205,7 +214,7 @@ class RoleUser extends Component
 
     public function delete(): void
     {
-        if (!$this->deleteTargetId) {
+        if (! $this->deleteTargetId) {
             return;
         }
 
@@ -216,6 +225,7 @@ class RoleUser extends Component
             $this->deleteTargetId = null;
 
             $this->dispatch('toast', message: 'Role masih dipakai user, tidak bisa dihapus.', type: 'error');
+
             return;
         }
 
@@ -245,7 +255,7 @@ class RoleUser extends Component
         }
 
         if ($this->search) {
-            $query->where('name', 'like', '%' . $this->search . '%');
+            $query->where('name', 'like', '%'.$this->search.'%');
         }
 
         $roles = $query

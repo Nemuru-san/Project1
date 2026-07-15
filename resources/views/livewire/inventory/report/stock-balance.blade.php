@@ -2,7 +2,6 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-2 md:space-y-0 md:space-x-2 my-2 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Tabel Data Saldo Stok</p>
 
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             {{-- Search --}}

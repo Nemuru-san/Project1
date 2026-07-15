@@ -44,10 +44,13 @@ class PurchaseInvoice extends Model
     ];
 
     const STATUS_DRAFT = 'Draft';
+
     const STATUS_POSTED = 'Posted';
 
     const PAYMENT_UNPAID = 'Unpaid';
+
     const PAYMENT_PARTIAL_PAID = 'Partial Paid';
+
     const PAYMENT_PAID = 'Paid';
 
     public static function statusOptions(): array

@@ -12,24 +12,37 @@ class ChartOfAccount extends Component
 
     // Table state
     public string $search = '';
+
     public int $perPage = 10;
+
     public string $sortField = 'code';
+
     public string $sortDirection = 'asc';
+
     public bool $showTrashed = false;
 
     // Form state
     public ?int $accountId = null;
+
     public string $code = '';
+
     public string $name = '';
+
     public string $type = '';
+
     public string $normal_balance = '';
+
     public ?int $parent_id = null;
+
     public bool $is_postable = true;
+
     public bool $is_active = true;
 
     // Modal state
     public bool $showModal = false;
+
     public bool $showDeleteModal = false;
+
     public ?int $deleteTargetId = null;
 
     public array $typeOptions = [
@@ -49,7 +62,7 @@ class ChartOfAccount extends Component
     protected function rules(): array
     {
         return [
-            'code' => 'required|string|max:50|unique:chart_of_accounts,code,' . ($this->accountId ?? 'NULL') . ',id,deleted_at,NULL',
+            'code' => 'required|string|max:50|unique:chart_of_accounts,code,'.($this->accountId ?? 'NULL').',id,deleted_at,NULL',
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:Asset,Liability,Equity,Revenue,Expense,COGS',
             'normal_balance' => 'required|string|in:Debit,Credit',
@@ -87,7 +100,7 @@ class ChartOfAccount extends Component
 
     public function sortBy(string $field): void
     {
-        if (!in_array($field, ['code', 'name', 'type', 'normal_balance', 'is_active', 'created_at'], true)) {
+        if (! in_array($field, ['code', 'name', 'type', 'normal_balance', 'is_active', 'created_at'], true)) {
             return;
         }
 
@@ -108,8 +121,9 @@ class ChartOfAccount extends Component
     {
         $account = ModelsChartOfAccount::findOrFail($id);
 
-        if (!$account->is_postable) {
+        if (! $account->is_postable) {
             $this->dispatch('toast', message: 'Akun header tidak bisa diedit.', type: 'error');
+
             return;
         }
 
@@ -131,6 +145,7 @@ class ChartOfAccount extends Component
 
         if ($this->accountId && $this->parent_id === $this->accountId) {
             $this->addError('parent_id', 'Parent account tidak boleh dirinya sendiri.');
+
             return;
         }
 
@@ -166,8 +181,9 @@ class ChartOfAccount extends Component
             return;
         }
 
-        if (!$account->is_postable) {
+        if (! $account->is_postable) {
             $this->dispatch('toast', message: 'Akun header tidak bisa dihapus.', type: 'error');
+
             return;
         }
 
@@ -177,17 +193,18 @@ class ChartOfAccount extends Component
 
     public function delete(): void
     {
-        if (!$this->deleteTargetId) {
+        if (! $this->deleteTargetId) {
             return;
         }
 
         $account = ModelsChartOfAccount::findOrFail($this->deleteTargetId);
 
-        if (!$account->is_postable) {
+        if (! $account->is_postable) {
             $this->showDeleteModal = false;
             $this->deleteTargetId = null;
 
             $this->dispatch('toast', message: 'Akun header tidak bisa dihapus.', type: 'error');
+
             return;
         }
 
@@ -196,6 +213,7 @@ class ChartOfAccount extends Component
             $this->deleteTargetId = null;
 
             $this->dispatch('toast', message: 'Akun tidak bisa dihapus karena masih punya child account.', type: 'error');
+
             return;
         }
 
@@ -204,6 +222,7 @@ class ChartOfAccount extends Component
             $this->deleteTargetId = null;
 
             $this->dispatch('toast', message: 'Akun tidak bisa dihapus karena sudah dipakai di jurnal.', type: 'error');
+
             return;
         }
 
@@ -240,9 +259,9 @@ class ChartOfAccount extends Component
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('code', 'like', '%' . $this->search . '%')
-                    ->orWhere('name', 'like', '%' . $this->search . '%')
-                    ->orWhere('type', 'like', '%' . $this->search . '%');
+                $q->where('code', 'like', '%'.$this->search.'%')
+                    ->orWhere('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('type', 'like', '%'.$this->search.'%');
             });
         }
 
@@ -251,7 +270,7 @@ class ChartOfAccount extends Component
             ->paginate($this->perPage);
 
         $parentAccounts = ModelsChartOfAccount::query()
-            ->when($this->accountId, fn($q) => $q->where('id', '!=', $this->accountId))
+            ->when($this->accountId, fn ($q) => $q->where('id', '!=', $this->accountId))
             ->where('is_active', true)
             ->orderBy('code')
             ->get();

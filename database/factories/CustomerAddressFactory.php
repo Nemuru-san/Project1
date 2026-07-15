@@ -3,9 +3,10 @@
 namespace Database\Factories;
 
 use App\Models\Customer;
+use App\Models\CustomerAddress;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/** @extends Factory<\App\Models\CustomerAddress> */
+/** @extends Factory<CustomerAddress> */
 class CustomerAddressFactory extends Factory
 {
     public function definition(): array

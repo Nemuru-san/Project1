@@ -15,20 +15,31 @@ class User extends Component
     use WithPagination;
 
     public string $search = '';
+
     public int $perPage = 10;
+
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
+
     public bool $showTrashed = false;
 
     public bool $showModal = false;
+
     public bool $showDeleteModal = false;
+
     public ?int $deleteTargetId = null;
 
     public ?int $editingId = null;
+
     public string $name = '';
+
     public string $email = '';
+
     public string $password = '';
+
     public string $password_confirmation = '';
+
     public int|string|null $role_id = '';
 
     protected function rules(): array
@@ -150,6 +161,7 @@ class User extends Component
 
         if ($user->id === Auth::id()) {
             $this->dispatch('toast', message: 'User yang sedang login tidak bisa dihapus.', type: 'error');
+
             return;
         }
 
@@ -159,7 +171,7 @@ class User extends Component
 
     public function delete(): void
     {
-        if (!$this->deleteTargetId) {
+        if (! $this->deleteTargetId) {
             return;
         }
 
@@ -170,6 +182,7 @@ class User extends Component
             $this->deleteTargetId = null;
 
             $this->dispatch('toast', message: 'User yang sedang login tidak bisa dihapus.', type: 'error');
+
             return;
         }
 
@@ -203,10 +216,10 @@ class User extends Component
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')
-                    ->orWhere('email', 'like', '%' . $this->search . '%')
+                $q->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('email', 'like', '%'.$this->search.'%')
                     ->orWhereHas('role', function ($roleQuery) {
-                        $roleQuery->where('name', 'like', '%' . $this->search . '%');
+                        $roleQuery->where('name', 'like', '%'.$this->search.'%');
                     });
             });
         }

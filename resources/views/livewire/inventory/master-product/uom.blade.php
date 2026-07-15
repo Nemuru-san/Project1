@@ -10,7 +10,6 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Tabel Data Satuan</p>
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             <div class="relative w-full sm:w-72">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
