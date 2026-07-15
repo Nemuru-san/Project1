@@ -70,8 +70,7 @@ class RoleUser extends Component
         ],
 
         'Sales - Master' => [
-            'sales.master.supplier-category' => 'Supplier Category',
-            'sales.master.supplier' => 'Supplier',
+            'sales.master.customer' => 'Customer',
         ],
 
         'Sales - Transaction' => [

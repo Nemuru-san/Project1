@@ -10,7 +10,7 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Data Tabel Role User</p>
+        <p class="dark:text-white text-base font-semibold">Tabel Data Peran Pengguna</p>
 
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             {{-- Search --}}
@@ -49,7 +49,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                Tambah Role
+                Tambah Peran
             </button>
         </div>
     </div>
@@ -59,21 +59,21 @@
         <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
             <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
-                    <th class="px-4 py-4 w-12">No</th>
+                    <th class="px-4 py-4 w-12">No.</th>
 
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
                         <div class="flex items-center gap-1">
-                            Role Name
+                            Nama Peran
                             @if ($sortField === 'name')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
                         </div>
                     </th>
 
-                    <th class="px-4 py-4">Permission</th>
-                    <th class="px-4 py-4">Users</th>
+                    <th class="px-4 py-4">Hak Akses</th>
+                    <th class="px-4 py-4">Pengguna</th>
                     <th class="px-4 py-4">Status</th>
-                    <th class="px-4 py-4">Actions</th>
+                    <th class="px-4 py-4">Aksi</th>
                 </tr>
             </thead>
 
@@ -89,15 +89,14 @@
                             {{ $role->name }}
 
                             @if (in_array('*', $role->permissions ?? [], true))
-                                <span class="ml-2 text-xs px-2 py-0.5 rounded bg-blue-700 text-white">
-                                    Full Access
+                                <span class="ml-2 text-xs px-2 py-0.5 rounded bg-blue-700 text-white">Akses Penuh
                                 </span>
                             @endif
                         </td>
 
                         <td class="px-4 py-4">
                             @if (in_array('*', $role->permissions ?? [], true))
-                                <span class="text-sm text-blue-400">Semua Module</span>
+                                <span class="text-sm text-blue-400">Semua Modul</span>
                             @else
                                 <span class="text-sm text-gray-300">
                                     {{ count($role->permissions ?? []) }} permission
@@ -161,8 +160,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                    Edit
+                                                    </svg>Ubah
                                                 </button>
                                             </li>
                                         </ul>
@@ -176,8 +174,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 011 1v3M4 7h16" />
-                                                </svg>
-                                                Delete
+                                                </svg>Hapus
                                             </button>
                                         </div>
                                     </div>
@@ -226,7 +223,7 @@
                     <div class="space-y-5">
                         <div>
                             <label class="block mb-1 text-sm font-medium dark:text-white">
-                                Nama Role
+                                Nama Peran
                             </label>
 
                             <input wire:model="name" type="text"
@@ -242,7 +239,7 @@
                             <div class="flex items-center justify-between mb-4">
                                 <h4
                                     class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                    Permission Module
+                                    Hak Akses Modul
                                 </h4>
 
                                 <button type="button" wire:click="toggleFullAccess"
@@ -254,7 +251,7 @@
                             @if (in_array('*', $selectedPermissions, true))
                                 <div
                                     class="mb-4 rounded-lg border border-blue-700 bg-blue-900/20 px-4 py-3 text-sm text-blue-300">
-                                    Role ini punya akses ke semua module.
+                                    Peran ini punya akses ke semua modul.
                                 </div>
                             @endif
 
@@ -314,7 +311,7 @@
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-sm p-6">
                 <h3 class="text-lg font-semibold dark:text-white mb-2">Konfirmasi Hapus</h3>
-                <p class="text-sm text-gray-400 mb-6">Role akan dipindahkan ke trash.</p>
+                <p class="text-sm text-gray-400 mb-6">Peran akan dipindahkan ke tempat sampah.</p>
 
                 <div class="flex justify-end gap-2">
                     <button wire:click="$set('showDeleteModal', false)"

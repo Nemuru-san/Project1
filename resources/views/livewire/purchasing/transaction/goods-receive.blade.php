@@ -10,7 +10,7 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-2 md:space-y-0 md:space-x-2 my-2 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Data Tabel Goods Receive</p>
+        <p class="dark:text-white text-base font-semibold">Data Tabel Penerimaan Barang</p>
 
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             <div class="relative w-full sm:w-72">
@@ -30,9 +30,9 @@
             <select wire:model.live="statusFilter"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
                 <option value="">Semua Status</option>
-                <option value="Draft">Draft</option>
-                <option value="Received">Received</option>
-                <option value="Cancelled">Cancelled</option>
+                <option value="Draft">Draf</option>
+                <option value="Received">Diterima</option>
+                <option value="Cancelled">Dibatalkan</option>
             </select>
 
             <select wire:model.live="perPage"
@@ -63,7 +63,7 @@
         <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
             <thead class="text-lg font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
-                    <th class="px-4 py-4 w-12">No</th>
+                    <th class="px-4 py-4 w-12">No.</th>
 
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('code')">
                         <div class="flex items-center gap-1">
@@ -84,7 +84,7 @@
                     </th>
 
                     <th class="px-4 py-4">Kode PO</th>
-                    <th class="px-4 py-4">Supplier</th>
+                    <th class="px-4 py-4">Pemasok</th>
                     <th class="px-4 py-4">Status</th>
                     <th class="px-4 py-4">Aksi</th>
                 </tr>
@@ -121,18 +121,16 @@
                                 </span>
                             @elseif ($gr->status === 'Draft')
                                 <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-gray-200 text-gray-700 dark:bg-zinc-600 dark:text-white">
-                                    Draft
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-gray-200 text-gray-700 dark:bg-zinc-600 dark:text-white">Draf
                                 </span>
                             @elseif ($gr->status === 'Received')
                                 <span
                                     class="text-sm font-normal px-2.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-700 dark:text-white">
-                                    Received
+                                    Diterima
                                 </span>
                             @elseif ($gr->status === 'Cancelled')
                                 <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-700 dark:text-white">
-                                    Cancelled
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-700 dark:text-white">Dibatalkan
                                 </span>
                             @else
                                 <span
@@ -188,7 +186,7 @@
                                                                 stroke-width="2"
                                                                 d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
-                                                        Received
+                                                        Diterima
                                                     </button>
                                                 </li>
                                             @endif
@@ -202,8 +200,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M6 9V4h12v5M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v6H6v-6z" />
-                                                    </svg>
-                                                    Print
+                                                    </svg>Cetak
                                                 </a>
                                             </li>
 
@@ -218,8 +215,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                    Detail
+                                                    </svg>Detail
                                                 </button>
                                             </li>
 
@@ -233,8 +229,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                    Edit
+                                                    </svg>Ubah
                                                 </button>
                                             </li>
                                         </ul>
@@ -249,8 +244,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                                Delete
+                                                </svg>Hapus
                                             </button>
                                         </div>
                                     @endif
@@ -306,8 +300,7 @@
                         </div>
 
                         <div class="w-full">
-                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                Date
+                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Tanggal
                             </label>
                             <input type="date" wire:model="date"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('date') border-red-500 @else border-gray-300 @enderror">
@@ -322,7 +315,7 @@
                             </label>
                             <select wire:model.live="purchase_order_id" @disabled($editingId)
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('purchase_order_id') border-red-500 @else border-gray-300 @enderror">
-                                <option value="">-- Pilih PO Approved / Partially Received --</option>
+                                <option value="">-- Pilih PO Disetujui / Diterima Sebagian --</option>
                                 @foreach ($purchaseOrders as $po)
                                     <option value="{{ $po->id }}">
                                         {{ $po->code }} - {{ $po->supplier?->name ?? '-' }}
@@ -335,8 +328,7 @@
                         </div>
 
                         <div class="w-full">
-                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                Supplier
+                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Pemasok
                             </label>
                             <input type="text" wire:model="supplier_name"
                                 class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:text-gray-400 cursor-not-allowed"
@@ -371,24 +363,23 @@
                                 <thead
                                     class="text-base font-bold text-gray-900 uppercase bg-gray-200 dark:bg-zinc-700 dark:text-white">
                                     <tr>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">No
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Tidak
                                         </th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                            Product Code</th>
+                                            Kode Produk</th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                            Product Name</th>
+                                            Nama Produk</th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                            Category</th>
+                                            Kategori</th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
                                             Satuan</th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Qty
-                                            Order</th>
+                                            Pesanan</th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Qty
                                             Outstanding</th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Qty
-                                            Received</th>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                            Warehouse</th>
+                                            Diterima</th>
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Gudang</th>
                                     </tr>
                                 </thead>
 
@@ -446,7 +437,7 @@
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
                                                 <select wire:model="items.{{ $index }}.warehouse_id"
                                                     class="bg-gray-50 border text-gray-900 text-xs rounded-lg block w-full p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('items.' . $index . '.warehouse_id') border-red-500 @else border-gray-300 @enderror">
-                                                    <option value="">-- Pilih Warehouse --</option>
+                                                    <option value="">-- Pilih Gudang --</option>
                                                     @foreach ($warehouses as $warehouse)
                                                         <option value="{{ $warehouse->id }}">
                                                             {{ $warehouse->desc }}
@@ -463,7 +454,7 @@
                                         <tr>
                                             <td colspan="9"
                                                 class="border border-gray-300 dark:border-zinc-600 px-4 py-8 text-center text-gray-400">
-                                                Pilih PO Approved / Partially Received terlebih dahulu.
+                                                Pilih PO Disetujui / Diterima Sebagian terlebih dahulu.
                                             </td>
                                         </tr>
                                     @endforelse
@@ -498,7 +489,7 @@
             <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-sm p-6">
                 <h3 class="text-lg font-semibold dark:text-white mb-2">Konfirmasi Hapus</h3>
                 <p class="text-sm text-gray-400 mb-6">
-                    Yakin ingin menghapus Goods Receive ini?
+                    Yakin ingin menghapus Penerimaan Barang ini?
                 </p>
 
                 <div class="flex justify-end gap-2">
@@ -526,7 +517,7 @@
                 {{-- Header --}}
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
                     <div>
-                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Goods Receive</h2>
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Penerimaan Barang</h2>
                         <p class="text-sm text-gray-400 font-mono mt-0.5">{{ $selectedGR->code }}</p>
                     </div>
 
@@ -567,7 +558,7 @@
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Supplier</span>
+                                <span class="text-gray-400">Pemasok</span>
                                 <span class="text-gray-800 dark:text-white">
                                     {{ $selectedGR->supplier?->name ?? '-' }}
                                 </span>
@@ -615,15 +606,15 @@
                             <thead
                                 class="bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-300 uppercase text-xs">
                                 <tr>
-                                    <th class="px-4 py-3 w-8">No</th>
+                                    <th class="px-4 py-3 w-8">No.</th>
                                     <th class="px-4 py-3">Produk</th>
                                     <th class="px-4 py-3">Kategori</th>
                                     <th class="px-4 py-3">Satuan</th>
-                                    <th class="px-4 py-3">Warehouse</th>
-                                    <th class="px-4 py-3 text-right">Qty Order</th>
-                                    <th class="px-4 py-3 text-right">Qty Received</th>
+                                    <th class="px-4 py-3">Gudang</th>
+                                    <th class="px-4 py-3 text-right">Jumlah Pesanan</th>
+                                    <th class="px-4 py-3 text-right">Jumlah Diterimad</th>
                                     {{-- <th class="px-4 py-3 text-right">Qty Outstanding</th> --}}
-                                    <th class="px-4 py-3 text-right">Qty Base</th>
+                                    <th class="px-4 py-3 text-right">Jumlah Dasar</th>
                                 </tr>
                             </thead>
 
@@ -692,9 +683,9 @@
                             <div class="flex items-center gap-3">
                                 <select wire:model="selectedStatus"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white w-48">
-                                    <option value="Draft">Draft</option>
-                                    <option value="Received">Received</option>
-                                    <option value="Cancelled">Cancelled</option>
+                                    <option value="Draft">Draf</option>
+                                    <option value="Received">Diterima</option>
+                                    <option value="Cancelled">Dibatalkan</option>
                                 </select>
 
                                 <button wire:click="updateStatus" wire:loading.attr="disabled"
@@ -735,12 +726,12 @@
                     </div>
 
                     <h3 class="text-base font-semibold dark:text-white">
-                        Receive Goods Receive?
+                        Terima Penerimaan Barang?
                     </h3>
                 </div>
 
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">
-                    Setelah Goods Receive di-received, stok produk akan bertambah sesuai qty received.
+                    Setelah Penerimaan Barang diterima, stok produk akan bertambah sesuai qty diterima.
                     Data tidak bisa diedit atau dihapus lagi.
                 </p>
 
@@ -753,7 +744,7 @@
                     <button wire:click="receive" wire:loading.attr="disabled"
                         class="px-4 py-2 text-sm rounded-lg bg-green-700 text-white hover:bg-green-800 disabled:opacity-50 cursor-pointer">
                         <span wire:loading.remove wire:target="receive">
-                            Ya, Received
+                            Ya, Terima
                         </span>
                         <span wire:loading wire:target="receive">
                             Memproses...

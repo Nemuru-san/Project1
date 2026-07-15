@@ -7,8 +7,7 @@
                 description="Kelola data good receive secara terpusat untuk mendukung proses operasional dan pencatatan yang rapi.">
                 <x-slot:breadcrumbs>
                     <li class="inline-flex items-center">
-                        <a href="#" class="inline-flex items-center text-sm font-medium hover:text-fg-brand">
-                            Purchasing
+                        <a href="#" class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Pembelian
                         </a>
                     </li>
                     <li>
@@ -19,7 +18,7 @@
                                     stroke-width="2" d="m9 5 7 7-7 7" />
                             </svg>
                             <a href="#"
-                                class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Transaction</a>
+                                class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Transaksi</a>
                         </div>
                     </li>
                     <li aria-current="page">
@@ -30,7 +29,7 @@
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                     stroke-width="2" d="m9 5 7 7-7 7" />
                             </svg>
-                            <span class="inline-flex items-center text-sm font-medium">Good Receive</span>
+                            <span class="inline-flex items-center text-sm font-medium">Penerimaan Barang</span>
                         </div>
                     </li>
                 </x-slot:breadcrumbs>

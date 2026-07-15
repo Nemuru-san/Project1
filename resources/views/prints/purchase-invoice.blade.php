@@ -155,11 +155,11 @@
 
 <body onload="window.print()">
 
-    <button class="no-print" onclick="window.print()">Print</button>
+    <button class="no-print" onclick="window.print()">Cetak</button>
 
     <div class="page">
         <div class="content">
-            <div class="title">PURCHASE INVOICE</div>
+            <div class="title">FAKTUR PEMBELIAN</div>
             <div class="doc-no">No: {{ $invoice->code }}</div>
 
             <div class="header">
@@ -186,7 +186,7 @@
                             <th>NAMA BARANG</th>
                             <th width="105">BANYAKNYA</th>
                             <th width="95">HARGA</th>
-                            <th width="80">DISC</th>
+                            <th width="80">DISKON</th>
                             <th width="110">JUMLAH</th>
                         </tr>
                     </thead>
@@ -214,11 +214,11 @@
 
             <table class="summary">
                 <tr>
-                    <td>SUB TOTAL</td>
+                    <td>SUBTOTAL</td>
                     <td class="right">{{ number_format($invoice->sub_total, 0, ',', '.') }}</td>
                 </tr>
                 <tr>
-                    <td>DISCOUNT</td>
+                    <td>DISKON</td>
                     <td class="right">{{ number_format($invoice->discount_total ?? 0, 0, ',', '.') }}</td>
                 </tr>
                 <tr>
@@ -241,8 +241,7 @@
                 Diperiksa
                 <div class="sign"></div>
             </div>
-            <div>
-                Finance
+            <div>Keuangan
                 <div class="sign"></div>
             </div>
         </div>

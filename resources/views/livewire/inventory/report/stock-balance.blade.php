@@ -2,7 +2,7 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-2 md:space-y-0 md:space-x-2 my-2 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Data Tabel Stock Balance</p>
+        <p class="dark:text-white text-base font-semibold">Tabel Data Saldo Stok</p>
 
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             {{-- Search --}}
@@ -23,7 +23,7 @@
             {{-- Warehouse --}}
             <select wire:model.live="warehouseFilter"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
-                <option value="">Semua Warehouse</option>
+                <option value="">Semua Gudang</option>
                 @foreach ($warehouses as $warehouse)
                     <option value="{{ $warehouse->id }}">
                         {{ $warehouse->name }}
@@ -34,7 +34,7 @@
             {{-- Category --}}
             <select wire:model.live="categoryFilter"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
-                <option value="">Semua Category</option>
+                <option value="">Semua Kategori</option>
                 @foreach ($categories as $category)
                     <option value="{{ $category->id }}">
                         {{ $category->desc }}
@@ -71,7 +71,7 @@
         <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
             <thead class="text-lg font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
-                    <th class="px-4 py-4 w-12">No</th>
+                    <th class="px-4 py-4 w-12">No.</th>
 
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('sku')">
                         <div class="flex items-center gap-1">
@@ -84,16 +84,16 @@
 
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
                         <div class="flex items-center gap-1">
-                            Product Name
+                            Nama Produk
                             @if ($sortField === 'name')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
                         </div>
                     </th>
 
-                    <th class="px-4 py-4">Category</th>
+                    <th class="px-4 py-4">Kategori</th>
 
-                    <th class="px-4 py-4">Warehouse</th>
+                    <th class="px-4 py-4">Gudang</th>
 
                     <th class="px-4 py-4 cursor-pointer select-none text-right" wire:click="sortBy('quantity')">
                         <div class="flex items-center justify-end gap-1">
@@ -187,8 +187,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
                                                         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                                Detail
+                                                </svg>Detail
                                             </button>
                                         </li>
                                     </ul>
@@ -199,7 +198,7 @@
                 @empty
                     <tr>
                         <td colspan="7" class="px-4 py-10 text-center text-gray-400 dark:text-gray-500">
-                            Tidak ada data stock balance ditemukan.
+                            Tidak ada data stok balance ditemukan.
                         </td>
                     </tr>
                 @endforelse
@@ -219,7 +218,7 @@
                 {{-- Header --}}
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
                     <div>
-                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Stock Booking</h2>
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Stok Booking</h2>
                         <p class="text-sm text-gray-400 font-mono mt-0.5">
                             {{ $selectedStock['product_sku'] }} - {{ $selectedStock['product_name'] }}
                         </p>
@@ -248,7 +247,7 @@
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Product</span>
+                                <span class="text-gray-400">Produk</span>
                                 <span class="text-gray-800 dark:text-white">
                                     {{ $selectedStock['product_name'] }}
                                 </span>
@@ -257,14 +256,14 @@
 
                         <div class="space-y-3">
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Category</span>
+                                <span class="text-gray-400">Kategori</span>
                                 <span class="text-gray-800 dark:text-white">
                                     {{ $selectedStock['category_name'] }}
                                 </span>
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Warehouse</span>
+                                <span class="text-gray-400">Gudang</span>
                                 <span class="text-gray-800 dark:text-white">
                                     {{ $selectedStock['warehouse_name'] }}
                                 </span>
@@ -278,11 +277,11 @@
                             <thead
                                 class="bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-300 uppercase text-xs">
                                 <tr>
-                                    <th class="px-4 py-3 w-8">No</th>
-                                    <th class="px-4 py-3">SO Code</th>
-                                    <th class="px-4 py-3">Customer</th>
-                                    <th class="px-4 py-3">Date</th>
-                                    <th class="px-4 py-3 text-right">Qty Order</th>
+                                    <th class="px-4 py-3 w-8">No.</th>
+                                    <th class="px-4 py-3">SO Kode</th>
+                                    <th class="px-4 py-3">Kustomer</th>
+                                    <th class="px-4 py-3">Tanggal</th>
+                                    <th class="px-4 py-3 text-right">Jumlah Pesanan</th>
                                     <th class="px-4 py-3 text-right">Qty Booking</th>
                                     <th class="px-4 py-3">Status</th>
                                 </tr>
@@ -317,8 +316,7 @@
 
                                         <td class="px-4 py-3">
                                             @if ($booking['status'] === 'Approved')
-                                                <span class="text-sm px-2.5 py-0.5 rounded bg-blue-700 text-white">
-                                                    Approved
+                                                <span class="text-sm px-2.5 py-0.5 rounded bg-blue-700 text-white">Disetujui
                                                 </span>
                                             @else
                                                 <span class="text-sm px-2.5 py-0.5 rounded bg-zinc-600 text-white">
@@ -330,7 +328,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="7" class="px-4 py-6 text-center text-gray-400">
-                                            Tidak ada stock booking.
+                                            Tidak ada stok booking.
                                         </td>
                                     </tr>
                                 @endforelse

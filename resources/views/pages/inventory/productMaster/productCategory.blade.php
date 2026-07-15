@@ -7,8 +7,7 @@
                 description="Kelola data product secara terpusat untuk mendukung proses operasional dan pencatatan yang rapi.">
                 <x-slot:breadcrumbs>
                     <li class="inline-flex items-center">
-                        <a href="#" class="inline-flex items-center text-sm font-medium hover:text-fg-brand">
-                            Inventory
+                        <a href="#" class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Persediaan
                         </a>
                     </li>
                     <li>
@@ -30,7 +29,7 @@
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                     stroke-width="2" d="m9 5 7 7-7 7" />
                             </svg>
-                            <span class="inline-flex items-center text-sm font-medium">Product Category</span>
+                            <span class="inline-flex items-center text-sm font-medium">Kategori Produk</span>
                         </div>
                     </li>
                 </x-slot:breadcrumbs>

@@ -10,7 +10,7 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Data Tabel Purchase Invoice</p>
+        <p class="dark:text-white text-base font-semibold">Data Tabel Faktur Pembelian</p>
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             {{-- Search --}}
             <div class="relative w-full sm:w-72">
@@ -29,25 +29,25 @@
             {{-- <select wire:model.live="statusFilter"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
                 <option value="">Semua Status</option>
-                <option value="1">Draft</option>
-                <option value="0">Approved</option>
-                <option value="0">Paid</option>
-                <option value="0">Partial Paid</option>
+                <option value="1">Draf</option>
+                <option value="0">Disetujui</option>
+                <option value="0">Lunas</option>
+                <option value="0">Dibayar Sebagian</option>
                 <option value="0">Canceled</option>
             </select> --}}
             <select wire:model.live="statusFilter"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
                 <option value="">Semua Status</option>
-                <option value="Draft">Draft</option>
-                <option value="Posted">Posted</option>
+                <option value="Draft">Draf</option>
+                <option value="Posted">Diposting</option>
             </select>
 
             <select wire:model.live="paymentStatusFilter"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
                 <option value="">Semua Pembayaran</option>
-                <option value="Unpaid">Unpaid</option>
-                <option value="Partial Paid">Partial Paid</option>
-                <option value="Paid">Paid</option>
+                <option value="Unpaid">Belum Lunas</option>
+                <option value="Partial Paid">Dibayar Sebagian</option>
+                <option value="Paid">Lunas</option>
             </select>
             {{-- Per Page --}}
             <select wire:model.live="perPage"
@@ -95,21 +95,21 @@
                             @endif
                         </div>
                     </th>
-                    <th class="px-4 py-4">Supplier Invoice</th>
+                    <th class="px-4 py-4">Faktur Pemasok</th>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('date')">
                         <div class="flex items-center gap-1">
-                            Date
+                            Tanggal
                             @if ($sortField === 'date')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
                         </div>
                     </th>
                     <th class="px-4 py-4">PO No</th>
-                    <th class="px-4 py-4">Supplier</th>
+                    <th class="px-4 py-4">Pemasok</th>
                     <th class="px-4 py-4 text-right">Grand Total</th>
                     <th class="px-4 py-4">Status</th>
-                    <th class="px-4 py-4">Payment</th>
-                    <th class="px-4 py-4">Actions</th>
+                    <th class="px-4 py-4">Pembayaran</th>
+                    <th class="px-4 py-4">Aksi</th>
                 </tr>
             </thead>
 
@@ -139,18 +139,18 @@
                             @if ($invoice->trashed())
                                 <span class="text-sm px-2.5 py-0.5 rounded bg-red-700 text-white">Terhapus</span>
                             @elseif ($invoice->status === 'Draft')
-                                <span class="text-sm px-2.5 py-0.5 rounded bg-gray-600 text-white">Draft</span>
+                                <span class="text-sm px-2.5 py-0.5 rounded bg-gray-600 text-white">Draf</span>
                             @elseif ($invoice->status === 'Posted')
-                                <span class="text-sm px-2.5 py-0.5 rounded bg-green-700 text-white">Posted</span>
+                                <span class="text-sm px-2.5 py-0.5 rounded bg-green-700 text-white">Diposting</span>
                             @endif
                         </td>
                         <td class="px-4 py-4">
                             @if ($invoice->payment_status === 'Paid')
-                                <span class="text-sm px-2.5 py-0.5 rounded bg-green-700 text-white">Paid</span>
+                                <span class="text-sm px-2.5 py-0.5 rounded bg-green-700 text-white">Lunas</span>
                             @elseif ($invoice->payment_status === 'Partial Paid')
-                                <span class="text-sm px-2.5 py-0.5 rounded bg-yellow-600 text-white">Partial Paid</span>
+                                <span class="text-sm px-2.5 py-0.5 rounded bg-yellow-600 text-white">Dibayar Sebagian</span>
                             @else
-                                <span class="text-sm px-2.5 py-0.5 rounded bg-red-700 text-white">Unpaid</span>
+                                <span class="text-sm px-2.5 py-0.5 rounded bg-red-700 text-white">Belum Lunas</span>
                             @endif
                         </td>
                         <td class="px-4 py-4">
@@ -199,7 +199,7 @@
                                                                 stroke-width="2"
                                                                 d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
-                                                        Post Invoice
+                                                        Posting Faktur
                                                     </button>
                                                 </li>
                                             @endif
@@ -213,8 +213,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M6 9V4h12v5M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v6H6v-6z" />
-                                                    </svg>
-                                                    Print
+                                                    </svg>Cetak
                                                 </a>
                                             </li>
 
@@ -229,8 +228,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                    Detail
+                                                    </svg>Detail
                                                 </button>
                                             </li>
 
@@ -244,8 +242,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                    Edit
+                                                    </svg>Ubah
                                                 </button>
                                             </li>
                                         </ul>
@@ -260,8 +257,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                                Delete
+                                                </svg>Hapus
                                             </button>
                                         </div>
                                     @endif
@@ -293,7 +289,7 @@
                     <div
                         class="flex items-center justify-between px-8 py-6 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
                         <h3 class="text-lg font-semibold dark:text-white">
-                            Tambah Purchase Invoice
+                            Tambah Faktur Pembelian
                         </h3>
                         <button wire:click="$set('showModal', false)"
                             class="text-gray-400 hover:text-white cursor-pointer">
@@ -319,7 +315,7 @@
                                 <div class="w-full">
                                     <label for="supplier_invoice_number"
                                         class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                        Supplier Invoice No
+                                        No. Faktur Pemasok
                                     </label>
                                     <input wire:model="supplier_invoice_number" type="text"
                                         id="supplier_invoice_number"
@@ -350,10 +346,10 @@
 
                                 <div class="w-full">
                                     <label for="supplier"
-                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Supplier</label>
+                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Pemasok</label>
                                     <select disabled
                                         class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:text-gray-400 cursor-not-allowed">
-                                        <option value="">-- Supplier otomatis dari PO --</option>
+                                        <option value="">-- Pemasok otomatis dari PO --</option>
                                         @foreach ($purchaseOrders as $po)
                                             @if ($supplier_id === $po->supplier_id)
                                                 <option selected>{{ $po->supplier?->name }}</option>
@@ -367,7 +363,7 @@
 
                                 <div class="w-full">
                                     <label for="date"
-                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Date</label>
+                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Tanggal</label>
                                     <input wire:model.live="date" type="date"
                                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
                                     @error('date')
@@ -378,15 +374,15 @@
                                 <div class="w-full">
                                     <label for="top_term"
                                         class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                        TOP / Term of Payment
+                                        TOP / Termin Pembayaran
                                     </label>
                                     <select wire:model.live="top_term" id="top_term"
                                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                                        <option value="">-- Pilih Term of Payment --</option>
+                                        <option value="">-- Pilih Termin Pembayaran --</option>
                                         <option value="7">7 Hari</option>
                                         <option value="30">1 Bulan</option>
                                         <option value="90">3 Bulan</option>
-                                        <option value="custom">Custom</option>
+                                        <option value="custom">Kustom</option>
                                     </select>
                                 </div>
 
@@ -394,7 +390,7 @@
                                     <div class="w-full">
                                         <label for="custom_top"
                                             class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                            Custom Due Date
+                                            Tanggal Jatuh Tempo Khusus
                                         </label>
                                         <input wire:model.live="custom_top" type="date" id="custom_top"
                                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
@@ -404,7 +400,7 @@
                                 <div class="w-full">
                                     <label for="due_date"
                                         class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                        Due Date / Tanggal Jatuh Tempo
+                                        Tanggal Jatuh Tempo / Tanggal Jatuh Tempo
                                     </label>
                                     <input type="date" id="due_date" value="{{ $due_date }}"
                                         class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:text-gray-400 cursor-not-allowed"
@@ -416,10 +412,10 @@
 
                                 <div class="w-full">
                                     <label for="tax"
-                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Tax</label>
+                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Pajak</label>
                                     <label class="inline-flex items-center cursor-pointer">
                                         <span
-                                            class="select-none text-base font-medium text-gray-600 dark:text-gray-400">No</span>
+                                            class="select-none text-base font-medium text-gray-600 dark:text-gray-400">Tidak</span>
                                         <div class="relative mx-3">
                                             <input type="checkbox" wire:model.live="tax" class="sr-only peer">
                                             <div
@@ -427,7 +423,7 @@
                                             </div>
                                         </div>
                                         <span
-                                            class="select-none text-base font-medium text-gray-600 dark:text-gray-400">Yes</span>
+                                            class="select-none text-base font-medium text-gray-600 dark:text-gray-400">Ya</span>
                                     </label>
                                 </div>
 
@@ -460,8 +456,7 @@
                                         class="text-base font-bold text-gray-900 uppercase bg-gray-200 dark:bg-zinc-700 dark:text-white">
                                         <tr>
                                             <th scope="col"
-                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                                No</th>
+                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">No.</th>
                                             <th scope="col"
                                                 class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
                                                 PO No</th>
@@ -470,22 +465,21 @@
                                                 GR No</th>
                                             <th scope="col"
                                                 class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                                Product Code</th>
+                                                Kode Produk</th>
                                             <th scope="col"
                                                 class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                                Product Name</th>
+                                                Nama Produk</th>
                                             <th scope="col"
                                                 class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                                Category</th>
+                                                Kategori</th>
                                             <th scope="col"
                                                 class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
                                                 Satuan</th>
                                             <th scope="col"
                                                 class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                                Qty Order</th>
+                                                Jumlah Pesanan</th>
                                             <th scope="col"
-                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                                Price</th>
+                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Harga</th>
                                             <th scope="col"
                                                 class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
                                                 Disc Amount</th>
@@ -561,7 +555,7 @@
                                             <tr>
                                                 <td colspan="11"
                                                     class="border border-gray-300 dark:border-zinc-600 px-4 py-8 text-center text-gray-400">
-                                                    Pilih Purchase Order terlebih dahulu.
+                                                    Pilih Pesanan Pembelian terlebih dahulu.
                                                 </td>
                                             </tr>
                                         @endforelse
@@ -570,7 +564,7 @@
                             </div>
                         </div>
                         <nav class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4 mt-4 dark:border-zinc-700 dark:bg-zinc-900"
-                            aria-label="Product table navigation">
+                            aria-label="Navigasi tabel produk">
                             <span class="text-base font-normal text-gray-500 dark:text-gray-400">
                                 Showing
                                 <span class="font-semibold text-gray-900 dark:text-white">
@@ -586,7 +580,7 @@
                                 <li>
                                     <button type="button" wire:click="previousItemPage" @disabled($itemPage <= 1)
                                         class="flex items-center justify-center h-full py-1.5 px-3 ml-0 text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
-                                        <span class="sr-only">Previous</span>
+                                        <span class="sr-only">Sebelumnya</span>
                                         <svg class="w-5 h-5" aria-hidden="true" fill="currentColor"
                                             viewBox="0 0 20 20">
                                             <path fill-rule="evenodd"
@@ -611,7 +605,7 @@
                                 <li>
                                     <button type="button" wire:click="nextItemPage" @disabled($itemPage >= $itemRowsLastPage)
                                         class="flex items-center justify-center h-full py-1.5 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
-                                        <span class="sr-only">Next</span>
+                                        <span class="sr-only">Berikutnya</span>
                                         <svg class="w-5 h-5" aria-hidden="true" fill="currentColor"
                                             viewBox="0 0 20 20">
                                             <path fill-rule="evenodd"
@@ -629,7 +623,7 @@
                             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                                 <div>
                                     <label for="gross"
-                                        class="block mb-4 text-base font-medium text-gray-900 dark:text-white">Gross</label>
+                                        class="block mb-4 text-base font-medium text-gray-900 dark:text-white">Bruto</label>
                                     <input type="text" id="gross"
                                         value="Rp {{ number_format($sub_total, 0, ',', '.') }}" disabled
                                         class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 cursor-not-allowed">
@@ -655,7 +649,7 @@
 
                                 <div>
                                     <label for="nett"
-                                        class="block mb-4 text-base font-medium text-gray-900 dark:text-white">Nett</label>
+                                        class="block mb-4 text-base font-medium text-gray-900 dark:text-white">Neto</label>
                                     <input type="text" id="nett"
                                         value="Rp {{ number_format($grand_total, 0, ',', '.') }}" disabled
                                         class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 cursor-not-allowed">
@@ -687,7 +681,7 @@
 
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
                     <div>
-                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Purchase Invoice</h2>
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Faktur Pembelian</h2>
                         <p class="text-sm text-gray-400 font-mono mt-0.5">{{ $selectedInvoice->code }}</p>
                     </div>
 
@@ -712,7 +706,7 @@
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Supplier Invoice</span>
+                                <span class="text-gray-400">Faktur Pemasok</span>
                                 <span class="text-gray-800 dark:text-white">
                                     {{ $selectedInvoice->supplier_invoice_number ?: '-' }}
                                 </span>
@@ -726,7 +720,7 @@
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Due Date</span>
+                                <span class="text-gray-400">Tanggal Jatuh Tempo</span>
                                 <span class="text-gray-800 dark:text-white">
                                     {{ $selectedInvoice->due_date?->format('d F Y') ?? '-' }}
                                 </span>
@@ -742,7 +736,7 @@
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Supplier</span>
+                                <span class="text-gray-400">Pemasok</span>
                                 <span class="text-gray-800 dark:text-white">
                                     {{ $selectedInvoice->supplier?->name ?? '-' }}
                                 </span>
@@ -766,7 +760,7 @@
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Payment</span>
+                                <span class="text-gray-400">Pembayaran</span>
                                 <span>
                                     @php
                                         $paymentClass = match ($selectedInvoice->payment_status) {
@@ -805,11 +799,11 @@
                             <thead
                                 class="bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-300 uppercase text-xs">
                                 <tr>
-                                    <th class="px-4 py-3 w-8">No</th>
+                                    <th class="px-4 py-3 w-8">No.</th>
                                     <th class="px-4 py-3">Produk</th>
                                     <th class="px-4 py-3">Satuan</th>
-                                    <th class="px-4 py-3 text-right">Qty</th>
-                                    <th class="px-4 py-3 text-right">Price</th>
+                                    <th class="px-4 py-3 text-right">Jumlah</th>
+                                    <th class="px-4 py-3 text-right">Harga</th>
                                     <th class="px-4 py-3 text-right">Diskon</th>
                                     <th class="px-4 py-3 text-right">Subtotal</th>
                                 </tr>
@@ -861,7 +855,7 @@
                     <div class="flex justify-end">
                         <div class="space-y-2 text-sm w-full max-w-xs">
                             <div class="flex justify-between text-gray-500 dark:text-gray-400">
-                                <span>Gross</span>
+                                <span>Bruto</span>
                                 <span>Rp {{ number_format($selectedInvoice->sub_total, 0, ',', '.') }}</span>
                             </div>
 
@@ -877,7 +871,7 @@
 
                             <div
                                 class="flex justify-between font-bold text-base text-gray-800 dark:text-white border-t dark:border-zinc-700 pt-2">
-                                <span>Nett</span>
+                                <span>Neto</span>
                                 <span>Rp {{ number_format($selectedInvoice->grand_total, 0, ',', '.') }}</span>
                             </div>
                         </div>
@@ -889,7 +883,7 @@
 
                             <button wire:click="confirmPost({{ $selectedInvoice->id }})"
                                 class="px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium cursor-pointer">
-                                Post Invoice
+                                Posting Faktur
                             </button>
                         </div>
                     @endif
@@ -917,12 +911,12 @@
                     </div>
 
                     <h3 class="text-base font-semibold dark:text-white">
-                        Post Purchase Invoice?
+                        Posting Faktur Pembelian?
                     </h3>
                 </div>
 
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">
-                    Setelah invoice di-post, data tidak bisa diedit atau dihapus. Invoice akan dikunci dan siap
+                    Setelah invoice diposting, data tidak bisa diedit atau dihapus. Faktur akan dikunci dan siap
                     digunakan untuk proses pembayaran.
                 </p>
 
@@ -935,7 +929,7 @@
                     <button wire:click="postInvoice" wire:loading.attr="disabled"
                         class="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
                         <span wire:loading.remove wire:target="postInvoice">
-                            Ya, Post Invoice
+                            Ya, Posting Faktur
                         </span>
                         <span wire:loading wire:target="postInvoice">
                             Mem-post...
@@ -956,10 +950,10 @@
                                 d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                         </svg>
                     </div>
-                    <h3 class="text-base font-semibold dark:text-white">Hapus Purchase Invoice?</h3>
+                    <h3 class="text-base font-semibold dark:text-white">Hapus Faktur Pembelian?</h3>
                 </div>
                 <p class="text-sm text-gray-400 mb-5">
-                    Data akan dipindahkan ke trash. Invoice yang sudah posted tidak bisa dihapus.
+                    Data akan dipindahkan ke tempat sampah. Faktur yang sudah diposting tidak bisa dihapus.
                 </p>
                 <div class="flex justify-end gap-2">
                     <button wire:click="$set('showDeleteModal', false)"

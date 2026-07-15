@@ -10,7 +10,7 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Data Tabel Purchase Order</p>
+        <p class="dark:text-white text-base font-semibold">Data Tabel Pesanan Pembelian</p>
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             {{-- Search --}}
             <div class="relative w-full sm:w-72">
@@ -29,12 +29,12 @@
             <select wire:model.live="statusFilter"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
                 <option value="">Semua Status</option>
-                <option value="Draft">Draft</option>
-                <option value="Approved">Approved</option>
-                <option value="Partially Received">Partially Received</option>
-                <option value="Received">Received</option>
-                <option value="Partial Paid">Partial Paid</option>
-                <option value="Paid">Paid</option>
+                <option value="Draft">Draf</option>
+                <option value="Approved">Disetujui</option>
+                <option value="Partially Received">Diterima Sebagian</option>
+                <option value="Received">Diterima</option>
+                <option value="Partial Paid">Dibayar Sebagian</option>
+                <option value="Paid">Lunas</option>
             </select>
             {{-- Per Page --}}
             <select wire:model.live="perPage"
@@ -74,7 +74,7 @@
         <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
             <thead class="text-lg font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
-                    <th class="px-4 py-4 w-12">No</th>
+                    <th class="px-4 py-4 w-12">No.</th>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('code')">
                         <div class="flex items-center gap-1">
                             Kode PO
@@ -91,10 +91,10 @@
                             @endif
                         </div>
                     </th>
-                    <th class="px-4 py-4">Supplier</th>
+                    <th class="px-4 py-4">Pemasok</th>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('nett')">
                         <div class="flex items-center gap-1">
-                            Nett
+                            Neto
                             @if ($sortField === 'nett')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
@@ -123,33 +123,30 @@
                                 </span>
                             @elseif ($po->status === 'Draft')
                                 <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-gray-200 text-gray-700 dark:bg-zinc-600 dark:text-white">
-                                    Draft
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-gray-200 text-gray-700 dark:bg-zinc-600 dark:text-white">Draf
                                 </span>
                             @elseif ($po->status === 'Approved')
                                 <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-700 dark:text-white">
-                                    Approved
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-700 dark:text-white">Disetujui
                                 </span>
                             @elseif ($po->status === 'Received')
                                 <span
                                     class="text-sm font-normal px-2.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-700 dark:text-white">
-                                    Received
+                                    Diterima
                                 </span>
                             @elseif ($po->status === 'Partially Received')
                                 <span
                                     class="text-sm font-normal px-2.5 py-0.5 rounded bg-yellow-100 text-yellow-700 dark:bg-yellow-600 dark:text-white">
-                                    Partially Received
+                                    Diterima Sebagian
                                 </span>
                             @elseif ($po->status === 'Partial Paid')
                                 <span
                                     class="text-sm font-normal px-2.5 py-0.5 rounded bg-yellow-100 text-orange-500 dark:bg-orange-500 dark:text-white">
-                                    Partially Paid
+                                    Dibayar Sebagian
                                 </span>
                             @elseif ($po->status === 'Paid')
                                 <span
-                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-yellow-100 text-green-700 dark:bg-green-600 dark:text-white">
-                                    Paid
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-yellow-100 text-green-700 dark:bg-green-600 dark:text-white">Lunas
                                 </span>
                             @endif
                         </td>
@@ -198,7 +195,7 @@
                                                                 stroke-width="2"
                                                                 d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
-                                                        Approve PO
+                                                        Setujui PO
                                                     </button>
                                                 </li>
                                             @endif
@@ -212,8 +209,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M6 9V4h12v5M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v6H6v-6z" />
-                                                    </svg>
-                                                    Print
+                                                    </svg>Cetak
                                                 </a>
                                             </li>
 
@@ -228,8 +224,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                    Detail
+                                                    </svg>Detail
                                                 </button>
                                             </li>
 
@@ -243,8 +238,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                    Edit
+                                                    </svg>Ubah
                                                 </button>
                                             </li>
                                         </ul>
@@ -259,8 +253,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                                Delete
+                                                </svg>Hapus
                                             </button>
                                         </div>
                                     @endif
@@ -316,7 +309,7 @@
                         </div>
 
                         <div class="w-full">
-                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Date</label>
+                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Tanggal</label>
                             <input type="date" wire:model="date"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                             @error('date')
@@ -326,10 +319,10 @@
 
                         <div class="w-full">
                             <label
-                                class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Supplier</label>
+                                class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Pemasok</label>
                             <select wire:model="supplier_id"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
-                                <option value="">-- Pilih Supplier --</option>
+                                <option value="">-- Pilih Pemasok --</option>
                                 @foreach ($suppliers as $supplier)
                                     <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
                                 @endforeach
@@ -340,11 +333,11 @@
                         </div>
 
                         <div class="w-full">
-                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Tax (PPN
+                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Pajak (PPN
                                 11%)</label>
                             <label class="inline-flex items-center cursor-pointer">
                                 <span
-                                    class="select-none text-base font-medium text-gray-600 dark:text-gray-400">No</span>
+                                    class="select-none text-base font-medium text-gray-600 dark:text-gray-400">Tidak</span>
                                 <div class="relative mx-3">
                                     <input type="checkbox" wire:model.live="tax" class="sr-only peer">
                                     <div
@@ -352,13 +345,13 @@
                                     </div>
                                 </div>
                                 <span
-                                    class="select-none text-base font-medium text-gray-600 dark:text-gray-400">Yes</span>
+                                    class="select-none text-base font-medium text-gray-600 dark:text-gray-400">Ya</span>
                             </label>
                         </div>
                     </div>
 
                     <div class="w-full mt-6">
-                        <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Note</label>
+                        <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Catatan</label>
                         <textarea wire:model="purchase_note" rows="3"
                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white"
                             placeholder="Masukkan catatan atau keterangan tambahan..."></textarea>
@@ -386,7 +379,7 @@
                                                 <span class="text-xl font-semibold">+</span>
                                             </button>
                                         </th>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">No
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Tidak
                                         </th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Kode
                                             Produk</th>
@@ -397,8 +390,8 @@
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
                                             Satuan</th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Qty
-                                            Order</th>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Price
+                                            Pesanan</th>
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Harga
                                         </th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Disc
                                             (Rp)</th>
@@ -456,7 +449,7 @@
                                             {{-- QTY --}}
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
                                                 <input type="text" inputmode="numeric" autocomplete="off"
-                                                    placeholder="Qty" x-model="item.qty_display"
+                                                    placeholder="Jumlah" x-model="item.qty_display"
                                                     @input="
                                                          let raw = item.qty_display.replace(/\./g, '').replace(/\D/g, '');
                                                          item.qty = raw === '' ? null : Number(raw);
@@ -522,7 +515,7 @@
                         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                             <div>
                                 <label
-                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Gross</label>
+                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Bruto</label>
                                 <input type="text" value="Rp {{ number_format($gross, 0, ',', '.') }}"
                                     class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:text-gray-400 cursor-not-allowed"
                                     disabled>
@@ -543,7 +536,7 @@
                             </div>
                             <div>
                                 <label
-                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nett</label>
+                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Neto</label>
                                 <input type="text" value="Rp {{ number_format($nett, 0, ',', '.') }}"
                                     class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:text-gray-400 cursor-not-allowed"
                                     disabled>
@@ -719,7 +712,7 @@
 
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
                     <div>
-                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Purchase Order</h2>
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Pesanan Pembelian</h2>
                         <p class="text-sm text-gray-400 font-mono mt-0.5">{{ $selectedPO->code }}</p>
                     </div>
                     <button wire:click="closeDetail"
@@ -746,7 +739,7 @@
                                     class="text-gray-800 dark:text-white">{{ $selectedPO->date->format('d F Y') }}</span>
                             </div>
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Supplier</span>
+                                <span class="text-gray-400">Pemasok</span>
                                 <span
                                     class="text-gray-800 dark:text-white">{{ $selectedPO->supplier?->name ?? '-' }}</span>
                             </div>
@@ -794,10 +787,10 @@
                             <thead
                                 class="bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-300 uppercase text-xs">
                                 <tr>
-                                    <th class="px-4 py-3 w-8">No</th>
+                                    <th class="px-4 py-3 w-8">No.</th>
                                     <th class="px-4 py-3">Produk</th>
-                                    <th class="px-4 py-3 text-right">Qty</th>
-                                    <th class="px-4 py-3 text-right">Unit</th>
+                                    <th class="px-4 py-3 text-right">Jumlah</th>
+                                    <th class="px-4 py-3 text-right">Satuan</th>
                                     <th class="px-4 py-3 text-right">Diskon</th>
                                     <th class="px-4 py-3 text-right">Total Harga</th>
                                 </tr>
@@ -844,7 +837,7 @@
                         @endphp
                         <div class="space-y-2 text-sm w-full max-w-xs">
                             <div class="flex justify-between text-gray-500 dark:text-gray-400">
-                                <span>Gross</span>
+                                <span>Bruto</span>
                                 <span>Rp {{ number_format($selectedGross, 0, ',', '.') }}</span>
                             </div>
 
@@ -860,7 +853,7 @@
 
                             <div
                                 class="flex justify-between font-bold text-base text-gray-800 dark:text-white border-t dark:border-zinc-700 pt-2">
-                                <span>Nett</span>
+                                <span>Neto</span>
                                 <span>Rp {{ number_format($selectedNett, 0, ',', '.') }}</span>
                             </div>
                         </div>
@@ -871,8 +864,8 @@
                             <div class="flex items-center gap-3">
                                 <select wire:model="selectedStatus"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white w-48">
-                                    <option value="Draft">Draft</option>
-                                    <option value="Approved">Approved</option>
+                                    <option value="Draft">Draf</option>
+                                    <option value="Approved">Disetujui</option>
                                 </select>
                                 <button wire:click="updateStatus" wire:loading.attr="disabled"
                                     class="px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium disabled:opacity-50 cursor-pointer">
@@ -909,13 +902,13 @@
                     </div>
 
                     <h3 class="text-base font-semibold dark:text-white">
-                        Approve Purchase Order?
+                        Setujui Pesanan Pembelian?
                     </h3>
                 </div>
 
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">
-                    Setelah Purchase Order di-approve, data tidak bisa diedit atau dihapus.
-                    PO akan siap digunakan untuk proses Goods Receive dan Purchase Invoice.
+                    Setelah Pesanan Pembelian disetujui, data tidak bisa diedit atau dihapus.
+                    PO akan siap digunakan untuk proses Penerimaan Barang dan Faktur Pembelian.
                 </p>
 
                 <div class="flex justify-end gap-2">
@@ -927,10 +920,10 @@
                     <button wire:click="approve" wire:loading.attr="disabled"
                         class="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
                         <span wire:loading.remove wire:target="approve">
-                            Ya, Approve
+                            Ya, Setujui
                         </span>
                         <span wire:loading wire:target="approve">
-                            Meng-approve...
+                            Menyetujui...
                         </span>
                     </button>
                 </div>
@@ -941,7 +934,7 @@
     @if ($showDeleteModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
             <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl p-6 w-full max-w-sm">
-                <h3 class="text-lg font-semibold dark:text-white mb-2">Hapus Purchase Order?</h3>
+                <h3 class="text-lg font-semibold dark:text-white mb-2">Hapus Pesanan Pembelian?</h3>
                 <p class="text-sm text-gray-400 mb-6">Data akan dipindahkan ke tempat sampah.</p>
                 <div class="flex justify-end gap-3">
                     <button wire:click="$set('showDeleteModal', false)"

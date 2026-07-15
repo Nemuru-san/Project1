@@ -8,8 +8,7 @@
                 description="Kelola data supplier secara terpusat untuk mendukung proses operasional dan pencatatan yang rapi.">
                 <x-slot:breadcrumbs>
                     <li class="inline-flex items-center">
-                        <a href="#" class="inline-flex items-center text-sm font-medium hover:text-fg-brand">
-                            Finance
+                        <a href="#" class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Keuangan
                         </a>
                     </li>
                     <li>
@@ -20,7 +19,7 @@
                                     stroke-width="2" d="m9 5 7 7-7 7" />
                             </svg>
                             <a href="#"
-                                class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Transaction</a>
+                                class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Transaksi</a>
                         </div>
                     </li>
                     <li aria-current="page">
@@ -31,7 +30,7 @@
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                     stroke-width="2" d="m9 5 7 7-7 7" />
                             </svg>
-                            <span class="inline-flex items-center text-sm font-medium">AP Payment</span>
+                            <span class="inline-flex items-center text-sm font-medium">Pembayaran Utang</span>
                         </div>
                     </li>
                 </x-slot:breadcrumbs>

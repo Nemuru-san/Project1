@@ -139,11 +139,11 @@
 
 <body onload="window.print()">
 
-    <button class="no-print" onclick="window.print()">Print</button>
+    <button class="no-print" onclick="window.print()">Cetak</button>
 
     <div class="page">
         <div class="content">
-            <div class="title">GOODS RECEIVE</div>
+            <div class="title">PENERIMAAN BARANG</div>
             <div class="doc-no">No: {{ $gr->code }}</div>
 
             <div class="header">
@@ -167,9 +167,9 @@
                         <tr>
                             <th width="35">NO</th>
                             <th>NAMA BARANG</th>
-                            <th width="110">QTY ORDER</th>
-                            <th width="120">QTY RECEIVE</th>
-                            <th width="90">UNIT</th>
+                            <th width="110">JUMLAH PESANAN</th>
+                            <th width="120">JUMLAH DITERIMA</th>
+                            <th width="90">SATUAN</th>
                         </tr>
                     </thead>
                     <tbody>

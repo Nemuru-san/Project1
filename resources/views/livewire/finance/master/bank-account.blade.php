@@ -10,7 +10,7 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-lg font-semibold">Data Tabel Bank Account</p>
+        <p class="dark:text-white text-lg font-semibold">Tabel Data Rekening Bank</p>
 
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             {{-- Search --}}
@@ -48,7 +48,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                Tambah Bank
+                Tambah Rekening Bank
             </button>
         </div>
     </div>
@@ -60,7 +60,7 @@
                 <tr>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
                         <div class="flex items-center gap-1">
-                            Name
+                            Nama
                             @if ($sortField === 'name')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
@@ -80,7 +80,7 @@
                     <th class="px-4 py-4">Pemilik</th>
                     <th class="px-4 py-4">CoA</th>
                     <th class="px-4 py-4">Status</th>
-                    <th class="px-4 py-4">Actions</th>
+                    <th class="px-4 py-4">Aksi</th>
                 </tr>
             </thead>
 
@@ -169,8 +169,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                    Edit
+                                                    </svg>Ubah
                                                 </button>
                                             </li>
                                         </ul>
@@ -184,8 +183,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                                Delete
+                                                </svg>Hapus
                                             </button>
                                         </div>
                                     @endif
@@ -335,7 +333,7 @@
                     <h3 class="text-base font-semibold dark:text-white">Hapus Bank Account?</h3>
                 </div>
                 <p class="text-sm text-gray-400 mb-5">
-                    Data akan dipindahkan ke trash. Data yang sudah dipakai AP Payment tidak bisa dihapus.
+                    Data akan dipindahkan ke tempat sampah. Data yang sudah dipakai Pembayaran Utang tidak bisa dihapus.
                 </p>
                 <div class="flex justify-end gap-2">
                     <button wire:click="$set('showDeleteModal', false)"

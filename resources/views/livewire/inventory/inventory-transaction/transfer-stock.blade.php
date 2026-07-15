@@ -10,7 +10,7 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Data Tabel Transfer Stock</p>
+        <p class="dark:text-white text-base font-semibold">Data Tabel Transfer Stok</p>
 
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             <div class="relative w-full sm:w-72">
@@ -54,7 +54,7 @@
         <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
             <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
-                    <th class="px-4 py-4 w-12">No</th>
+                    <th class="px-4 py-4 w-12">No.</th>
 
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('trf_no')">
                         <div class="flex items-center gap-1">
@@ -67,16 +67,16 @@
 
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('date')">
                         <div class="flex items-center gap-1">
-                            Date
+                            Tanggal
                             @if ($sortField === 'date')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
                         </div>
                     </th>
 
-                    <th class="px-4 py-4">Warehouse From</th>
-                    <th class="px-4 py-4">Warehouse To</th>
-                    <th class="px-4 py-4">Notes</th>
+                    <th class="px-4 py-4">Gudang Asal</th>
+                    <th class="px-4 py-4">Gudang Tujuan</th>
+                    <th class="px-4 py-4">Catatan</th>
                     <th class="px-4 py-4">Status</th>
                     <th class="px-4 py-4">Aksi</th>
                 </tr>
@@ -116,12 +116,10 @@
                                     Terhapus
                                 </span>
                             @elseif ($transfer->status === 'draft')
-                                <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-gray-600 text-white">
-                                    Draft
+                                <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-gray-600 text-white">Draf
                                 </span>
                             @elseif ($transfer->status === 'approved')
-                                <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-blue-700 text-white">
-                                    Approved
+                                <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-blue-700 text-white">Disetujui
                                 </span>
                             @else
                                 <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-zinc-600 text-white">
@@ -173,7 +171,7 @@
                                                                 stroke-width="2"
                                                                 d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
-                                                        Approve
+                                                        Setujui
                                                     </button>
                                                 </li>
                                             @endif
@@ -187,8 +185,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M6 9V4h12v5M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v6H6v-6z" />
-                                                    </svg>
-                                                    Print
+                                                    </svg>Cetak
                                                 </a>
                                             </li>
 
@@ -203,8 +200,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                    Detail
+                                                    </svg>Detail
                                                 </button>
                                             </li>
                                             @if ($transfer->status === 'draft')
@@ -217,8 +213,7 @@
                                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                                 stroke-width="2"
                                                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                        </svg>
-                                                        Edit
+                                                        </svg>Ubah
                                                     </button>
                                                 </li>
                                             @else
@@ -230,8 +225,7 @@
                                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                                 stroke-width="2"
                                                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                        </svg>
-                                                        Edit
+                                                        </svg>Ubah
                                                     </button>
                                                 </li>
                                             @endif
@@ -247,8 +241,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                    Delete
+                                                    </svg>Hapus
                                                 </button>
                                             @else
                                                 <button type="button" disabled
@@ -258,8 +251,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                    Delete
+                                                    </svg>Hapus
                                                 </button>
                                             @endif
                                         </div>
@@ -271,7 +263,7 @@
                 @empty
                     <tr>
                         <td colspan="8" class="px-4 py-10 text-center text-gray-400 dark:text-gray-500">
-                            Tidak ada data transfer stock ditemukan.
+                            Tidak ada data transfer stok ditemukan.
                         </td>
                     </tr>
                 @endforelse
@@ -291,7 +283,7 @@
 
                 <div
                     class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
-                    <h3 class="text-lg font-semibold dark:text-white">Transfer Stock</h3>
+                    <h3 class="text-lg font-semibold dark:text-white">Transfer Stok</h3>
 
                     <button wire:click="$set('showModal', false)"
                         class="text-gray-400 hover:text-white cursor-pointer">
@@ -311,7 +303,7 @@
                         </div>
 
                         <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">Date</label>
+                            <label class="block mb-1 text-sm font-medium dark:text-white">Tanggal</label>
                             <input wire:model="date" type="date"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white border-gray-300" />
                             @error('date')
@@ -320,7 +312,7 @@
                         </div>
 
                         <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">Warehouse From</label>
+                            <label class="block mb-1 text-sm font-medium dark:text-white">Gudang Asal</label>
                             <select wire:model.live="warehouse_from_id"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white border-gray-300">
                                 <option value="">Pilih Gudang</option>
@@ -334,7 +326,7 @@
                         </div>
 
                         <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">Warehouse To</label>
+                            <label class="block mb-1 text-sm font-medium dark:text-white">Gudang Tujuan</label>
                             <select wire:model.live="warehouse_to_id"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white border-gray-300">
                                 <option value="">Pilih Gudang</option>
@@ -348,7 +340,7 @@
                         </div>
 
                         <div class="md:col-span-2">
-                            <label class="block mb-1 text-sm font-medium dark:text-white">Notes</label>
+                            <label class="block mb-1 text-sm font-medium dark:text-white">Catatan</label>
                             <textarea wire:model="notes" rows="4"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white border-gray-300"
                                 placeholder="Keterangan tambahan..."></textarea>
@@ -371,10 +363,10 @@
                                         Produk</th>
                                     <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Nama
                                         Produk</th>
-                                    <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Stock
-                                        Available</th>
-                                    <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Qty</th>
-                                    <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">UOM</th>
+                                    <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Stok
+                                        Tersedia</th>
+                                    <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Jumlah</th>
+                                    <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Satuan</th>
                                 </tr>
                             </thead>
 
@@ -407,7 +399,7 @@
 
                                         <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
                                             <input type="text" inputmode="numeric" autocomplete="off"
-                                                placeholder="Qty" x-data="{
+                                                placeholder="Jumlah" x-data="{
                                                     display: '{{ number_format($item['qty'] ?? 0, 0, ',', '.') }}'
                                                 }" x-model="display"
                                                 @input="
@@ -419,7 +411,7 @@
                                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-24 p-2 disabled:bg-gray-200 disabled:cursor-not-allowed dark:bg-zinc-800 dark:border-gray-600 dark:text-white dark:disabled:bg-zinc-700">
 
                                             @if (($item['stock_available'] ?? 0) <= 0)
-                                                <p class="mt-1 text-xs text-red-500">Stock kosong, qty tidak bisa
+                                                <p class="mt-1 text-xs text-red-500">Stok kosong, qty tidak bisa
                                                     diisi.</p>
                                             @endif
                                         </td>
@@ -597,12 +589,12 @@
                     </div>
 
                     <h3 class="text-base font-semibold dark:text-white">
-                        Approve Transfer Stock?
+                        Setujui Transfer Stok?
                     </h3>
                 </div>
 
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">
-                    Setelah transfer stock di-approve, stock akan berpindah dari Warehouse From ke Warehouse To.
+                    Setelah transfer stok disetujui, stok akan berpindah dari Gudang Asal ke Gudang Tujuan.
                     Data tidak bisa diedit atau dihapus.
                 </p>
 
@@ -615,10 +607,10 @@
                     <button wire:click="approve" wire:loading.attr="disabled"
                         class="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
                         <span wire:loading.remove wire:target="approve">
-                            Ya, Approve
+                            Ya, Setujui
                         </span>
                         <span wire:loading wire:target="approve">
-                            Meng-approve...
+                            Menyetujui...
                         </span>
                     </button>
                 </div>
@@ -633,7 +625,7 @@
 
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
                     <div>
-                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Transfer Stock</h2>
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Transfer Stok</h2>
                         <p class="text-sm text-gray-400 font-mono mt-0.5">
                             {{ $selectedTransfer->trf_no }}
                         </p>
@@ -666,14 +658,14 @@
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Warehouse From</span>
+                                <span class="text-gray-400">Gudang Asal</span>
                                 <span class="text-gray-800 dark:text-white">
                                     {{ $selectedTransfer->warehouseFrom?->name ?? '-' }}
                                 </span>
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Warehouse To</span>
+                                <span class="text-gray-400">Gudang Tujuan</span>
                                 <span class="text-gray-800 dark:text-white">
                                     {{ $selectedTransfer->warehouseTo?->name ?? '-' }}
                                 </span>
@@ -689,12 +681,10 @@
                                             Terhapus
                                         </span>
                                     @elseif ($selectedTransfer->status === 'draft')
-                                        <span class="text-sm px-2.5 py-0.5 rounded bg-gray-600 text-white">
-                                            Draft
+                                        <span class="text-sm px-2.5 py-0.5 rounded bg-gray-600 text-white">Draf
                                         </span>
                                     @elseif ($selectedTransfer->status === 'approved')
-                                        <span class="text-sm px-2.5 py-0.5 rounded bg-blue-700 text-white">
-                                            Approved
+                                        <span class="text-sm px-2.5 py-0.5 rounded bg-blue-700 text-white">Disetujui
                                         </span>
                                     @endif
                                 </span>
@@ -721,13 +711,13 @@
                             <thead
                                 class="bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-300 uppercase text-xs">
                                 <tr>
-                                    <th class="px-4 py-3 w-8">No</th>
+                                    <th class="px-4 py-3 w-8">No.</th>
                                     <th class="px-4 py-3">Produk</th>
-                                    <th class="px-4 py-3 text-right">Stock Available</th>
-                                    <th class="px-4 py-3 text-right">Qty</th>
-                                    <th class="px-4 py-3">UOM</th>
-                                    <th class="px-4 py-3 text-right">Conversion</th>
-                                    <th class="px-4 py-3 text-right">Qty Base</th>
+                                    <th class="px-4 py-3 text-right">Stok Tersedia</th>
+                                    <th class="px-4 py-3 text-right">Jumlah</th>
+                                    <th class="px-4 py-3">Satuan</th>
+                                    <th class="px-4 py-3 text-right">Konversi</th>
+                                    <th class="px-4 py-3 text-right">Jumlah Dasar</th>
                                 </tr>
                             </thead>
 
@@ -789,9 +779,9 @@
     @if ($showDeleteModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div class="bg-white dark:bg-zinc-900 rounded-xl shadow-xl w-full max-w-md p-6">
-                <h3 class="text-lg font-semibold dark:text-white">Hapus Transfer Stock?</h3>
+                <h3 class="text-lg font-semibold dark:text-white">Hapus Transfer Stok?</h3>
                 <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                    Data akan dipindahkan ke trash.
+                    Data akan dipindahkan ke tempat sampah.
                 </p>
 
                 <div class="flex justify-end gap-2 mt-6">

@@ -10,7 +10,7 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-lg font-semibold">Data Tabel Supplier</p>
+        <p class="dark:text-white text-lg font-semibold">Data Tabel Pemasok</p>
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             {{-- Search --}}
             <div class="relative w-full sm:w-72">
@@ -54,7 +54,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                Tambah Supplier
+                Tambah Pemasok
             </button>
         </div>
     </div>
@@ -78,11 +78,11 @@
                             @endif
                         </div>
                     </th>
-                    <th class="px-4 py-4">Address</th>
-                    <th class="px-4 py-4">Contact</th>
+                    <th class="px-4 py-4">Alamat</th>
+                    <th class="px-4 py-4">Kontak</th>
                     <th class="px-4 py-4">Status</th>
-                    <th class="px-4 py-4">Created By</th>
-                    <th class="px-4 py-4">Actions</th>
+                    <th class="px-4 py-4">Dibuat Oleh</th>
+                    <th class="px-4 py-4">Aksi</th>
                 </tr>
             </thead>
             <tbody class="dark:bg-zinc-950 text-base">
@@ -148,8 +148,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                    Edit
+                                                    </svg>Ubah
                                                 </button>
                                             </li>
                                         </ul>
@@ -162,8 +161,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                                Delete
+                                                </svg>Hapus
                                             </button>
                                         </div>
                                     </div>
@@ -207,7 +205,7 @@
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium dark:text-gray-300 mb-1">Kode Supplier</label>
+                        <label class="block text-sm font-medium dark:text-gray-300 mb-1">Kode Pemasok</label>
                         <input wire:model="code" type="text" placeholder="SUP-001"
                             class="w-full text-sm dark:bg-zinc-700 border border-gray-600 dark:text-white rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('code') border-red-500 @enderror" />
                         @error('code')
@@ -215,8 +213,8 @@
                         @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-medium dark:text-gray-300 mb-1">Nama Supplier</label>
-                        <input wire:model="name" type="text" placeholder="PT. Contoh Supplier"
+                        <label class="block text-sm font-medium dark:text-gray-300 mb-1">Nama Pemasok</label>
+                        <input wire:model="name" type="text" placeholder="PT. Contoh Pemasok"
                             class="w-full text-sm dark:bg-zinc-700 border border-gray-600 dark:text-white rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('name') border-red-500 @enderror" />
                         @error('name')
                             <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
@@ -266,9 +264,9 @@
                                 d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                         </svg>
                     </div>
-                    <h3 class="text-base font-semibold dark:text-white">Hapus Supplier?</h3>
+                    <h3 class="text-base font-semibold dark:text-white">Hapus Pemasok?</h3>
                 </div>
-                <p class="text-sm text-gray-400 mb-5">Data akan dipindahkan ke trash.</p>
+                <p class="text-sm text-gray-400 mb-5">Data akan dipindahkan ke tempat sampah.</p>
                 <div class="flex justify-end gap-2">
                     <button wire:click="$set('showDeleteModal', false)"
                         class="px-4 py-2 text-sm rounded-lg border border-gray-600 dark:text-gray-300 hover:bg-zinc-700">

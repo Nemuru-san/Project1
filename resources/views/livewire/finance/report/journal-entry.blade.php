@@ -10,7 +10,7 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Data Journal Entries</p>
+        <p class="dark:text-white text-base font-semibold">Data Entri Jurnal</p>
 
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             <div class="relative w-full sm:w-72">
@@ -37,7 +37,7 @@
 
             <select wire:model.live="sourceFilter"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
-                <option value="">Semua Source</option>
+                <option value="">Semua Sumber</option>
                 @foreach ($sourceOptions as $source)
                     <option value="{{ $source }}">{{ $source }}</option>
                 @endforeach
@@ -65,7 +65,7 @@
                 <tr>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('code')">
                         <div class="flex items-center gap-1">
-                            Journal No
+                            No. Jurnal
                             @if ($sortField === 'code')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
@@ -74,19 +74,19 @@
 
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('date')">
                         <div class="flex items-center gap-1">
-                            Date
+                            Tanggal
                             @if ($sortField === 'date')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
                         </div>
                     </th>
 
-                    <th class="px-4 py-4">Source</th>
-                    <th class="px-4 py-4">Description</th>
-                    <th class="px-4 py-4 text-center">Lines</th>
+                    <th class="px-4 py-4">Sumber</th>
+                    <th class="px-4 py-4">Deskripsi</th>
+                    <th class="px-4 py-4 text-center">Baris</th>
                     <th class="px-4 py-4">Status</th>
-                    <th class="px-4 py-4">Created By</th>
-                    <th class="px-4 py-4">Actions</th>
+                    <th class="px-4 py-4">Dibuat Oleh</th>
+                    <th class="px-4 py-4">Aksi</th>
                 </tr>
             </thead>
 
@@ -125,11 +125,11 @@
                             @if ($journal->trashed())
                                 <span class="text-sm px-2.5 py-0.5 rounded bg-red-700 text-white">Terhapus</span>
                             @elseif ($journal->status === 'Draft')
-                                <span class="text-sm px-2.5 py-0.5 rounded bg-gray-600 text-white">Draft</span>
+                                <span class="text-sm px-2.5 py-0.5 rounded bg-gray-600 text-white">Draf</span>
                             @elseif ($journal->status === 'Posted')
-                                <span class="text-sm px-2.5 py-0.5 rounded bg-green-700 text-white">Posted</span>
+                                <span class="text-sm px-2.5 py-0.5 rounded bg-green-700 text-white">Diposting</span>
                             @elseif ($journal->status === 'Cancelled')
-                                <span class="text-sm px-2.5 py-0.5 rounded bg-red-700 text-white">Cancelled</span>
+                                <span class="text-sm px-2.5 py-0.5 rounded bg-red-700 text-white">Dibatalkan</span>
                             @else
                                 <span
                                     class="text-sm px-2.5 py-0.5 rounded bg-gray-700 text-white">{{ $journal->status }}</span>
@@ -186,8 +186,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                    Detail
+                                                    </svg>Detail
                                                 </button>
                                             </li>
                                         </ul>
@@ -202,8 +201,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                                Delete
+                                                </svg>Hapus
                                             </button>
                                         </div> --}}
                                     @endif
@@ -234,7 +232,7 @@
 
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
                     <div>
-                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Journal Entry</h2>
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Entri Jurnal</h2>
                         <p class="text-sm text-gray-400 font-mono mt-0.5">{{ $selectedJournal->code }}</p>
                     </div>
 
@@ -252,7 +250,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-3">
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Journal No</span>
+                                <span class="text-gray-400">No. Jurnal</span>
                                 <span class="font-mono font-medium text-gray-800 dark:text-white">
                                     {{ $selectedJournal->code }}
                                 </span>
@@ -266,14 +264,14 @@
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Source Type</span>
+                                <span class="text-gray-400">Jenis Sumber</span>
                                 <span class="text-gray-800 dark:text-white">
                                     {{ $selectedJournal->source_type ?: '-' }}
                                 </span>
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Source ID</span>
+                                <span class="text-gray-400">ID Sumber</span>
                                 <span class="text-gray-800 dark:text-white">
                                     {{ $selectedJournal->source_id ?: '-' }}
                                 </span>
@@ -307,11 +305,11 @@
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Balance</span>
+                                <span class="text-gray-400">Seimbang</span>
                                 <span>
                                     @if ($this->selectedJournalIsBalance)
                                         <span
-                                            class="text-sm px-2.5 py-0.5 rounded bg-green-700 text-white">Balance</span>
+                                            class="text-sm px-2.5 py-0.5 rounded bg-green-700 text-white">Seimbang</span>
                                     @else
                                         <span class="text-sm px-2.5 py-0.5 rounded bg-red-700 text-white">Not
                                             Balance</span>
@@ -320,7 +318,7 @@
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Description</span>
+                                <span class="text-gray-400">Deskripsi</span>
                                 <span class="text-gray-800 dark:text-white text-right max-w-xs">
                                     {{ $selectedJournal->description ?: '-' }}
                                 </span>
@@ -333,12 +331,12 @@
                             <thead
                                 class="bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-300 uppercase text-xs">
                                 <tr>
-                                    <th class="px-4 py-3 w-8">No</th>
-                                    <th class="px-4 py-3">Account Code</th>
-                                    <th class="px-4 py-3">Account Name</th>
-                                    <th class="px-4 py-3">Description</th>
+                                    <th class="px-4 py-3 w-8">No.</th>
+                                    <th class="px-4 py-3">Kode Akun</th>
+                                    <th class="px-4 py-3">Nama Akun</th>
+                                    <th class="px-4 py-3">Deskripsi</th>
                                     <th class="px-4 py-3 text-right">Debit</th>
-                                    <th class="px-4 py-3 text-right">Credit</th>
+                                    <th class="px-4 py-3 text-right">Kredit</th>
                                 </tr>
                             </thead>
 
@@ -416,11 +414,11 @@
                         </svg>
                     </div>
 
-                    <h3 class="text-base font-semibold dark:text-white">Hapus Journal Entry?</h3>
+                    <h3 class="text-base font-semibold dark:text-white">Hapus Entri Jurnal?</h3>
                 </div>
 
                 <p class="text-sm text-gray-400 mb-5">
-                    Journal hanya bisa dihapus jika masih Draft. Journal Posted tidak boleh dihapus.
+                    Jurnal hanya bisa dihapus jika masih Draf. Jurnal Diposting tidak boleh dihapus.
                 </p>
 
                 <div class="flex justify-end gap-2">

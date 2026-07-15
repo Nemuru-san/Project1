@@ -10,7 +10,7 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Data Tabel AP Payment</p>
+        <p class="dark:text-white text-base font-semibold">Data Tabel Pembayaran Utang</p>
 
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             <div class="relative w-full sm:w-72">
@@ -30,8 +30,8 @@
             <select wire:model.live="statusFilter"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
                 <option value="">Semua Status</option>
-                <option value="Draft">Draft</option>
-                <option value="Posted">Posted</option>
+                <option value="Draft">Draf</option>
+                <option value="Posted">Diposting</option>
             </select>
 
             <select wire:model.live="perPage"
@@ -52,7 +52,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                Tambah Payment
+                Tambah Pembayaran
             </button>
         </div>
     </div>
@@ -64,7 +64,7 @@
                 <tr>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('code')">
                         <div class="flex items-center gap-1">
-                            Payment No
+                            No. Pembayaran
                             @if ($sortField === 'code')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
@@ -73,19 +73,19 @@
 
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('payment_date')">
                         <div class="flex items-center gap-1">
-                            Date
+                            Tanggal
                             @if ($sortField === 'payment_date')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
                         </div>
                     </th>
 
-                    <th class="px-4 py-4">Supplier</th>
-                    <th class="px-4 py-4">Bank Account</th>
-                    <th class="px-4 py-4">Method</th>
-                    <th class="px-4 py-4 text-right">Total Amount</th>
+                    <th class="px-4 py-4">Pemasok</th>
+                    <th class="px-4 py-4">Rekening Bank</th>
+                    <th class="px-4 py-4">Metode</th>
+                    <th class="px-4 py-4 text-right">Total Nilai</th>
                     <th class="px-4 py-4">Status</th>
-                    <th class="px-4 py-4">Actions</th>
+                    <th class="px-4 py-4">Aksi</th>
                 </tr>
             </thead>
 
@@ -121,9 +121,9 @@
                             @if ($payment->trashed())
                                 <span class="text-sm px-2.5 py-0.5 rounded bg-red-700 text-white">Terhapus</span>
                             @elseif ($payment->status === 'Draft')
-                                <span class="text-sm px-2.5 py-0.5 rounded bg-gray-600 text-white">Draft</span>
+                                <span class="text-sm px-2.5 py-0.5 rounded bg-gray-600 text-white">Draf</span>
                             @elseif ($payment->status === 'Posted')
-                                <span class="text-sm px-2.5 py-0.5 rounded bg-green-700 text-white">Posted</span>
+                                <span class="text-sm px-2.5 py-0.5 rounded bg-green-700 text-white">Diposting</span>
                             @else
                                 <span
                                     class="text-sm px-2.5 py-0.5 rounded bg-gray-700 text-white">{{ $payment->status }}</span>
@@ -176,7 +176,7 @@
                                                                 stroke-width="2"
                                                                 d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
-                                                        Post Payment
+                                                        Posting Pembayaran
                                                     </button>
                                                 </li>
                                             @endif
@@ -192,8 +192,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                    Detail
+                                                    </svg>Detail
                                                 </button>
                                             </li>
 
@@ -207,8 +206,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                    Edit
+                                                    </svg>Ubah
                                                 </button>
                                             </li>
                                         </ul>
@@ -223,8 +221,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 001 1v3M4 7h16" />
-                                                </svg>
-                                                Delete
+                                                </svg>Hapus
                                             </button>
                                         </div>
                                     @endif
@@ -235,7 +232,7 @@
                 @empty
                     <tr>
                         <td colspan="8" class="text-center py-8 text-gray-400 dark:text-gray-500">
-                            Tidak ada data AP Payment.
+                            Tidak ada data Pembayaran Utang.
                         </td>
                     </tr>
                 @endforelse
@@ -271,7 +268,7 @@
                     <div class="grid gap-5 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-6">
                         <div class="w-full">
                             <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                Payment No
+                                No. Pembayaran
                             </label>
                             <input type="text" value="{{ $code ?: 'Auto Generated' }}" disabled
                                 class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:text-gray-400 cursor-not-allowed">
@@ -279,7 +276,7 @@
 
                         <div class="w-full">
                             <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                Payment Date
+                                Tanggal Pembayaran
                             </label>
                             <input wire:model.live="payment_date" type="date"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
@@ -289,12 +286,11 @@
                         </div>
 
                         <div class="w-full">
-                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                Supplier
+                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Pemasok
                             </label>
                             <select wire:model.live="supplier_id" @disabled($paymentId)
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white disabled:bg-gray-100 disabled:dark:bg-zinc-700 disabled:cursor-not-allowed">
-                                <option value="">-- Pilih Supplier --</option>
+                                <option value="">-- Pilih Pemasok --</option>
                                 @foreach ($suppliers as $supplier)
                                     <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
                                 @endforeach
@@ -305,8 +301,7 @@
                         </div>
 
                         <div class="w-full">
-                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                Bank Account
+                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Rekening Bank
                             </label>
                             <select wire:model.live="bank_account_id"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
@@ -323,15 +318,14 @@
                         </div>
 
                         <div class="w-full">
-                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                Payment Method
+                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Metode Pembayaran
                             </label>
                             <select wire:model.live="payment_method"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                 <option value="Transfer">Transfer</option>
-                                <option value="Cash">Cash</option>
+                                <option value="Cash">Tunai</option>
                                 <option value="Giro">Giro</option>
-                                <option value="Other">Other</option>
+                                <option value="Other">Lainnya</option>
                             </select>
                             @error('payment_method')
                                 <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
@@ -340,7 +334,7 @@
 
                         <div class="w-full">
                             <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                Total Amount
+                                Total Nilai
                             </label>
                             <input type="text" disabled value="Rp {{ number_format($total_amount, 0, ',', '.') }}"
                                 class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:text-gray-400 cursor-not-allowed">
@@ -365,11 +359,11 @@
                     {{-- DETAIL INVOICE --}}
                     <div class="mt-12">
                         <div class="mb-4 flex items-center justify-between">
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Detail Invoice Dibayar</h3>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Detail Faktur Dibayar</h3>
                             @if ($supplier_id && !$paymentId)
                                 <button type="button" wire:click="loadSupplierInvoices"
                                     class="px-4 py-2 text-sm rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white cursor-pointer">
-                                    Refresh Invoice
+                                    Muat Ulang Faktur
                                 </button>
                             @endif
                         </div>
@@ -380,30 +374,27 @@
                                 <thead
                                     class="text-base font-bold text-gray-900 uppercase bg-gray-200 dark:bg-zinc-700 dark:text-white">
                                     <tr>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">No
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Tidak
                                         </th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">PIV
                                             No</th>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                            Supplier Invoice</th>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Date
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Faktur Pemasok</th>
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Tanggal
                                         </th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Due
-                                            Date</th>
+                                            Tanggal</th>
                                         <th
                                             class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm text-right">
-                                            Grand Total</th>
+                                            Total Keseluruhan</th>
                                         <th
-                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm text-right">
-                                            Paid</th>
+                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm text-right">Lunas</th>
                                         <th
                                             class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm text-right">
                                             Remaining</th>
                                         <th
                                             class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm text-right">
                                             Amount</th>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                            Action</th>
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Aksi</th>
                                     </tr>
                                 </thead>
 
@@ -503,7 +494,7 @@
                             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                                 <div>
                                     <label class="block mb-4 text-base font-medium text-gray-900 dark:text-white">
-                                        Total Amount
+                                        Total Nilai
                                     </label>
                                     <input type="text" value="Rp {{ number_format($total_amount, 0, ',', '.') }}"
                                         disabled
@@ -538,7 +529,7 @@
                 class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
                     <div>
-                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail AP Payment</h2>
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Pembayaran Utang</h2>
                         <p class="text-sm text-gray-400 font-mono mt-0.5">{{ $selectedPayment->code }}</p>
                     </div>
 
@@ -555,7 +546,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-3">
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Payment No</span>
+                                <span class="text-gray-400">No. Pembayaran</span>
                                 <span class="font-mono font-medium text-gray-800 dark:text-white">
                                     {{ $selectedPayment->code }}
                                 </span>
@@ -569,7 +560,7 @@
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Supplier</span>
+                                <span class="text-gray-400">Pemasok</span>
                                 <span class="text-gray-800 dark:text-white">
                                     {{ $selectedPayment->supplier?->name ?? '-' }}
                                 </span>
@@ -585,14 +576,14 @@
 
                         <div class="space-y-3">
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Bank Account</span>
+                                <span class="text-gray-400">Rekening Bank</span>
                                 <span class="text-gray-800 dark:text-white">
                                     {{ $selectedPayment->bankAccount?->name ?? ($selectedPayment->bankAccount?->bank_name ?? '-') }}
                                 </span>
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Method</span>
+                                <span class="text-gray-400">Metode</span>
                                 <span class="text-gray-800 dark:text-white">
                                     {{ $selectedPayment->payment_method ?: '-' }}
                                 </span>
@@ -629,11 +620,11 @@
                             <thead
                                 class="bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-gray-300 uppercase text-xs">
                                 <tr>
-                                    <th class="px-4 py-3 w-8">No</th>
+                                    <th class="px-4 py-3 w-8">No.</th>
                                     <th class="px-4 py-3">PIV No</th>
-                                    <th class="px-4 py-3">Supplier Invoice</th>
-                                    <th class="px-4 py-3 text-right">Grand Total</th>
-                                    <th class="px-4 py-3 text-right">Amount Paid</th>
+                                    <th class="px-4 py-3">Faktur Pemasok</th>
+                                    <th class="px-4 py-3 text-right">Total Keseluruhan</th>
+                                    <th class="px-4 py-3 text-right">Jumlah Dibayar</th>
                                 </tr>
                             </thead>
 
@@ -674,7 +665,7 @@
                         <div class="space-y-2 text-sm w-full max-w-xs">
                             <div
                                 class="flex justify-between font-bold text-base text-gray-800 dark:text-white border-t dark:border-zinc-700 pt-2">
-                                <span>Total Payment</span>
+                                <span>Total Pembayaran</span>
                                 <span>Rp {{ number_format($selectedPayment->total_amount, 0, ',', '.') }}</span>
                             </div>
                         </div>
@@ -686,7 +677,7 @@
 
                             <button wire:click="confirmPost({{ $selectedPayment->id }})"
                                 class="px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium cursor-pointer">
-                                Post Payment
+                                Posting Pembayaran
                             </button>
                         </div>
                     @endif
@@ -715,12 +706,12 @@
                     </div>
 
                     <h3 class="text-base font-semibold dark:text-white">
-                        Post AP Payment?
+                        Posting Pembayaran Utang?
                     </h3>
                 </div>
 
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">
-                    Setelah payment di-post, invoice akan dianggap terbayar sesuai amount. Data payment tidak bisa
+                    Setelah payment diposting, invoice akan dianggap terbayar sesuai amount. Data payment tidak bisa
                     diedit atau dihapus.
                 </p>
 
@@ -733,7 +724,7 @@
                     <button wire:click="postPayment" wire:loading.attr="disabled"
                         class="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
                         <span wire:loading.remove wire:target="postPayment">
-                            Ya, Post Payment
+                            Ya, Posting Pembayaran
                         </span>
                         <span wire:loading wire:target="postPayment">
                             Mem-post...
@@ -756,11 +747,11 @@
                         </svg>
                     </div>
 
-                    <h3 class="text-base font-semibold dark:text-white">Hapus AP Payment?</h3>
+                    <h3 class="text-base font-semibold dark:text-white">Hapus Pembayaran Utang?</h3>
                 </div>
 
                 <p class="text-sm text-gray-400 mb-5">
-                    Data akan dipindahkan ke trash. Payment yang sudah posted tidak bisa dihapus.
+                    Data akan dipindahkan ke tempat sampah. Pembayaran yang sudah diposting tidak bisa dihapus.
                 </p>
 
                 <div class="flex justify-end gap-2">

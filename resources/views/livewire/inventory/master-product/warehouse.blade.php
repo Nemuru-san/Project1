@@ -10,7 +10,7 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Data Tabel Warehouse</p>
+        <p class="dark:text-white text-base font-semibold">Data Tabel Gudang</p>
 
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             <div class="relative w-full sm:w-72">
@@ -57,7 +57,7 @@
                 <tr>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
                         <div class="flex items-center gap-1">
-                            Name
+                            Nama
                             @if ($sortField === 'name')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
@@ -66,7 +66,7 @@
 
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('desc')">
                         <div class="flex items-center gap-1">
-                            Description
+                            Deskripsi
                             @if ($sortField === 'desc')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
@@ -75,7 +75,7 @@
 
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('address')">
                         <div class="flex items-center gap-1">
-                            Address
+                            Alamat
                             @if ($sortField === 'address')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
@@ -83,7 +83,7 @@
                     </th>
 
                     <th class="px-4 py-4">Status</th>
-                    <th class="px-4 py-4">Actions</th>
+                    <th class="px-4 py-4">Aksi</th>
                 </tr>
             </thead>
 
@@ -150,8 +150,7 @@
                                             <li>
                                                 <button wire:click="openEdit({{ $warehouse->id }})"
                                                     @click="open = false"
-                                                    class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
-                                                    Edit
+                                                    class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">Ubah
                                                 </button>
                                             </li>
                                         </ul>
@@ -159,8 +158,7 @@
                                         <div class="py-1">
                                             <button wire:click="confirmDelete({{ $warehouse->id }})"
                                                 @click="open = false"
-                                                class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white">
-                                                Delete
+                                                class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white">Hapus
                                             </button>
                                         </div>
                                     @endif
@@ -207,7 +205,7 @@
                 <div class="flex-1 overflow-y-auto px-6 py-5">
                     <div class="flex flex-col gap-4">
                         <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">Warehouse Name</label>
+                            <label class="block mb-1 text-sm font-medium dark:text-white">Nama Gudang</label>
                             <input wire:model="name" type="text"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('name') border-red-500 @else border-gray-300 @enderror"
                                 placeholder="Masukkan nama warehouse">
@@ -218,7 +216,7 @@
                         </div>
 
                         <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">Description</label>
+                            <label class="block mb-1 text-sm font-medium dark:text-white">Deskripsi</label>
                             <input wire:model="desc" type="text"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('desc') border-red-500 @else border-gray-300 @enderror"
                                 placeholder="Masukkan deskripsi warehouse">
@@ -229,7 +227,7 @@
                         </div>
 
                         <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">Address</label>
+                            <label class="block mb-1 text-sm font-medium dark:text-white">Alamat</label>
                             <textarea wire:model="address" rows="3"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('address') border-red-500 @else border-gray-300 @enderror"
                                 placeholder="Masukkan alamat warehouse"></textarea>

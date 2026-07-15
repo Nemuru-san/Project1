@@ -163,11 +163,11 @@
 
 <body onload="window.print()">
 
-    <button class="no-print" onclick="window.print()">Print</button>
+    <button class="no-print" onclick="window.print()">Cetak</button>
 
     <div class="page">
         <div class="content">
-            <div class="title">PURCHASE ORDER</div>
+            <div class="title">PESANAN PEMBELIAN</div>
             <div class="po-no">No: {{ $po->code }}</div>
 
             <div class="header">
@@ -195,7 +195,7 @@
                             <th>NAMA BARANG</th>
                             <th width="105">BANYAKNYA</th>
                             <th width="95">HARGA</th>
-                            <th width="80">DISC</th>
+                            <th width="80">DISKON</th>
                             <th width="110">JUMLAH</th>
                         </tr>
                     </thead>
@@ -231,11 +231,11 @@
 
             <table class="summary">
                 <tr>
-                    <td>SUB TOTAL</td>
+                    <td>SUBTOTAL</td>
                     <td class="right">{{ number_format($poGross, 0, ',', '.') }}</td>
                 </tr>
                 <tr>
-                    <td>DISCOUNT</td>
+                    <td>DISKON</td>
                     <td class="right">{{ number_format($poDiscount, 0, ',', '.') }}</td>
                 </tr>
                 <tr>
@@ -258,8 +258,7 @@
                 Disetujui
                 <div class="sign"></div>
             </div>
-            <div>
-                Supplier
+            <div>Pemasok
                 <div class="sign"></div>
             </div>
         </div>

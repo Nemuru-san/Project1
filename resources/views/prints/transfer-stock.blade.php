@@ -139,11 +139,11 @@
 
 <body onload="window.print()">
 
-    <button class="no-print" onclick="window.print()">Print</button>
+    <button class="no-print" onclick="window.print()">Cetak</button>
 
     <div class="page">
         <div class="content">
-            <div class="title">TRANSFER STOCK</div>
+            <div class="title">TRANSFER STOK</div>
             <div class="doc-no">No: {{ $transfer->trf_no }}</div>
 
             <div class="header">
@@ -168,9 +168,9 @@
                             <th width="35">NO</th>
                             <th>NAMA BARANG</th>
                             <th width="120">QTY</th>
-                            <th width="90">UNIT</th>
-                            <th width="120">CONVERSION</th>
-                            <th width="120">QTY BASE</th>
+                            <th width="90">SATUAN</th>
+                            <th width="120">KONVERSI</th>
+                            <th width="120">JUMLAH DASAR</th>
                         </tr>
                     </thead>
                     <tbody>

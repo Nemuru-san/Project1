@@ -7,8 +7,7 @@
                 Kelola data user">
                 <x-slot:breadcrumbs>
                     <li class="inline-flex items-center">
-                        <a href="#" class="inline-flex items-center text-sm font-medium hover:text-fg-brand">
-                            Users
+                        <a href="#" class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Pengguna
                         </a>
                     </li>
                     <li>
@@ -19,7 +18,7 @@
                                     stroke-width="2" d="m9 5 7 7-7 7" />
                             </svg>
                             <a href="#"
-                                class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Action</a>
+                                class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Aksi</a>
                         </div>
                     </li>
                     <li aria-current="page">

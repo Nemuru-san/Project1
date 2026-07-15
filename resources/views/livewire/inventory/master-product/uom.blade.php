@@ -10,7 +10,7 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Data Tabel Unit of Measure (UOM)</p>
+        <p class="dark:text-white text-base font-semibold">Tabel Data Satuan</p>
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             <div class="relative w-full sm:w-72">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -65,7 +65,7 @@
                         </div>
                     </th>
                     <th class="px-4 py-4">Status</th>
-                    <th class="px-4 py-4">Actions</th>
+                    <th class="px-4 py-4">Aksi</th>
                 </tr>
             </thead>
             <tbody class="dark:bg-zinc-950 text-base">
@@ -124,8 +124,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                    Edit
+                                                    </svg>Ubah
                                                 </button>
                                             </li>
                                         </ul>
@@ -139,8 +138,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 011 1v3M4 7h16" />
-                                                </svg>
-                                                Delete
+                                                </svg>Hapus
                                             </button>
                                         </div>
                                     @endif
@@ -187,7 +185,7 @@
                 <div class="flex-1 overflow-y-auto px-6 py-5">
                     <div class="flex flex-col gap-4">
                         <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">UOM Code</label>
+                            <label class="block mb-1 text-sm font-medium dark:text-white">Kode Satuan</label>
                             <input wire:model="code" type="text"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('code') border-red-500 @else border-gray-300 @enderror"
                                 placeholder="Contoh: PCS">
@@ -196,7 +194,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label class="block mb-1 text-sm font-medium dark:text-white">UOM Name</label>
+                            <label class="block mb-1 text-sm font-medium dark:text-white">Nama Satuan</label>
                             <input wire:model="name" type="text"
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white @error('name') border-red-500 @else border-gray-300 @enderror"
                                 placeholder="Contoh: Pieces">
