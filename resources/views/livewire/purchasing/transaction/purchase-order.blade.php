@@ -297,7 +297,7 @@
                 <div
                     class="flex items-center justify-between px-8 py-6 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
                     <h3 class="text-lg font-semibold dark:text-white">
-                        {{ $editId ? 'Edit Purchase Order' : 'Tambah Purchase Order' }}
+                        {{ $editId ? 'Ubah Pesanan Pembelian' : 'Tambah Pesanan Pembelian' }}
                     </h3>
                     <button wire:click="closeModal" class="text-gray-400 hover:text-white cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

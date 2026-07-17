@@ -43,14 +43,14 @@ class RoleUser extends Component
         ],
 
         'Purchasing - Transaction' => [
-            'purchases.transaction.purchase-order' => 'Purchase Order',
-            'purchases.transaction.good-receive' => 'Good Receive',
-            'purchases.transaction.purchase-invoice' => 'Purchase Invoice',
+            'purchases.transaction.purchase-order' => 'Pesanan Pembelian',
+            'purchases.transaction.good-receive' => 'Penerimaan Barang',
+            'purchases.transaction.purchase-invoice' => 'Faktur Pembelian',
         ],
 
         'Purchasing - Return' => [
-            'purchases.return.purchase-return' => 'Purchase Return',
-            'purchases.return.purchase-return-invoice' => 'Purchase Return Invoice',
+            'purchases.return.purchase-return' => 'Retur Pembelian',
+            'purchases.return.purchase-return-invoice' => 'Faktur Retur Pembelian',
         ],
 
         'Purchasing - Report' => [
@@ -59,32 +59,32 @@ class RoleUser extends Component
         ],
 
         'Inventory - Master' => [
-            'inventory.product.productMaster' => 'Product Master',
-            'inventory.product.productCategory' => 'Product Category',
-            'inventory.product.uom' => 'UOM',
-            'inventory.product.warehouse' => 'Warehouse',
+            'inventory.product.productMaster' => 'Master Produk',
+            'inventory.product.productCategory' => 'Kategori Produk',
+            'inventory.product.uom' => 'Satuan',
+            'inventory.product.warehouse' => 'Gudang',
         ],
 
         'Inventory - Transaction' => [
-            'inventory.transaction.transfer-stock' => 'Transfer Stock',
-            'inventory.transaction.adjustment-in' => 'Adjustment In',
-            'inventory.transaction.adjustment-out' => 'Adjustment Out',
+            'inventory.transaction.transfer-stock' => 'Transfer Stok',
+            'inventory.transaction.adjustment-in' => 'Penyesuaian Stok Masuk',
+            'inventory.transaction.adjustment-out' => 'Penyesuaian Stok Keluar',
         ],
 
         'Inventory - Report' => [
-            'inventory.report.stock-balance' => 'Stock Balance',
-            'inventory.report.stock-card' => 'Stock Card',
-            'inventory.report.stock-movement' => 'Stock Movement',
+            'inventory.report.stock-balance' => 'Saldo Stok',
+            'inventory.report.stock-card' => 'Kartu Stok',
+            'inventory.report.stock-movement' => 'Pergerakan Stok',
         ],
 
         'Sales - Master' => [
-            'sales.master.customer' => 'Customer',
+            'sales.master.customer' => 'Pelanggan',
         ],
 
         'Sales - Transaction' => [
-            'sales.transaction.sales-order' => 'Sales Order',
-            'sales.transaction.delivery-order' => 'Delivery Order',
-            'sales.transaction.sales-invoice' => 'Sales Invoice',
+            'sales.transaction.sales-order' => 'Pesanan Penjualan',
+            'sales.transaction.delivery-order' => 'Surat Jalan',
+            'sales.transaction.sales-invoice' => 'Faktur Penjualan',
         ],
 
         'Sales - Report' => [
@@ -93,13 +93,14 @@ class RoleUser extends Component
         ],
 
         'Finance - Transaction' => [
-            'finance.transaction.ap-payment' => 'AP Payment',
-            'finance.transaction.ar-payment' => 'AR Payment',
+            'finance.transaction.ap-payment' => 'Pembayaran Utang',
+            'finance.transaction.expense' => 'Pengeluaran',
+            'finance.transaction.ar-payment' => 'Pembayaran Piutang',
         ],
 
-        'User' => [
-            'user.action.user' => 'Users',
-            'user.action.role' => 'Role User',
+        'Pengguna' => [
+            'user.action.user' => 'Pengguna',
+            'user.action.role' => 'Peran Pengguna',
         ],
     ];
 
@@ -183,11 +184,11 @@ class RoleUser extends Component
         if ($this->editingId) {
             Role::findOrFail($this->editingId)->update($data);
 
-            $this->dispatch('toast', message: 'Role berhasil diperbarui.', type: 'success');
+            $this->dispatch('toast', message: 'Peran berhasil diperbarui.', type: 'success');
         } else {
             Role::create($data);
 
-            $this->dispatch('toast', message: 'Role berhasil ditambahkan.', type: 'success');
+            $this->dispatch('toast', message: 'Peran berhasil ditambahkan.', type: 'success');
         }
 
         $this->showModal = false;
@@ -203,7 +204,7 @@ class RoleUser extends Component
         }
 
         if ($role->users_count > 0) {
-            $this->dispatch('toast', message: 'Role masih dipakai user, tidak bisa dihapus.', type: 'error');
+            $this->dispatch('toast', message: 'Peran masih dipakai pengguna dan tidak dapat dihapus.', type: 'error');
 
             return;
         }
@@ -224,7 +225,7 @@ class RoleUser extends Component
             $this->showDeleteModal = false;
             $this->deleteTargetId = null;
 
-            $this->dispatch('toast', message: 'Role masih dipakai user, tidak bisa dihapus.', type: 'error');
+            $this->dispatch('toast', message: 'Peran masih dipakai pengguna dan tidak dapat dihapus.', type: 'error');
 
             return;
         }
@@ -234,7 +235,7 @@ class RoleUser extends Component
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
 
-        $this->dispatch('toast', message: 'Role berhasil dihapus.', type: 'success');
+        $this->dispatch('toast', message: 'Peran berhasil dihapus.', type: 'success');
     }
 
     private function resetForm(): void

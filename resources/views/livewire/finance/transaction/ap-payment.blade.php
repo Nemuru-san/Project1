@@ -263,7 +263,7 @@
                 <div
                     class="flex items-center justify-between px-8 py-6 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
                     <h3 class="text-lg font-semibold dark:text-white">
-                        {{ $paymentId ? 'Edit AP Payment' : 'Tambah AP Payment' }}
+                        {{ $paymentId ? 'Ubah Pembayaran Utang' : 'Tambah Pembayaran Utang' }}
                     </h3>
 
                     <button wire:click="$set('showModal', false)"
@@ -316,10 +316,10 @@
                             </label>
                             <select wire:model.live="bank_account_id"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
-                                <option value="">-- Pilih Bank Account --</option>
+                                <option value="">-- Pilih Rekening Bank --</option>
                                 @foreach ($bankAccounts as $bank)
                                     <option value="{{ $bank->id }}">
-                                        {{ $bank->name ?? ($bank->bank_name ?? 'Bank Account #' . $bank->id) }}
+                                        {{ $bank->name ?? ($bank->bank_name ?? 'Rekening Bank #' . $bank->id) }}
                                     </option>
                                 @endforeach
                             </select>

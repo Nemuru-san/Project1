@@ -43,7 +43,7 @@
 
             {{-- Tambah --}}
             <button wire:click="openCreate"
-                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
+                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:ml-auto sm:w-auto w-full justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -214,7 +214,7 @@
 
                 <div class="flex items-center justify-between mb-5">
                     <h3 class="text-lg font-semibold dark:text-white">
-                        {{ $bankAccountId ? 'Edit Bank Account' : 'Tambah Bank Account' }}
+                        {{ $bankAccountId ? 'Ubah Rekening Bank' : 'Tambah Rekening Bank' }}
                     </h3>
                     <button wire:click="$set('showModal', false)"
                         class="text-gray-400 hover:text-white cursor-pointer">
@@ -241,7 +241,7 @@
                     {{-- CoA --}}
                     <div>
                         <label class="block text-sm font-medium dark:text-gray-300 mb-1">
-                            Chart of Account <span class="text-red-500">*</span>
+                            Daftar Akun <span class="text-red-500">*</span>
                         </label>
                         <select wire:model="chart_of_account_id"
                             class="w-full text-sm dark:bg-zinc-700 border border-gray-600 dark:text-white rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('chart_of_account_id') border-red-500 @enderror">
@@ -329,7 +329,7 @@
                                 d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                         </svg>
                     </div>
-                    <h3 class="text-base font-semibold dark:text-white">Hapus Bank Account?</h3>
+                    <h3 class="text-base font-semibold dark:text-white">Hapus Rekening Bank?</h3>
                 </div>
                 <p class="text-sm text-gray-400 mb-5">
                     Data akan dipindahkan ke tempat sampah. Data yang sudah dipakai Pembayaran Utang tidak bisa dihapus.

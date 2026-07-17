@@ -102,18 +102,18 @@
                 class="grid" :expanded="request()->routeIs('sales.*')">
                 <flux:sidebar.group href="#" expandable heading="Master" class="grid"
                     :expanded="request()->routeIs('sales.master.*')">
-                    <flux:sidebar.item href="{{ route('sales.master.customer') }}" wire:navigate>Customer
+                    <flux:sidebar.item href="{{ route('sales.master.customer') }}" wire:navigate>Pelanggan
                     </flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Sales Person</flux:sidebar.item>
+                    <flux:sidebar.item href="#" wire:navigate>Tenaga Penjualan</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Transaksi" class="grid"
                     :expanded="request()->routeIs('sales.transaction.*')">
-                    <flux:sidebar.item href="#" wire:navigate>Sales Canvas</flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Pre Order</flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Sales Order</flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Delivery Order</flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Sales Invoice</flux:sidebar.item>
+                    <flux:sidebar.item href="#" wire:navigate>Penjualan Kanvas</flux:sidebar.item>
+                    <flux:sidebar.item href="#" wire:navigate>Pesanan Awal</flux:sidebar.item>
+                    <flux:sidebar.item href="#" wire:navigate>Pesanan Penjualan</flux:sidebar.item>
+                    <flux:sidebar.item href="#" wire:navigate>Surat Jalan</flux:sidebar.item>
+                    <flux:sidebar.item href="#" wire:navigate>Faktur Penjualan</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Laporan" class="grid"
@@ -139,6 +139,9 @@
                     :expanded="request()->routeIs('finance.transaction.*')">
                     <flux:sidebar.item href="{{ route('finance.transaction.ap-payment') }}" wire:navigate>Pembayaran
                         Utang
+                    </flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('finance.transaction.expense') }}"
+                        :current="request()->routeIs('finance.transaction.expense')" wire:navigate>Pengeluaran
                     </flux:sidebar.item>
                     <flux:sidebar.item href="#" wire:navigate>Pembayaran Piutang</flux:sidebar.item>
                 </flux:sidebar.group>

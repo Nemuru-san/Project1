@@ -1,14 +1,14 @@
-<x-layouts::app :title="__('Customer Master')">
+<x-layouts::app :title="__('Master Pelanggan')">
 
       <div class="flex flex-col items-center justify-between min-h-full gap-6 w-full">
             <div class="flex flex-col gap-6 w-full">
                   {{-- header --}}
-                  <x-layouts::page-header :title="__('Customer Master')"
-                  description="Kelola data customer secara terpusat untuk mendukung proses operasional dan pencatatan yang rapi.">
+                  <x-layouts::page-header :title="__('Master Pelanggan')"
+                  description="Kelola data pelanggan secara terpusat untuk mendukung proses operasional dan pencatatan yang rapi.">
                   <x-slot:breadcrumbs>
                         <li class="inline-flex items-center">
                               <a href="#" class="inline-flex items-center text-sm font-medium hover:text-fg-brand">
-                              Sales
+                              Penjualan
                               </a>
                         </li>
                         <li>
@@ -30,7 +30,7 @@
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                           stroke-width="2" d="m9 5 7 7-7 7" />
                               </svg>
-                              <span class="inline-flex items-center text-sm font-medium">Customer Master</span>
+                              <span class="inline-flex items-center text-sm font-medium">Master Pelanggan</span>
                               </div>
                         </li>
                   </x-slot:breadcrumbs>

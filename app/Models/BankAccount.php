@@ -33,4 +33,9 @@ class BankAccount extends Model
     {
         return $this->hasMany(APPayment::class, 'bank_account_id');
     }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
+    }
 }

@@ -121,7 +121,7 @@ class AdjustmentIn extends Component
             ->findOrFail($id);
 
         if ($adjustment->status !== 'draft') {
-            $this->dispatch('toast', message: 'Adjustment yang sudah approved tidak bisa diedit.', type: 'error');
+            $this->dispatch('toast', message: 'Penyesuaian yang sudah disetujui tidak dapat diubah.', type: 'error');
 
             return;
         }
@@ -249,7 +249,7 @@ class AdjustmentIn extends Component
 
         $this->resetForm();
 
-        $this->dispatch('toast', message: 'Adjustment In berhasil disimpan.', type: 'success');
+        $this->dispatch('toast', message: 'Penyesuaian stok masuk berhasil disimpan.', type: 'success');
     }
 
     public function confirmApprove(int $id): void
@@ -303,7 +303,7 @@ class AdjustmentIn extends Component
         $this->showApproveModal = false;
         $this->approveTargetId = null;
 
-        $this->dispatch('toast', message: 'Adjustment In berhasil di-approve.', type: 'success');
+        $this->dispatch('toast', message: 'Penyesuaian stok masuk berhasil disetujui.', type: 'success');
     }
 
     public function confirmDelete(int $id): void
@@ -321,7 +321,7 @@ class AdjustmentIn extends Component
         $adjustment = StockAdjustment::where('type', 'in')->findOrFail($this->deleteTargetId);
 
         if ($adjustment->status !== 'draft') {
-            $this->dispatch('toast', message: 'Adjustment approved tidak bisa dihapus.', type: 'error');
+            $this->dispatch('toast', message: 'Penyesuaian yang sudah disetujui tidak dapat dihapus.', type: 'error');
 
             return;
         }
@@ -331,7 +331,7 @@ class AdjustmentIn extends Component
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
 
-        $this->dispatch('toast', message: 'Adjustment In berhasil dihapus.', type: 'success');
+        $this->dispatch('toast', message: 'Penyesuaian stok masuk berhasil dihapus.', type: 'success');
     }
 
     public function openDetail(int $id): void

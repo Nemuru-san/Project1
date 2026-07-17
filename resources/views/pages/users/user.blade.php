@@ -1,9 +1,9 @@
-<x-layouts::app :title="__('Users')">
+<x-layouts::app :title="__('Pengguna')">
     <div class="flex flex-col items-center justify-between min-h-full gap-6 w-full">
         <div class="flex flex-col gap-6 w-full">
 
             {{-- header --}}
-            <x-layouts::page-header :title="__('Role User')" description="
+            <x-layouts::page-header :title="__('Pengguna')" description="
                 Kelola data user">
                 <x-slot:breadcrumbs>
                     <li class="inline-flex items-center">

@@ -43,7 +43,7 @@
 
             {{-- Tambah --}}
             <button wire:click="openCreate"
-                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
+                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:ml-auto sm:w-auto w-full justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -128,7 +128,7 @@
 
                         <td class="px-4 py-4">
                             <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-blue-700 text-white">
-                                {{ $account->type }}
+                                {{ $typeLabels[$account->type] ?? $account->type }}
                             </span>
                         </td>
 
@@ -263,7 +263,7 @@
 
                 <div class="flex items-center justify-between mb-5">
                     <h3 class="text-lg font-semibold dark:text-white">
-                        {{ $accountId ? 'Edit Chart of Account' : 'Tambah Chart of Account' }}
+                        {{ $accountId ? 'Ubah Akun' : 'Tambah Akun' }}
                     </h3>
                     <button wire:click="$set('showModal', false)"
                         class="text-gray-400 hover:text-white cursor-pointer">
@@ -292,7 +292,7 @@
                         <label class="block text-sm font-medium dark:text-gray-300 mb-1">
                             Nama Akun <span class="text-red-500">*</span>
                         </label>
-                        <input wire:model="name" type="text" placeholder="Cash and Bank"
+                        <input wire:model="name" type="text" placeholder="Kas dan Bank"
                             class="w-full text-sm dark:bg-zinc-700 border border-gray-600 dark:text-white rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('name') border-red-500 @enderror" />
                         @error('name')
                             <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
@@ -307,7 +307,7 @@
                             class="w-full text-sm dark:bg-zinc-700 border border-gray-600 dark:text-white rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('type') border-red-500 @enderror">
                             <option value="">-- Pilih Jenis --</option>
                             @foreach ($typeOptions as $option)
-                                <option value="{{ $option }}">{{ $option }}</option>
+                                <option value="{{ $option }}">{{ $typeLabels[$option] ?? $option }}</option>
                             @endforeach
                         </select>
                         @error('type')
@@ -318,13 +318,13 @@
                     {{-- Normal Balance --}}
                     <div>
                         <label class="block text-sm font-medium dark:text-gray-300 mb-1">
-                            Normal Balance <span class="text-red-500">*</span>
+                            Saldo Normal <span class="text-red-500">*</span>
                         </label>
                         <select wire:model="normal_balance"
                             class="w-full text-sm dark:bg-zinc-700 border border-gray-600 dark:text-white rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('normal_balance') border-red-500 @enderror">
-                            <option value="">-- Pilih Normal Balance --</option>
+                            <option value="">-- Pilih Saldo Normal --</option>
                             @foreach ($normalBalanceOptions as $option)
-                                <option value="{{ $option }}">{{ $option }}</option>
+                                <option value="{{ $option }}">{{ $option === 'Credit' ? 'Kredit' : $option }}</option>
                             @endforeach
                         </select>
                         @error('normal_balance')

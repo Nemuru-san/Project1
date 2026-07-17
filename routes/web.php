@@ -144,6 +144,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('pages.finance.transaction.apPayment');
     })->name('finance.transaction.ap-payment');
 
+    Route::get('finance/transaction/expense', function () {
+        return view('pages.finance.transaction.expense');
+    })->name('finance.transaction.expense');
+
     Route::get('finance/report/journal-entry', function () {
         return view('pages.finance.report.journalEntry');
     })->name('finance.report.journal-entry');

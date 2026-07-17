@@ -75,8 +75,8 @@ class User extends Component
         'password.required' => 'Password wajib diisi.',
         'password.min' => 'Password minimal 8 karakter.',
         'password.confirmed' => 'Konfirmasi password tidak sama.',
-        'role_id.required' => 'Role wajib dipilih.',
-        'role_id.exists' => 'Role tidak valid.',
+        'role_id.required' => 'Peran wajib dipilih.',
+        'role_id.exists' => 'Peran tidak valid.',
     ];
 
     public function updatingSearch(): void
@@ -140,11 +140,11 @@ class User extends Component
         if ($this->editingId) {
             ModelsUser::findOrFail($this->editingId)->update($data);
 
-            $this->dispatch('toast', message: 'User berhasil diperbarui.', type: 'success');
+            $this->dispatch('toast', message: 'Pengguna berhasil diperbarui.', type: 'success');
         } else {
             ModelsUser::create($data);
 
-            $this->dispatch('toast', message: 'User berhasil ditambahkan.', type: 'success');
+            $this->dispatch('toast', message: 'Pengguna berhasil ditambahkan.', type: 'success');
         }
 
         $this->showModal = false;
@@ -160,7 +160,7 @@ class User extends Component
         }
 
         if ($user->id === Auth::id()) {
-            $this->dispatch('toast', message: 'User yang sedang login tidak bisa dihapus.', type: 'error');
+            $this->dispatch('toast', message: 'Pengguna yang sedang masuk tidak dapat dihapus.', type: 'error');
 
             return;
         }
@@ -181,7 +181,7 @@ class User extends Component
             $this->showDeleteModal = false;
             $this->deleteTargetId = null;
 
-            $this->dispatch('toast', message: 'User yang sedang login tidak bisa dihapus.', type: 'error');
+            $this->dispatch('toast', message: 'Pengguna yang sedang masuk tidak dapat dihapus.', type: 'error');
 
             return;
         }
@@ -191,7 +191,7 @@ class User extends Component
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
 
-        $this->dispatch('toast', message: 'User berhasil dihapus.', type: 'success');
+        $this->dispatch('toast', message: 'Pengguna berhasil dihapus.', type: 'success');
     }
 
     private function resetForm(): void

@@ -151,8 +151,8 @@
             <div class="header">
                 <div>
                     Tanggal&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : {{ $transfer->date?->format('d-m-Y') }}<br>
-                    Warehouse From : {{ $transfer->warehouseFrom?->name ?? '-' }}<br>
-                    Warehouse To&nbsp;&nbsp; : {{ $transfer->warehouseTo?->name ?? '-' }}
+                    Gudang Asal&nbsp;&nbsp; : {{ $transfer->warehouseFrom?->name ?? '-' }}<br>
+                    Gudang Tujuan : {{ $transfer->warehouseTo?->name ?? '-' }}
                 </div>
 
                 <div>

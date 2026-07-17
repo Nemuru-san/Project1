@@ -115,7 +115,7 @@ class PurchaseInvoice extends Component
 
     protected $messages = [
         'date.required' => 'Tanggal invoice wajib diisi.',
-        'purchase_order_id.required' => 'Purchase Order wajib dipilih.',
+        'purchase_order_id.required' => 'Pesanan Pembelian wajib dipilih.',
         'supplier_id.required' => 'Supplier wajib dipilih.',
         'itemRows.required' => 'Detail produk wajib ada.',
         'itemRows.min' => 'Minimal harus ada 1 detail produk.',
@@ -405,7 +405,7 @@ class PurchaseInvoice extends Component
             ->exists();
 
         if (! $validPurchaseOrder) {
-            $this->addError('purchase_order_id', 'Purchase Order harus berstatus Approved, Received, atau Partially Received.');
+            $this->addError('purchase_order_id', 'Pesanan Pembelian harus berstatus Disetujui, Diterima, atau Diterima Sebagian.');
 
             return;
         }
@@ -414,7 +414,7 @@ class PurchaseInvoice extends Component
             $exists = ModelsPurchaseInvoice::where('purchase_order_id', $this->purchase_order_id)->exists();
 
             if ($exists) {
-                $this->addError('purchase_order_id', 'Purchase Order ini sudah punya Purchase Invoice.');
+                $this->addError('purchase_order_id', 'Pesanan Pembelian ini sudah memiliki Faktur Pembelian.');
 
                 return;
             }
@@ -483,7 +483,7 @@ class PurchaseInvoice extends Component
         $this->showModal = false;
         $this->resetForm();
 
-        $this->dispatch('toast', message: 'Purchase Invoice berhasil disimpan.', type: 'success');
+        $this->dispatch('toast', message: 'Faktur Pembelian berhasil disimpan.', type: 'success');
     }
 
     public function openDetail(int $id): void
@@ -553,7 +553,7 @@ class PurchaseInvoice extends Component
                 ])->find($this->selectedInvoice->id);
             }
 
-            $this->dispatch('toast', message: 'Purchase Invoice berhasil di-post dan journal entry berhasil dibuat.', type: 'success');
+            $this->dispatch('toast', message: 'Faktur Pembelian berhasil diposting dan entri jurnal berhasil dibuat.', type: 'success');
         } catch (\Throwable $e) {
             $this->showPostModal = false;
             $this->postTargetId = null;
@@ -607,7 +607,7 @@ class PurchaseInvoice extends Component
             'date' => $invoice->date,
             'source_type' => JournalEntry::SOURCE_PURCHASE_INVOICE,
             'source_id' => $invoice->id,
-            'description' => 'Purchase Invoice '.$invoice->code,
+            'description' => 'Faktur Pembelian '.$invoice->code,
             'status' => JournalEntry::STATUS_POSTED,
             'created_by' => Auth::id(),
         ]);
@@ -617,7 +617,7 @@ class PurchaseInvoice extends Component
                 'chart_of_account_id' => $inventoryAccountId,
                 'debit' => (int) $invoice->sub_total,
                 'credit' => 0,
-                'description' => 'Inventory dari Purchase Invoice '.$invoice->code,
+                'description' => 'Persediaan dari Faktur Pembelian '.$invoice->code,
             ]);
         }
 
@@ -626,7 +626,7 @@ class PurchaseInvoice extends Component
                 'chart_of_account_id' => $taxInAccountId,
                 'debit' => (int) $invoice->tax_amount,
                 'credit' => 0,
-                'description' => 'Tax In dari Purchase Invoice '.$invoice->code,
+                'description' => 'Pajak Masukan dari Faktur Pembelian '.$invoice->code,
             ]);
         }
 
@@ -731,7 +731,7 @@ class PurchaseInvoice extends Component
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
 
-        $this->dispatch('toast', message: 'Purchase Invoice berhasil dihapus.', type: 'success');
+        $this->dispatch('toast', message: 'Faktur Pembelian berhasil dihapus.', type: 'success');
     }
 
     private function generateCode(): string

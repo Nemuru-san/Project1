@@ -58,8 +58,8 @@ class BankAccount extends Component
 
     protected $messages = [
         'name.required' => 'Nama akun bank/cash wajib diisi.',
-        'chart_of_account_id.required' => 'Chart of Account wajib dipilih.',
-        'chart_of_account_id.exists' => 'Chart of Account tidak valid.',
+        'chart_of_account_id.required' => 'Akun wajib dipilih.',
+        'chart_of_account_id.exists' => 'Akun tidak valid.',
     ];
 
     public function updatingSearch(): void
@@ -135,11 +135,11 @@ class BankAccount extends Component
         if ($this->bankAccountId) {
             ModelsBankAccount::findOrFail($this->bankAccountId)->update($data);
 
-            $this->dispatch('toast', message: 'Bank account berhasil diperbarui.', type: 'success');
+            $this->dispatch('toast', message: 'Rekening bank berhasil diperbarui.', type: 'success');
         } else {
             ModelsBankAccount::create($data);
 
-            $this->dispatch('toast', message: 'Bank account berhasil ditambahkan.', type: 'success');
+            $this->dispatch('toast', message: 'Rekening bank berhasil ditambahkan.', type: 'success');
         }
 
         $this->showModal = false;
@@ -170,7 +170,7 @@ class BankAccount extends Component
             $this->showDeleteModal = false;
             $this->deleteTargetId = null;
 
-            $this->dispatch('toast', message: 'Bank account tidak bisa dihapus karena sudah dipakai AP Payment.', type: 'error');
+            $this->dispatch('toast', message: 'Rekening bank tidak dapat dihapus karena sudah dipakai pembayaran utang.', type: 'error');
 
             return;
         }
@@ -180,7 +180,7 @@ class BankAccount extends Component
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
 
-        $this->dispatch('toast', message: 'Bank account berhasil dihapus.', type: 'success');
+        $this->dispatch('toast', message: 'Rekening bank berhasil dihapus.', type: 'success');
     }
 
     private function resetForm(): void

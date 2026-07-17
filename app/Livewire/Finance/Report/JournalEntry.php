@@ -169,11 +169,16 @@ class JournalEntry extends Component
 
         return view('livewire.finance.report.journal-entry', [
             'journals' => $journals,
-            'statusOptions' => ModelsJournalEntry::statusOptions(),
+            'statusOptions' => [
+                ModelsJournalEntry::STATUS_DRAFT => 'Draf',
+                ModelsJournalEntry::STATUS_POSTED => 'Diposting',
+                ModelsJournalEntry::STATUS_CANCELLED => 'Dibatalkan',
+            ],
             'sourceOptions' => [
-                ModelsJournalEntry::SOURCE_PURCHASE_INVOICE,
-                ModelsJournalEntry::SOURCE_AP_PAYMENT,
-                ModelsJournalEntry::SOURCE_MANUAL_JOURNAL,
+                ModelsJournalEntry::SOURCE_PURCHASE_INVOICE => 'Faktur Pembelian',
+                ModelsJournalEntry::SOURCE_AP_PAYMENT => 'Pembayaran Utang',
+                ModelsJournalEntry::SOURCE_EXPENSE => 'Pengeluaran',
+                ModelsJournalEntry::SOURCE_MANUAL_JOURNAL => 'Jurnal Manual',
             ],
         ]);
     }

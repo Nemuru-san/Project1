@@ -95,7 +95,7 @@ class GoodsReceive extends Component
         'purchase_order_id.required' => 'PO wajib dipilih.',
         'supplier_id.required' => 'Supplier wajib dipilih.',
         'items.required' => 'Detail item tidak boleh kosong.',
-        'items.*.warehouse_id.required' => 'Warehouse wajib dipilih.',
+        'items.*.warehouse_id.required' => 'Gudang wajib dipilih.',
         'items.*.qty_received.min' => 'Qty received tidak boleh minus.',
     ];
 
@@ -502,7 +502,7 @@ class GoodsReceive extends Component
 
         if ($this->selectedStatus === GoodsReceiveModel::STATUS_CANCELLED) {
             if ($goodsReceive->purchaseInvoices()->exists()) {
-                $this->addError('selectedStatus', 'Goods Receive tidak bisa di-cancel karena sudah memiliki Purchase Invoice.');
+                $this->addError('selectedStatus', 'Penerimaan Barang tidak dapat dibatalkan karena sudah memiliki Faktur Pembelian.');
 
                 return;
             }
@@ -513,7 +513,7 @@ class GoodsReceive extends Component
             $this->selectedStatus === GoodsReceiveModel::STATUS_DRAFT
         ) {
             if ($goodsReceive->purchaseInvoices()->exists()) {
-                $this->addError('selectedStatus', 'Goods Receive tidak bisa dikembalikan ke Draft karena sudah memiliki Purchase Invoice.');
+                $this->addError('selectedStatus', 'Penerimaan Barang tidak dapat dikembalikan ke Draf karena sudah memiliki Faktur Pembelian.');
 
                 return;
             }

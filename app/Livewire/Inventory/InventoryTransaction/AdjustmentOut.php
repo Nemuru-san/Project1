@@ -121,7 +121,7 @@ class AdjustmentOut extends Component
             ->findOrFail($id);
 
         if ($adjustment->status !== 'draft') {
-            $this->dispatch('toast', message: 'Adjustment yang sudah approved tidak bisa diedit.', type: 'error');
+            $this->dispatch('toast', message: 'Penyesuaian yang sudah disetujui tidak dapat diubah.', type: 'error');
 
             return;
         }
@@ -295,7 +295,7 @@ class AdjustmentOut extends Component
 
         $this->resetForm();
 
-        $this->dispatch('toast', message: 'Adjustment Out berhasil disimpan.', type: 'success');
+        $this->dispatch('toast', message: 'Penyesuaian stok keluar berhasil disimpan.', type: 'success');
     }
 
     public function confirmApprove(int $id): void
@@ -349,7 +349,7 @@ class AdjustmentOut extends Component
             $this->showApproveModal = false;
             $this->approveTargetId = null;
 
-            $this->dispatch('toast', message: 'Adjustment Out berhasil di-approve.', type: 'success');
+            $this->dispatch('toast', message: 'Penyesuaian stok keluar berhasil disetujui.', type: 'success');
         } catch (\Throwable $e) {
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         }
@@ -370,7 +370,7 @@ class AdjustmentOut extends Component
         $adjustment = StockAdjustment::where('type', 'out')->findOrFail($this->deleteTargetId);
 
         if ($adjustment->status !== 'draft') {
-            $this->dispatch('toast', message: 'Adjustment approved tidak bisa dihapus.', type: 'error');
+            $this->dispatch('toast', message: 'Penyesuaian yang sudah disetujui tidak dapat dihapus.', type: 'error');
 
             return;
         }
@@ -380,7 +380,7 @@ class AdjustmentOut extends Component
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
 
-        $this->dispatch('toast', message: 'Adjustment Out berhasil dihapus.', type: 'success');
+        $this->dispatch('toast', message: 'Penyesuaian stok keluar berhasil dihapus.', type: 'success');
     }
 
     public function openDetail(int $id): void

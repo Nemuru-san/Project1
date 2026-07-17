@@ -1,10 +1,10 @@
-<x-layouts::app :title="__('AP Payment')">
+<x-layouts::app :title="__('Pembayaran Utang')">
 
     <div class="flex flex-col items-center justify-between min-h-full gap-6 w-full">
         <div class="flex flex-col gap-6 w-full">
 
             {{-- header --}}
-            <x-layouts::page-header :title="__('AP Payment')"
+            <x-layouts::page-header :title="__('Pembayaran Utang')"
                 description="Kelola data supplier secara terpusat untuk mendukung proses operasional dan pencatatan yang rapi.">
                 <x-slot:breadcrumbs>
                     <li class="inline-flex items-center">

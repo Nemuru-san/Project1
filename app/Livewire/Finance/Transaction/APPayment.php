@@ -393,7 +393,7 @@ class APPayment extends Component
         $this->showModal = false;
         $this->resetForm();
 
-        $this->dispatch('toast', message: 'AP Payment berhasil disimpan.', type: 'success');
+        $this->dispatch('toast', message: 'Pembayaran utang berhasil disimpan.', type: 'success');
     }
 
     public function confirmPost(int $id): void
@@ -451,11 +451,11 @@ class APPayment extends Component
                 }
 
                 if (! $payment->bankAccount) {
-                    throw new \Exception('Bank account tidak ditemukan.');
+                    throw new \Exception('Rekening bank tidak ditemukan.');
                 }
 
                 if (! $payment->bankAccount->chart_of_account_id) {
-                    throw new \Exception('Bank account belum terhubung ke Chart of Account.');
+                    throw new \Exception('Rekening bank belum terhubung ke daftar akun.');
                 }
 
                 foreach ($payment->details as $detail) {
@@ -524,7 +524,7 @@ class APPayment extends Component
                 ])->find($this->selectedPayment->id);
             }
 
-            $this->dispatch('toast', message: 'AP Payment berhasil di-post dan journal entry berhasil dibuat.', type: 'success');
+            $this->dispatch('toast', message: 'Pembayaran utang berhasil diposting dan entri jurnal berhasil dibuat.', type: 'success');
         } catch (\Throwable $e) {
             $this->showPostModal = false;
             $this->postTargetId = null;
@@ -551,7 +551,7 @@ class APPayment extends Component
             'date' => $payment->payment_date,
             'source_type' => JournalEntry::SOURCE_AP_PAYMENT,
             'source_id' => $payment->id,
-            'description' => 'AP Payment '.$payment->code,
+            'description' => 'Pembayaran Utang '.$payment->code,
             'status' => JournalEntry::STATUS_POSTED,
             'created_by' => Auth::id(),
         ]);
@@ -640,7 +640,7 @@ class APPayment extends Component
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
 
-        $this->dispatch('toast', message: 'AP Payment berhasil dihapus.', type: 'success');
+        $this->dispatch('toast', message: 'Pembayaran utang berhasil dihapus.', type: 'success');
     }
 
     public function resetForm(): void

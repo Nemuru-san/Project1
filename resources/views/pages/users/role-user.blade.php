@@ -1,10 +1,10 @@
-<x-layouts::app :title="__('Role User')">
+<x-layouts::app :title="__('Peran Pengguna')">
 
     <div class="flex flex-col items-center justify-between min-h-full gap-6 w-full">
         <div class="flex flex-col gap-6 w-full">
 
             {{-- header --}}
-            <x-layouts::page-header :title="__('Role User')" description="
+            <x-layouts::page-header :title="__('Peran Pengguna')" description="
                 Kelola data Peran untuk user">
                 <x-slot:breadcrumbs>
                     <li class="inline-flex items-center">

@@ -97,12 +97,12 @@ class CustomerMaster extends Component
     }
 
     protected array $messages = [
-        'name.required' => 'Nama customer wajib diisi.',
-        'email.email' => 'Format email customer tidak valid.',
-        'pics.required' => 'Minimal satu PIC wajib diisi.',
-        'pics.min' => 'Minimal satu PIC wajib diisi.',
-        'pics.*.name.required' => 'Nama PIC wajib diisi.',
-        'pics.*.email.email' => 'Format email PIC tidak valid.',
+        'name.required' => 'Nama pelanggan wajib diisi.',
+        'email.email' => 'Format email pelanggan tidak valid.',
+        'pics.required' => 'Minimal satu kontak wajib diisi.',
+        'pics.min' => 'Minimal satu kontak wajib diisi.',
+        'pics.*.name.required' => 'Nama kontak wajib diisi.',
+        'pics.*.email.email' => 'Format email kontak tidak valid.',
         'addresses.required' => 'Minimal satu alamat wajib diisi.',
         'addresses.min' => 'Minimal satu alamat wajib diisi.',
         'addresses.*.address_type.required' => 'Tipe alamat wajib dipilih.',
@@ -268,8 +268,8 @@ class CustomerMaster extends Component
         });
 
         $message = $this->editingId
-            ? 'Customer berhasil diperbarui.'
-            : 'Customer berhasil ditambahkan.';
+            ? 'Pelanggan berhasil diperbarui.'
+            : 'Pelanggan berhasil ditambahkan.';
 
         $this->showModal = false;
         $this->resetForm();
@@ -328,7 +328,7 @@ class CustomerMaster extends Component
     {
         if ($this->deleteTargetId) {
             Customer::findOrFail($this->deleteTargetId)->delete();
-            $this->dispatch('toast', message: 'Customer berhasil dihapus.', type: 'success');
+            $this->dispatch('toast', message: 'Pelanggan berhasil dihapus.', type: 'success');
         }
 
         $this->showDeleteModal = false;
@@ -338,7 +338,7 @@ class CustomerMaster extends Component
     public function restore(int $id): void
     {
         Customer::onlyTrashed()->findOrFail($id)->restore();
-        $this->dispatch('toast', message: 'Customer berhasil dipulihkan.', type: 'success');
+        $this->dispatch('toast', message: 'Pelanggan berhasil dipulihkan.', type: 'success');
     }
 
     private function syncPics(Customer $customer, array $rows): void
@@ -395,7 +395,7 @@ class CustomerMaster extends Component
         }
 
         if (collect($this->pics)->where('is_primary', true)->count() > 1) {
-            throw ValidationException::withMessages(['pics' => 'Hanya satu PIC yang dapat dijadikan utama.']);
+            throw ValidationException::withMessages(['pics' => 'Hanya satu kontak yang dapat dijadikan utama.']);
         }
 
         if (collect($this->addresses)->where('is_primary', true)->count() > 1) {

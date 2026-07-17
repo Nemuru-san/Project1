@@ -124,11 +124,11 @@ class Warehouse extends Component
         if ($this->editingId) {
             WarehouseModel::findOrFail($this->editingId)->update($validated);
 
-            $this->dispatch('toast', message: 'Warehouse berhasil diperbarui.', type: 'success');
+            $this->dispatch('toast', message: 'Gudang berhasil diperbarui.', type: 'success');
         } else {
             WarehouseModel::create($validated);
 
-            $this->dispatch('toast', message: 'Warehouse berhasil ditambahkan.', type: 'success');
+            $this->dispatch('toast', message: 'Gudang berhasil ditambahkan.', type: 'success');
         }
 
         $this->showModal = false;
@@ -146,7 +146,7 @@ class Warehouse extends Component
         if ($this->deleteTargetId) {
             WarehouseModel::findOrFail($this->deleteTargetId)->delete();
 
-            $this->dispatch('toast', message: 'Warehouse berhasil dihapus.', type: 'success');
+            $this->dispatch('toast', message: 'Gudang berhasil dihapus.', type: 'success');
         }
 
         $this->showDeleteModal = false;

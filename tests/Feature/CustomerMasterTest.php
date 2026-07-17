@@ -76,11 +76,14 @@ it('opens the create customer modal from the add customer action', function () {
         ->assertSet('showModal', false)
         ->call('openCreate')
         ->assertSet('showModal', true)
-        ->assertSee('Tambah Customer')
+        ->assertSee('Tambah Pelanggan')
         ->assertSeeHtml('data-testid="customer-modal-scroll-container"')
         ->assertSeeHtml('h-[80vh]')
         ->assertSeeHtml('items-start')
-        ->assertSeeHtml('overflow-y-auto');
+        ->assertSeeHtml('overflow-y-auto')
+        ->assertDontSeeHtml('wire:model="email"')
+        ->assertDontSeeHtml('wire:model="tax_number"')
+        ->assertDontSeeHtml('wire:model="pics.0.email"');
 });
 
 it('creates a customer with multiple pics and addresses in one form', function () {
@@ -236,7 +239,7 @@ it('shows customer detail from the action menu', function () {
         ->call('openDetail', $customer->id)
         ->assertSet('showDetailModal', true)
         ->assertSet('detailCustomer.name', 'PT Detail Customer')
-        ->assertSee('Detail Customer')
+        ->assertSee('Rincian Pelanggan')
         ->assertSee('PIC Detail')
         ->assertSee('Gudang Detail')
         ->assertSee('Jl. Detail No. 1');

@@ -7,9 +7,7 @@
         <span x-text="toastMsg"></span>
     </div>
 
-    <div class="my-4 flex flex-col items-center justify-between gap-3 md:flex-row dark:bg-zinc-900">
-        <p class="text-base font-semibold dark:text-white">Data Customer</p>
-
+    <div class="my-4 flex flex-col items-center gap-3 md:flex-row dark:bg-zinc-900">
         <div class="flex w-full flex-col items-center gap-3 sm:flex-row md:w-auto">
             <div class="relative w-full sm:w-72">
                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -42,7 +40,7 @@
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                Tambah Customer
+                Tambah Pelanggan
             </button>
         </div>
     </div>
@@ -52,9 +50,9 @@
             <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-zinc-800 dark:text-gray-200">
                 <tr>
                     <th class="cursor-pointer px-4 py-3" wire:click="sortBy('code')">Kode</th>
-                    <th class="cursor-pointer px-4 py-3" wire:click="sortBy('name')">Customer</th>
-                    <th class="px-4 py-3">Kontak</th>
-                    <th class="px-4 py-3 text-center">PIC</th>
+                    <th class="cursor-pointer px-4 py-3" wire:click="sortBy('name')">Pelanggan</th>
+                    <th class="px-4 py-3">Telepon & Email</th>
+                    <th class="px-4 py-3 text-center">Kontak</th>
                     <th class="px-4 py-3 text-center">Alamat</th>
                     <th class="cursor-pointer px-4 py-3 text-center" wire:click="sortBy('is_active')">Status</th>
                     <th class="px-4 py-3 text-right">Aksi</th>
@@ -114,7 +112,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                 </svg>
-                                                Detail
+                                                Rincian
                                             </button>
                                         </li>
                                         @unless ($customer->trashed())
@@ -155,7 +153,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-10 text-center text-gray-500">Belum ada data customer.</td>
+                        <td colspan="7" class="px-4 py-10 text-center text-gray-500">Belum ada data pelanggan.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -168,7 +166,7 @@
         <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm">
             <div class="mx-auto flex h-[80vh] max-h-[calc(100dvh-2rem)] w-full max-w-full flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-800">
                 <div class="flex shrink-0 items-center justify-between border-b border-gray-200 bg-zinc-50 px-8 py-6 dark:border-zinc-700 dark:bg-zinc-900">
-                    <h3 class="text-lg font-semibold dark:text-white">{{ $editingId ? 'Edit Customer' : 'Tambah Customer' }}</h3>
+                    <h3 class="text-lg font-semibold dark:text-white">{{ $editingId ? 'Ubah Pelanggan' : 'Tambah Pelanggan' }}</h3>
                     <button type="button" wire:click="$set('showModal', false)" class="cursor-pointer text-gray-500 hover:text-gray-800 dark:hover:text-white">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -176,11 +174,11 @@
                     </button>
                 </div>
 
-                <div class="min-h-0 flex-1 touch-pan-y space-y-6 overflow-y-auto px-8 py-6"
+                <div class="min-h-0 flex-1 touch-pan-y space-y-5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6"
                     data-testid="customer-modal-scroll-container"
                     style="overscroll-behavior: contain; scrollbar-gutter: stable; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
                     <section class="rounded-xl border border-gray-200 p-4 dark:border-zinc-700">
-                        <h4 class="mb-4 font-semibold text-gray-900 dark:text-white">Data Customer</h4>
+                        <h4 class="mb-4 font-semibold text-gray-900 dark:text-white">Data Pelanggan</h4>
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                             <div>
                                 <label class="mb-1 block text-sm font-medium dark:text-white">Kode</label>
@@ -188,7 +186,7 @@
                                     class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm text-gray-500 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-400">
                             </div>
                             <div class="lg:col-span-2">
-                                <label class="mb-1 block text-sm font-medium dark:text-white">Nama Customer <span class="text-red-500">*</span></label>
+                                <label class="mb-1 block text-sm font-medium dark:text-white">Nama Pelanggan <span class="text-red-500">*</span></label>
                                 <input wire:model="name" type="text" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white" placeholder="PT Contoh Indonesia">
                                 @error('name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                             </div>
@@ -197,35 +195,25 @@
                                 <input wire:model="phone" type="text" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
                                 @error('phone') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                             </div>
-                            <div>
-                                <label class="mb-1 block text-sm font-medium dark:text-white">Email</label>
-                                <input wire:model="email" type="email" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
-                                @error('email') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                            </div>
-                            <div>
-                                <label class="mb-1 block text-sm font-medium dark:text-white">NPWP</label>
-                                <input wire:model="tax_number" type="text" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
-                                @error('tax_number') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                            </div>
-                            <div class="md:col-span-2 lg:col-span-3">
+                            <div class="md:col-span-2 lg:col-span-2">
                                 <label class="mb-1 block text-sm font-medium dark:text-white">Catatan</label>
                                 <textarea wire:model="notes" rows="2" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white"></textarea>
                                 @error('notes') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                             </div>
-                            <label class="flex cursor-pointer items-center gap-2 text-sm dark:text-gray-300">
+                            <label class="flex cursor-pointer items-center gap-2 text-sm md:col-span-2 lg:col-span-3 dark:text-gray-300">
                                 <input wire:model="is_active" type="checkbox" class="h-4 w-4 rounded text-blue-600">
-                                Customer aktif
+                                Pelanggan aktif
                             </label>
                         </div>
                     </section>
 
                     <section class="rounded-xl border border-gray-200 p-4 dark:border-zinc-700">
-                        <div class="mb-4 flex items-center justify-between">
+                        <div class="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <h4 class="font-semibold text-gray-900 dark:text-white">PIC Customer</h4>
+                                <h4 class="font-semibold text-gray-900 dark:text-white">Kontak Pelanggan</h4>
                                 <p class="text-sm text-gray-500">Tambahkan satu atau lebih orang yang dapat dihubungi.</p>
                             </div>
-                            <button type="button" wire:click="addPic" class="cursor-pointer rounded-lg bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700">+ Tambah PIC</button>
+                            <button type="button" wire:click="addPic" class="w-full cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm text-white hover:bg-blue-700 sm:w-auto">+ Tambah Kontak</button>
                         </div>
                         @error('pics') <p class="mb-3 text-xs text-red-500">{{ $message }}</p> @enderror
 
@@ -235,12 +223,12 @@
                                     <div class="mb-3 flex items-center justify-between">
                                         <label class="flex cursor-pointer items-center gap-2 text-sm font-medium dark:text-white">
                                             <input type="radio" name="primary_pic" wire:click="setPrimaryPic({{ $index }})" @checked($pic['is_primary'])>
-                                            PIC Utama
+                                            Kontak Utama
                                         </label>
                                         <button type="button" wire:click="removePic({{ $index }})" @disabled(count($pics) === 1)
-                                            class="cursor-pointer text-sm text-red-600 hover:underline disabled:cursor-not-allowed disabled:opacity-40">Hapus PIC</button>
+                                            class="cursor-pointer text-sm text-red-600 hover:underline disabled:cursor-not-allowed disabled:opacity-40">Hapus Kontak</button>
                                     </div>
-                                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+                                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                                         <div>
                                             <label class="mb-1 block text-xs dark:text-gray-300">Nama <span class="text-red-500">*</span></label>
                                             <input wire:model="pics.{{ $index }}.name" type="text" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
@@ -256,11 +244,6 @@
                                             <input wire:model="pics.{{ $index }}.phone" type="text" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
                                             @error("pics.$index.phone") <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                                         </div>
-                                        <div>
-                                            <label class="mb-1 block text-xs dark:text-gray-300">Email</label>
-                                            <input wire:model="pics.{{ $index }}.email" type="email" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
-                                            @error("pics.$index.email") <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                                        </div>
                                     </div>
                                 </div>
                             @endforeach
@@ -268,12 +251,12 @@
                     </section>
 
                     <section class="rounded-xl border border-gray-200 p-4 dark:border-zinc-700">
-                        <div class="mb-4 flex items-center justify-between">
+                        <div class="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <h4 class="font-semibold text-gray-900 dark:text-white">Alamat Customer</h4>
+                                <h4 class="font-semibold text-gray-900 dark:text-white">Alamat Pelanggan</h4>
                                 <p class="text-sm text-gray-500">Tambahkan alamat penagihan dan/atau pengiriman.</p>
                             </div>
-                            <button type="button" wire:click="addAddress" class="cursor-pointer rounded-lg bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700">+ Tambah Alamat</button>
+                            <button type="button" wire:click="addAddress" class="w-full cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm text-white hover:bg-blue-700 sm:w-auto">+ Tambah Alamat</button>
                         </div>
                         @error('addresses') <p class="mb-3 text-xs text-red-500">{{ $message }}</p> @enderror
 
@@ -341,11 +324,11 @@
                     </section>
                 </div>
 
-                <div class="flex shrink-0 justify-end gap-2 border-t border-gray-200 bg-white px-8 py-5 dark:border-zinc-700 dark:bg-zinc-900">
-                    <button type="button" wire:click="$set('showModal', false)" class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2 text-sm dark:border-gray-600 dark:text-gray-200">Batal</button>
+                <div class="flex shrink-0 justify-end gap-2 border-t border-gray-200 bg-white px-4 py-4 sm:px-6 lg:px-8 dark:border-zinc-700 dark:bg-zinc-900">
+                    <button type="button" wire:click="$set('showModal', false)" class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2.5 text-sm dark:border-gray-600 dark:text-gray-200">Batal</button>
                     <button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save"
-                        class="cursor-pointer rounded-lg bg-blue-600 px-5 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50">
-                        <span wire:loading.remove wire:target="save">Simpan Customer</span>
+                        class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm text-white hover:bg-blue-700 disabled:opacity-50">
+                        <span wire:loading.remove wire:target="save">Simpan Pelanggan</span>
                         <span wire:loading wire:target="save">Menyimpan...</span>
                     </button>
                 </div>
@@ -358,7 +341,7 @@
             <div class="flex max-h-[min(80vh,calc(100dvh-2rem))] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-800">
                 <div class="flex shrink-0 items-center justify-between border-b border-gray-200 bg-zinc-50 px-6 py-4 dark:border-zinc-700 dark:bg-zinc-900">
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Detail Customer</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Rincian Pelanggan</h3>
                         <p class="font-mono text-sm text-gray-500">{{ $detailCustomer['code'] }}</p>
                     </div>
                     <button type="button" wire:click="$set('showDetailModal', false)"
@@ -408,7 +391,7 @@
                     </section>
 
                     <section>
-                        <h4 class="mb-3 font-semibold text-gray-900 dark:text-white">PIC Customer</h4>
+                        <h4 class="mb-3 font-semibold text-gray-900 dark:text-white">Kontak Pelanggan</h4>
                         <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                             @forelse ($detailCustomer['pics'] as $pic)
                                 <div class="rounded-xl border border-gray-200 p-4 dark:border-zinc-700 dark:bg-zinc-700/40">
@@ -425,13 +408,13 @@
                                     <p class="text-sm text-gray-600 dark:text-gray-300">{{ $pic['email'] ?: '-' }}</p>
                                 </div>
                             @empty
-                                <p class="text-sm text-gray-500">Belum ada PIC.</p>
+                                <p class="text-sm text-gray-500">Belum ada kontak.</p>
                             @endforelse
                         </div>
                     </section>
 
                     <section>
-                        <h4 class="mb-3 font-semibold text-gray-900 dark:text-white">Alamat Customer</h4>
+                        <h4 class="mb-3 font-semibold text-gray-900 dark:text-white">Alamat Pelanggan</h4>
                         <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                             @forelse ($detailCustomer['addresses'] as $address)
                                 <div class="rounded-xl border border-gray-200 p-4 dark:border-zinc-700 dark:bg-zinc-700/40">
@@ -472,8 +455,8 @@
     @if ($showDeleteModal)
         <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
             <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900">
-                <h3 class="mb-2 text-lg font-semibold dark:text-white">Hapus Customer</h3>
-                <p class="mb-6 text-sm text-gray-500">Customer akan dinonaktifkan dengan soft delete dan dapat dipulihkan kembali.</p>
+                <h3 class="mb-2 text-lg font-semibold dark:text-white">Hapus Pelanggan</h3>
+                <p class="mb-6 text-sm text-gray-500">Pelanggan akan dinonaktifkan dan dapat dipulihkan kembali.</p>
                 <div class="flex justify-end gap-2">
                     <button type="button" wire:click="$set('showDeleteModal', false)" class="cursor-pointer rounded-lg border px-4 py-2 text-sm dark:border-gray-600 dark:text-white">Batal</button>
                     <button type="button" wire:click="delete" wire:loading.attr="disabled" class="cursor-pointer rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50">Hapus</button>

@@ -54,6 +54,15 @@ class ChartOfAccount extends Component
         'COGS',
     ];
 
+    public array $typeLabels = [
+        'Asset' => 'Aset',
+        'Liability' => 'Liabilitas',
+        'Equity' => 'Ekuitas',
+        'Revenue' => 'Pendapatan',
+        'Expense' => 'Biaya',
+        'COGS' => 'Harga Pokok Penjualan',
+    ];
+
     public array $normalBalanceOptions = [
         'Debit',
         'Credit',
@@ -78,8 +87,8 @@ class ChartOfAccount extends Component
         'name.required' => 'Nama akun wajib diisi.',
         'type.required' => 'Tipe akun wajib dipilih.',
         'type.in' => 'Tipe akun tidak valid.',
-        'normal_balance.required' => 'Normal balance wajib dipilih.',
-        'normal_balance.in' => 'Normal balance tidak valid.',
+        'normal_balance.required' => 'Saldo normal wajib dipilih.',
+        'normal_balance.in' => 'Saldo normal tidak valid.',
         'parent_id.exists' => 'Parent account tidak valid.',
     ];
 
@@ -162,11 +171,11 @@ class ChartOfAccount extends Component
         if ($this->accountId) {
             ModelsChartOfAccount::findOrFail($this->accountId)->update($data);
 
-            $this->dispatch('toast', message: 'Chart of account berhasil diperbarui.', type: 'success');
+            $this->dispatch('toast', message: 'Akun berhasil diperbarui.', type: 'success');
         } else {
             ModelsChartOfAccount::create($data);
 
-            $this->dispatch('toast', message: 'Chart of account berhasil ditambahkan.', type: 'success');
+            $this->dispatch('toast', message: 'Akun berhasil ditambahkan.', type: 'success');
         }
 
         $this->showModal = false;
@@ -231,7 +240,7 @@ class ChartOfAccount extends Component
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
 
-        $this->dispatch('toast', message: 'Chart of account berhasil dihapus.', type: 'success');
+        $this->dispatch('toast', message: 'Akun berhasil dihapus.', type: 'success');
     }
 
     private function resetForm(): void

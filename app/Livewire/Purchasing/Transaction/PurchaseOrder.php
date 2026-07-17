@@ -399,19 +399,19 @@ class PurchaseOrder extends Component
         $purchaseOrder = PurchaseOrderModel::with('items')->findOrFail($id);
 
         if ($purchaseOrder->status !== PurchaseOrderModel::STATUS_DRAFT) {
-            $this->dispatch('toast', message: 'Hanya Purchase Order Draft yang bisa di-approve.', type: 'error');
+            $this->dispatch('toast', message: 'Hanya Pesanan Pembelian berstatus Draf yang dapat disetujui.', type: 'error');
 
             return;
         }
 
         if ($purchaseOrder->items->isEmpty()) {
-            $this->dispatch('toast', message: 'Purchase Order tidak bisa di-approve karena item masih kosong.', type: 'error');
+            $this->dispatch('toast', message: 'Pesanan Pembelian tidak dapat disetujui karena rincian masih kosong.', type: 'error');
 
             return;
         }
 
         if ((int) $purchaseOrder->nett <= 0) {
-            $this->dispatch('toast', message: 'Purchase Order tidak bisa di-approve karena nett masih 0.', type: 'error');
+            $this->dispatch('toast', message: 'Pesanan Pembelian tidak dapat disetujui karena nilai bersih masih 0.', type: 'error');
 
             return;
         }
@@ -438,7 +438,7 @@ class PurchaseOrder extends Component
             $this->showApproveModal = false;
             $this->approveTargetId = null;
 
-            $this->dispatch('toast', message: 'Hanya Purchase Order Draft yang bisa di-approve.', type: 'error');
+            $this->dispatch('toast', message: 'Hanya Pesanan Pembelian berstatus Draf yang dapat disetujui.', type: 'error');
 
             return;
         }
@@ -447,7 +447,7 @@ class PurchaseOrder extends Component
             $this->showApproveModal = false;
             $this->approveTargetId = null;
 
-            $this->dispatch('toast', message: 'Purchase Order tidak bisa di-approve karena item masih kosong.', type: 'error');
+            $this->dispatch('toast', message: 'Pesanan Pembelian tidak dapat disetujui karena rincian masih kosong.', type: 'error');
 
             return;
         }
@@ -456,7 +456,7 @@ class PurchaseOrder extends Component
             $this->showApproveModal = false;
             $this->approveTargetId = null;
 
-            $this->dispatch('toast', message: 'Purchase Order tidak bisa di-approve karena nett masih 0.', type: 'error');
+            $this->dispatch('toast', message: 'Pesanan Pembelian tidak dapat disetujui karena nilai bersih masih 0.', type: 'error');
 
             return;
         }
@@ -468,7 +468,7 @@ class PurchaseOrder extends Component
         $this->showApproveModal = false;
         $this->approveTargetId = null;
 
-        $this->dispatch('toast', message: 'Purchase Order berhasil di-approve.', type: 'success');
+        $this->dispatch('toast', message: 'Pesanan Pembelian berhasil disetujui.', type: 'success');
     }
 
     public function openEdit(int $id): void
@@ -573,7 +573,7 @@ class PurchaseOrder extends Component
                     });
 
                     if ($alreadyUsed) {
-                        throw new \Exception('PO sudah dipakai di Good Receive / Purchase Invoice, item tidak boleh diubah.');
+                        throw new \Exception('Pesanan Pembelian sudah dipakai di Penerimaan Barang/Faktur Pembelian sehingga rincian tidak dapat diubah.');
                     }
 
                     $po->update($data);
@@ -696,7 +696,7 @@ class PurchaseOrder extends Component
             }
 
             if ($purchaseOrder->purchaseInvoices()->exists()) {
-                $this->addError('selectedStatus', 'PO tidak bisa dikembalikan ke Draft karena sudah memiliki Purchase Invoice.');
+                $this->addError('selectedStatus', 'Pesanan Pembelian tidak dapat dikembalikan ke Draf karena sudah memiliki Faktur Pembelian.');
 
                 return;
             }
@@ -735,7 +735,7 @@ class PurchaseOrder extends Component
         $this->selectedPO = null;
         $this->selectedStatus = '';
 
-        $this->dispatch('toast', message: 'Status Purchase Order berhasil diubah.', type: 'success');
+        $this->dispatch('toast', message: 'Status Pesanan Pembelian berhasil diubah.', type: 'success');
     }
 
     public function confirmDelete(int $id): void
@@ -761,7 +761,7 @@ class PurchaseOrder extends Component
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
 
-        $this->dispatch('toast', message: 'Purchase Order dihapus.', type: 'success');
+        $this->dispatch('toast', message: 'Pesanan Pembelian berhasil dihapus.', type: 'success');
     }
 
     public function print(int $id)

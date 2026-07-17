@@ -24,22 +24,22 @@
 
                 <input wire:model.live.debounce.300ms="search" type="text"
                     class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2.5 placeholder-gray-400"
-                    placeholder="Cari kode, source, deskripsi..." />
+                    placeholder="Cari kode, sumber, deskripsi..." />
             </div>
 
             <select wire:model.live="statusFilter"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
                 <option value="">Semua Status</option>
-                @foreach ($statusOptions as $status)
-                    <option value="{{ $status }}">{{ $status }}</option>
+                @foreach ($statusOptions as $status => $label)
+                    <option value="{{ $status }}">{{ $label }}</option>
                 @endforeach
             </select>
 
             <select wire:model.live="sourceFilter"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
                 <option value="">Semua Sumber</option>
-                @foreach ($sourceOptions as $source)
-                    <option value="{{ $source }}">{{ $source }}</option>
+                @foreach ($sourceOptions as $source => $label)
+                    <option value="{{ $source }}">{{ $label }}</option>
                 @endforeach
             </select>
 
@@ -104,7 +104,7 @@
 
                         <td class="px-4 py-4">
                             <div class="font-medium text-gray-900 dark:text-white">
-                                {{ $journal->source_type ?: '-' }}
+                                {{ $sourceOptions[$journal->source_type] ?? ($journal->source_type ?: '-') }}
                             </div>
                             <div class="text-xs text-gray-400">
                                 ID: {{ $journal->source_id ?: '-' }}
@@ -266,7 +266,7 @@
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-400">Jenis Sumber</span>
                                 <span class="text-gray-800 dark:text-white">
-                                    {{ $selectedJournal->source_type ?: '-' }}
+                                    {{ $sourceOptions[$selectedJournal->source_type] ?? ($selectedJournal->source_type ?: '-') }}
                                 </span>
                             </div>
 
@@ -292,7 +292,7 @@
                                     @endphp
 
                                     <span class="text-sm px-2.5 py-0.5 rounded {{ $statusClass }}">
-                                        {{ $selectedJournal->status }}
+                                        {{ $statusOptions[$selectedJournal->status] ?? $selectedJournal->status }}
                                     </span>
                                 </span>
                             </div>

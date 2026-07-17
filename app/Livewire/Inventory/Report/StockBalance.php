@@ -153,7 +153,7 @@ class StockBalance extends Component
         $this->stockBookings = [
             [
                 'so_code' => 'SO/060626/0001',
-                'customer_name' => 'Customer A',
+                'customer_name' => 'Pelanggan A',
                 'date' => '06/06/2026',
                 'qty_order' => 100,
                 'qty_booking' => 50,
@@ -161,7 +161,7 @@ class StockBalance extends Component
             ],
             [
                 'so_code' => 'SO/060626/0002',
-                'customer_name' => 'Customer B',
+                'customer_name' => 'Pelanggan B',
                 'date' => '06/06/2026',
                 'qty_order' => 200,
                 'qty_booking' => 120,
