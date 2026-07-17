@@ -257,9 +257,9 @@
 
     {{-- CREATE / EDIT MODAL --}}
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-full mx-auto h-[90vh] flex flex-col overflow-hidden">
+                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-full mx-auto h-[80vh] max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden">
                 <div
                     class="flex items-center justify-between px-8 py-6 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
                     <h3 class="text-lg font-semibold dark:text-white">
@@ -535,9 +535,9 @@
 
     {{-- DETAIL MODAL --}}
     @if ($showDetail && $selectedPayment)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+        <div class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[min(80vh,calc(100dvh-2rem))] overflow-y-auto">
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
                     <div>
                         <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Pembayaran Utang</h2>

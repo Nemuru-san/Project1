@@ -128,7 +128,7 @@
                 </div>
                 <input wire:model.live.debounce.300ms="search" type="text"
                     class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2.5 placeholder-gray-400"
-                    placeholder="Cari SKU, nama, brand..." />
+                    placeholder="Cari SKU, nama, barcode..." />
             </div>
 
             {{-- Per Page --}}
@@ -181,8 +181,7 @@
                     </th>
                     <th class="px-4 py-4">Kategori</th>
                     <th class="px-4 py-4">Satuan Dasar</th>
-                    <th class="px-4 py-4">Spesifikasi</th>
-                    <th class="px-4 py-4">Merek</th>
+                    <th class="px-4 py-4">Barcode</th>
                     <th class="px-4 py-4">Status</th>
                     <th class="px-4 py-4">Aksi</th>
                 </tr>
@@ -200,8 +199,7 @@
                         <td class="px-4 py-4">
                             {{ $product->baseUnit ? $product->baseUnit->name . ' (' . $product->baseUnit->code . ')' : '-' }}
                         </td>
-                        <td class="px-4 py-4">{{ $product->specification ?: '-' }}</td>
-                        <td class="px-4 py-4">{{ $product->brand ?: '-' }}</td>
+                        <td class="px-4 py-4 font-mono">{{ $product->barcode ?: '-' }}</td>
                         <td class="px-4 py-4">
                             @if ($product->trashed())
                                 <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-700 text-white">
@@ -309,9 +307,9 @@
 
     {{-- ═══════════════════════ CREATE / EDIT MODAL ═══════════════════════ --}}
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-7xl mx-auto h-[90vh] flex flex-col overflow-hidden">
+                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-7xl mx-auto h-[80vh] max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden">
 
                 {{-- Modal Header --}}
                 <div
@@ -410,15 +408,15 @@
                                 @enderror
                             </div>
 
-                            {{-- Specification --}}
+                            {{-- Barcode --}}
                             <div>
                                 <label class="block mb-1.5 text-sm font-medium text-gray-900 dark:text-white">
-                                    Specification
+                                    Barcode
                                 </label>
-                                <input wire:model="specification" type="text"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-zinc-700 dark:border-zinc-600 dark:text-white @error('specification') border-red-500 @enderror"
-                                    placeholder="Contoh: 30 CM X 24 ROLL" />
-                                @error('specification')
+                                <input wire:model="barcode" type="text"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-zinc-700 dark:border-zinc-600 dark:text-white @error('barcode') border-red-500 @enderror"
+                                    placeholder="Masukkan barcode produk" />
+                                @error('barcode')
                                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -455,15 +453,6 @@
                                 @error('base_unit_id')
                                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                                 @enderror
-                            </div>
-
-                            {{-- Brand --}}
-                            <div>
-                                <label
-                                    class="block mb-1.5 text-sm font-medium text-gray-900 dark:text-white">Merek</label>
-                                <input wire:model="brand" type="text"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-zinc-700 dark:border-zinc-600 dark:text-white"
-                                    placeholder="Nama brand (opsional)" />
                             </div>
 
                             {{-- Deskripsi --}}
@@ -647,9 +636,9 @@
 
     {{-- ═══════════════════════ DETAIL MODAL ═══════════════════════ --}}
     @if ($showDetailModal && $detailProduct)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh] overflow-hidden">
+                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-2xl flex flex-col max-h-[min(80vh,calc(100dvh-2rem))] overflow-hidden">
 
                 {{-- Header --}}
                 <div
@@ -703,10 +692,10 @@
                                         {{ $detailProduct['base_unit'] }}
                                     </span>
                                 @endif
-                                @if ($detailProduct['brand'])
+                                @if ($detailProduct['barcode'])
                                     <span
                                         class="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600 dark:bg-zinc-700 dark:text-gray-300">
-                                        {{ $detailProduct['brand'] }}
+                                        Barcode: {{ $detailProduct['barcode'] }}
                                     </span>
                                 @endif
                             </div>

@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\CustomerPic;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -28,6 +29,8 @@ class CustomerMaster extends Component
     public bool $showModal = false;
 
     public bool $showDeleteModal = false;
+
+    public bool $showDetailModal = false;
 
     public ?int $deleteTargetId = null;
 
@@ -53,6 +56,8 @@ class CustomerMaster extends Component
     /** @var array<int, array<string, mixed>> */
     public array $addresses = [];
 
+    public ?array $detailCustomer = null;
+
     public function mount(): void
     {
         $this->resetForm();
@@ -61,12 +66,6 @@ class CustomerMaster extends Component
     protected function rules(): array
     {
         return [
-            'code' => [
-                'required',
-                'string',
-                'max:50',
-                Rule::unique('customers', 'code')->ignore($this->editingId),
-            ],
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
@@ -85,8 +84,7 @@ class CustomerMaster extends Component
 
             'addresses' => ['required', 'array', 'min:1'],
             'addresses.*.id' => ['nullable', 'integer'],
-            'addresses.*.code' => ['required', 'string', 'max:50'],
-            'addresses.*.label' => ['required', 'string', 'max:255'],
+            'addresses.*.label' => ['nullable', 'string', 'max:255'],
             'addresses.*.address_type' => ['required', Rule::in(['billing', 'shipping', 'both'])],
             'addresses.*.address' => ['required', 'string', 'max:1000'],
             'addresses.*.province' => ['nullable', 'string', 'max:255'],
@@ -99,8 +97,6 @@ class CustomerMaster extends Component
     }
 
     protected array $messages = [
-        'code.required' => 'Kode customer wajib diisi.',
-        'code.unique' => 'Kode customer sudah digunakan.',
         'name.required' => 'Nama customer wajib diisi.',
         'email.email' => 'Format email customer tidak valid.',
         'pics.required' => 'Minimal satu PIC wajib diisi.',
@@ -109,8 +105,6 @@ class CustomerMaster extends Component
         'pics.*.email.email' => 'Format email PIC tidak valid.',
         'addresses.required' => 'Minimal satu alamat wajib diisi.',
         'addresses.min' => 'Minimal satu alamat wajib diisi.',
-        'addresses.*.code.required' => 'Kode alamat wajib diisi.',
-        'addresses.*.label.required' => 'Label alamat wajib diisi.',
         'addresses.*.address_type.required' => 'Tipe alamat wajib dipilih.',
         'addresses.*.address.required' => 'Alamat lengkap wajib diisi.',
         'addresses.*.country.required' => 'Negara wajib diisi.',
@@ -251,26 +245,22 @@ class CustomerMaster extends Component
 
     public function save(): void
     {
-        $this->code = strtoupper(trim($this->code));
-        foreach ($this->addresses as $index => $address) {
-            $this->addresses[$index]['code'] = strtoupper(trim((string) ($address['code'] ?? '')));
-        }
-
         $this->ensurePrimaryRows();
         $validated = $this->validate();
-        $this->validateAddressCodes();
 
         DB::transaction(function () use ($validated): void {
             $customerData = collect($validated)->only([
-                'code', 'name', 'phone', 'email', 'tax_number', 'notes', 'is_active',
+                'name', 'phone', 'email', 'tax_number', 'notes', 'is_active',
             ])->all();
 
             if ($this->editingId) {
                 $customer = Customer::findOrFail($this->editingId);
                 $customer->update($customerData);
             } else {
+                $customerData['code'] = 'AUTO-'.Str::uuid();
                 $customerData['created_by'] = auth()->id();
                 $customer = Customer::create($customerData);
+                $customer->update(['code' => $this->customerCode($customer->id)]);
             }
 
             $this->syncPics($customer, $validated['pics']);
@@ -291,6 +281,47 @@ class CustomerMaster extends Component
         Customer::findOrFail($id);
         $this->deleteTargetId = $id;
         $this->showDeleteModal = true;
+    }
+
+    public function openDetail(int $id): void
+    {
+        $customer = Customer::withTrashed()
+            ->with(['pics', 'addresses'])
+            ->findOrFail($id);
+
+        $this->detailCustomer = [
+            'code' => $customer->code,
+            'name' => $customer->name,
+            'phone' => $customer->phone,
+            'email' => $customer->email,
+            'tax_number' => $customer->tax_number,
+            'notes' => $customer->notes,
+            'is_active' => $customer->is_active,
+            'is_trashed' => $customer->trashed(),
+            'created_at' => $customer->created_at?->format('d M Y H:i'),
+            'pics' => $customer->pics->map(fn (CustomerPic $pic) => [
+                'name' => $pic->name,
+                'position' => $pic->position,
+                'phone' => $pic->phone,
+                'email' => $pic->email,
+                'notes' => $pic->notes,
+                'is_primary' => $pic->is_primary,
+            ])->values()->all(),
+            'addresses' => $customer->addresses->map(fn (CustomerAddress $address) => [
+                'code' => $address->code,
+                'label' => $address->label,
+                'address_type' => $address->address_type,
+                'address' => $address->address,
+                'province' => $address->province,
+                'city' => $address->city,
+                'district' => $address->district,
+                'postal_code' => $address->postal_code,
+                'country' => $address->country,
+                'is_primary' => $address->is_primary,
+            ])->values()->all(),
+        ];
+
+        $this->showDetailModal = true;
     }
 
     public function delete(): void
@@ -336,14 +367,17 @@ class CustomerMaster extends Component
 
         foreach ($rows as $row) {
             $id = $row['id'] ?? null;
-            unset($row['id']);
+            unset($row['id'], $row['code']);
 
             if ($id) {
                 $address = $customer->addresses()->whereKey($id)->firstOrFail();
                 $address->update($row);
                 $keptIds[] = $address->id;
             } else {
-                $keptIds[] = $customer->addresses()->create($row)->id;
+                $row['code'] = 'AUTO';
+                $address = $customer->addresses()->create($row);
+                $address->update(['code' => $this->addressCode($address->id)]);
+                $keptIds[] = $address->id;
             }
         }
 
@@ -369,15 +403,14 @@ class CustomerMaster extends Component
         }
     }
 
-    private function validateAddressCodes(): void
+    private function customerCode(int $id): string
     {
-        $codes = collect($this->addresses)->pluck('code')->map(fn ($code) => strtolower((string) $code));
+        return 'CUST-'.str_pad((string) $id, 5, '0', STR_PAD_LEFT);
+    }
 
-        if ($codes->duplicates()->isNotEmpty()) {
-            throw ValidationException::withMessages([
-                'addresses' => 'Kode alamat tidak boleh duplikat dalam customer yang sama.',
-            ]);
-        }
+    private function addressCode(int $id): string
+    {
+        return 'ADDR-'.str_pad((string) $id, 3, '0', STR_PAD_LEFT);
     }
 
     private function resetForm(): void

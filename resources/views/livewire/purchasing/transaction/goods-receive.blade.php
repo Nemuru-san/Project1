@@ -280,8 +280,8 @@
 
     {{-- SHOW MODAL --}}
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-full mx-auto h-[90vh] flex flex-col overflow-hidden"
+        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
+            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-full mx-auto h-[80vh] max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden"
                 @click.outside="$wire.showModal = false">
 
                 <div
@@ -521,9 +521,9 @@
 
     {{-- DETAIL MODAL --}}
     @if ($showDetailModal && $selectedGR)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+        <div class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[min(80vh,calc(100dvh-2rem))] overflow-y-auto">
 
                 {{-- Header --}}
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">

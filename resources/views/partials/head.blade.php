@@ -10,5 +10,17 @@
 <link rel="preconnect" href="https://fonts.bunny.net">
 <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet" />
 
+<style>
+    /* Keep large dialogs inside the visual viewport even when the deployed Vite bundle is stale. */
+    [class*="h-[80vh]"] {
+        height: min(80vh, calc(100dvh - 2rem)) !important;
+        max-height: calc(100dvh - 2rem) !important;
+    }
+
+    [class*="max-h-[min(80vh"] {
+        max-height: min(80vh, calc(100dvh - 2rem)) !important;
+    }
+</style>
+
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 @fluxAppearance

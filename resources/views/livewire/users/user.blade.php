@@ -213,9 +213,9 @@
 
     {{-- CREATE / EDIT MODAL --}}
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-2xl mx-auto max-h-[90vh] flex flex-col overflow-hidden">
+                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-2xl mx-auto max-h-[min(80vh,calc(100dvh-2rem))] flex flex-col overflow-hidden">
 
                 <div
                     class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">

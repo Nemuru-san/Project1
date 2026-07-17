@@ -226,9 +226,9 @@
 
     {{-- DETAIL MODAL --}}
     @if ($showDetail && $selectedJournal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+        <div class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[min(80vh,calc(100dvh-2rem))] overflow-y-auto">
 
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
                     <div>

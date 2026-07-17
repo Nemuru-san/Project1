@@ -32,6 +32,7 @@ it('saves base unit without forcing it into the first price row', function () {
         ->assertSee('PACKAGING - Packaging')
         ->set('sku', 'SKU-FLEX-001')
         ->set('name', 'Flexible Price Product')
+        ->set('barcode', '8991001000012')
         ->set('category_id', $category->id)
         ->set('base_unit_id', $pcs->id)
         ->set('priceRowsJson', json_encode([
@@ -53,6 +54,7 @@ it('saves base unit without forcing it into the first price row', function () {
     $priceRows = $product->prices()->orderBy('id')->get();
 
     expect($product->base_unit_id)->toBe($pcs->id)
+        ->and($product->barcode)->toBe('8991001000012')
         ->and($priceRows)->toHaveCount(2)
         ->and($priceRows->pluck('unit_id')->all())->toBe([$box->id, $pcs->id])
         ->and($priceRows->first()->conversion)->toBe(12)

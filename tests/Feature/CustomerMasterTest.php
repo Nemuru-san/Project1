@@ -68,6 +68,21 @@ function validCustomerForm(array $overrides = []): array
     ], $overrides);
 }
 
+it('opens the create customer modal from the add customer action', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Livewire::test(CustomerMaster::class)
+        ->assertSet('showModal', false)
+        ->call('openCreate')
+        ->assertSet('showModal', true)
+        ->assertSee('Tambah Customer')
+        ->assertSeeHtml('data-testid="customer-modal-scroll-container"')
+        ->assertSeeHtml('h-[80vh]')
+        ->assertSeeHtml('items-start')
+        ->assertSeeHtml('overflow-y-auto');
+});
+
 it('creates a customer with multiple pics and addresses in one form', function () {
     $user = User::factory()->create();
     $this->actingAs($user);
@@ -88,12 +103,12 @@ it('creates a customer with multiple pics and addresses in one form', function (
 
     $customer = Customer::with(['pics', 'addresses'])->sole();
 
-    expect($customer->code)->toBe('CUST-001')
+    expect($customer->code)->toBe('CUST-00001')
         ->and($customer->created_by)->toBe($user->id)
         ->and($customer->pics)->toHaveCount(2)
         ->and($customer->addresses)->toHaveCount(2)
         ->and($customer->primaryPic->name)->toBe('Budi')
-        ->and($customer->primaryAddress->code)->toBe('HQ');
+        ->and($customer->addresses->pluck('code')->sort()->values()->all())->toBe(['ADDR-001', 'ADDR-002']);
 });
 
 it('updates nested rows and soft deletes rows removed from the form', function () {
@@ -135,16 +150,16 @@ it('updates nested rows and soft deletes rows removed from the form', function (
 
     expect($customer->fresh()->name)->toBe('Customer Diperbarui')
         ->and($primaryPic->fresh()->name)->toBe('PIC Baru')
-        ->and($primaryAddress->fresh()->code)->toBe('MAIN')
+        ->and($primaryAddress->fresh()->code)->toBe('OLD')
         ->and($removedPic->fresh()->trashed())->toBeTrue()
         ->and($removedAddress->fresh()->trashed())->toBeTrue();
 });
 
-it('rejects duplicate address codes without saving the customer', function () {
+it('ignores manually submitted codes and allows an empty address label', function () {
     $this->actingAs(User::factory()->create());
     $form = validCustomerForm([
         'addresses' => [
-            ['code' => 'SAME'],
+            ['code' => 'SAME', 'label' => ''],
             ['code' => 'same'],
         ],
     ]);
@@ -155,9 +170,13 @@ it('rejects duplicate address codes without saving the customer', function () {
         ->set('pics', $form['pics'])
         ->set('addresses', $form['addresses'])
         ->call('save')
-        ->assertHasErrors(['addresses']);
+        ->assertHasNoErrors();
 
-    expect(Customer::count())->toBe(0);
+    $customer = Customer::with('addresses')->sole();
+
+    expect($customer->code)->toBe('CUST-00001')
+        ->and($customer->addresses->pluck('code')->sort()->values()->all())->toBe(['ADDR-001', 'ADDR-002'])
+        ->and($customer->addresses->pluck('label'))->toContain('');
 });
 
 it('automatically assigns a primary pic and address when none is selected', function () {
@@ -194,6 +213,33 @@ it('soft deletes and restores a customer', function () {
         ->call('restore', $customer->id);
 
     expect($customer->fresh()->trashed())->toBeFalse();
+});
+
+it('shows customer detail from the action menu', function () {
+    $user = User::factory()->create();
+    $customer = Customer::factory()->for($user, 'creator')->create([
+        'name' => 'PT Detail Customer',
+    ]);
+    CustomerPic::factory()->for($customer)->create([
+        'name' => 'PIC Detail',
+        'is_primary' => true,
+    ]);
+    CustomerAddress::factory()->for($customer)->create([
+        'label' => 'Gudang Detail',
+        'address' => 'Jl. Detail No. 1',
+        'is_primary' => true,
+    ]);
+    $this->actingAs($user);
+
+    Livewire::test(CustomerMaster::class)
+        ->assertSeeHtml('wire:click="openDetail('.$customer->id.')"')
+        ->call('openDetail', $customer->id)
+        ->assertSet('showDetailModal', true)
+        ->assertSet('detailCustomer.name', 'PT Detail Customer')
+        ->assertSee('Detail Customer')
+        ->assertSee('PIC Detail')
+        ->assertSee('Gudang Detail')
+        ->assertSee('Jl. Detail No. 1');
 });
 
 it('keeps only the customer master route', function () {

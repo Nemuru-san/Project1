@@ -276,9 +276,9 @@
 
     {{-- CREATE / EDIT MODAL --}}
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-7xl mx-auto max-h-[80vh] flex flex-col overflow-hidden">
+                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-7xl mx-auto max-h-[min(80vh,calc(100dvh-2rem))] flex flex-col overflow-hidden">
 
                 <div
                     class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
@@ -445,9 +445,9 @@
 
                     {{-- ADD PRODUCT MODAL --}}
                     <div x-show="showAddProductModal" x-cloak
-                        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                        class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
                         <div
-                            class="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-4xl mx-auto max-h-[85vh] overflow-hidden">
+                            class="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-4xl mx-auto max-h-[min(80vh,calc(100dvh-2rem))] overflow-hidden">
                             <div
                                 class="flex items-start justify-between px-6 py-4 border-b border-gray-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900">
                                 <div>
@@ -618,9 +618,9 @@
     @endif
 
     @if ($showDetail && $selectedTransfer)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+        <div class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[min(80vh,calc(100dvh-2rem))] overflow-y-auto">
 
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
                     <div>

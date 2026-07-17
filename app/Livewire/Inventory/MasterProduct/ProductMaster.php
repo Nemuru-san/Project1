@@ -44,13 +44,11 @@ class ProductMaster extends Component
 
     public string $desc = '';
 
-    public string $specification = '';
+    public string $barcode = '';
 
     public ?int $category_id = null;
 
     public ?int $base_unit_id = null;
-
-    public string $brand = '';
 
     public $image = null;
 
@@ -131,11 +129,10 @@ class ProductMaster extends Component
         $this->editingId = $id;
         $this->sku = $product->sku ?? '';
         $this->name = $product->name ?? '';
-        $this->specification = $product->specification ?? '';
+        $this->barcode = $product->barcode ?? '';
         $this->desc = $product->desc ?? '';
         $this->category_id = $product->category_id;
         $this->base_unit_id = $product->base_unit_id;
-        $this->brand = $product->brand ?? '';
         $this->existingImage = $product->image;
         $this->image = null;
 
@@ -176,14 +173,20 @@ class ProductMaster extends Component
                     ->whereNull('deleted_at')
                     ->ignore($this->editingId),
             ],
-            'specification' => 'nullable|string|max:255',
+            'barcode' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('products', 'barcode')
+                    ->whereNull('deleted_at')
+                    ->ignore($this->editingId),
+            ],
             'category_id' => 'required|integer|exists:product_categories,id',
             'base_unit_id' => [
                 'required',
                 'integer',
                 Rule::exists('product_units', 'id')->whereNull('deleted_at'),
             ],
-            'brand' => 'nullable|string|max:255',
             'desc' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
         ]);
@@ -258,11 +261,10 @@ class ProductMaster extends Component
             $data = [
                 'sku' => $this->sku ?: null,
                 'name' => $this->name,
-                'specification' => $this->specification ?: null,
+                'barcode' => $this->barcode ?: null,
                 'desc' => $this->desc,
                 'category_id' => $this->category_id,
                 'base_unit_id' => $this->base_unit_id,
-                'brand' => $this->brand,
                 'created_by' => Auth::id(),
             ];
 
@@ -319,9 +321,8 @@ class ProductMaster extends Component
             'id' => $product->id,
             'sku' => $product->sku,
             'name' => $product->name,
-            'specification' => $product->specification,
+            'barcode' => $product->barcode,
             'desc' => $product->desc,
-            'brand' => $product->brand,
             'image' => $product->image,
             'category' => $product->category?->name,
             'base_unit' => $product->baseUnit ? $product->baseUnit->name.' ('.$product->baseUnit->code.')' : null,
@@ -355,12 +356,10 @@ class ProductMaster extends Component
     {
         $this->sku = '';
         $this->name = '';
-        $this->specification = '';
+        $this->barcode = '';
         $this->desc = '';
         $this->category_id = null;
         $this->base_unit_id = null;
-        $this->brand = '';
-
         $this->priceRowsJson = $this->defaultPriceRowsJson();
 
         $this->editingId = null;
@@ -383,8 +382,7 @@ class ProductMaster extends Component
             $query->where(function ($inner) {
                 $inner->where('sku', 'like', '%'.$this->search.'%')
                     ->orWhere('name', 'like', '%'.$this->search.'%')
-                    ->orWhere('specification', 'like', '%'.$this->search.'%')
-                    ->orWhere('brand', 'like', '%'.$this->search.'%');
+                    ->orWhere('barcode', 'like', '%'.$this->search.'%');
             });
         }
 

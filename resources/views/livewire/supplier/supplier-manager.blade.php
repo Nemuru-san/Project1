@@ -186,8 +186,8 @@
 
     {{-- MODAL CREATE/EDIT --}}
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" x-data>
-            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-lg mx-4 p-6"
+        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm" x-data>
+            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-lg mx-auto p-6 max-h-[min(80vh,calc(100dvh-2rem))] overflow-y-auto"
                 @click.outside="$wire.showModal = false">
                 <div class="flex items-center justify-between mb-5">
                     <h3 class="text-lg font-semibold dark:text-white">

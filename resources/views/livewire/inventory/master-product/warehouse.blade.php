@@ -183,8 +183,8 @@
 
     {{-- CREATE / EDIT MODAL --}}
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-lg mx-auto max-h-[80vh] flex flex-col overflow-hidden"
+        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
+            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-lg mx-auto max-h-[min(80vh,calc(100dvh-2rem))] flex flex-col overflow-hidden"
                 @click.outside="$wire.set('showModal', false)">
 
                 <div

@@ -289,9 +289,9 @@
 
     @if ($showModal)
         <div x-data="{ showAddProductModal: false }"
-            class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-full mx-auto h-[90vh] flex flex-col overflow-hidden">
+                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-full mx-auto h-[80vh] max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden">
 
                 {{-- Header --}}
                 <div
@@ -557,9 +557,9 @@
 
                     {{-- Modal Tambah Produk --}}
                     <div x-show="showAddProductModal" x-cloak
-                        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 py-6">
+                        class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
                         <div
-                            class="w-full max-w-4xl overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 shadow-xl h-[85vh] flex flex-col">
+                            class="w-full max-w-4xl overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 shadow-xl h-[80vh] max-h-[calc(100dvh-2rem)] flex flex-col">
 
                             <div
                                 class="flex items-center justify-between border-b border-gray-200 dark:border-zinc-700 px-6 py-4 shrink-0">
@@ -717,9 +717,9 @@
     @endif
 
     @if ($showDetail && $selectedPO)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+        <div class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[min(80vh,calc(100dvh-2rem))] overflow-y-auto">
 
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
                     <div>
