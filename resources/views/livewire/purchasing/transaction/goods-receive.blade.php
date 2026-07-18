@@ -11,13 +11,6 @@
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-2 md:space-y-0 md:space-x-2 my-2 dark:bg-zinc-900">
         <div class="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 w-full">
-            <button wire:click="openCreate"
-                class="order-last sm:ml-auto inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Tambah Transaksi
-            </button>
             <div class="relative w-full sm:w-72">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <svg aria-hidden="true" class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -52,6 +45,14 @@
                     class="w-4 h-4 rounded border-gray-600 dark:bg-zinc-800 text-blue-600">
                 Tampilkan Terhapus
             </label>
+
+            <button wire:click="openCreate"
+                class="order-last sm:ml-auto inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Tambah Transaksi
+            </button>
 
         </div>
     </div>

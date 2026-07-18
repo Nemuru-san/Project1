@@ -48,6 +48,11 @@ it('filters ap payments by date and can clear all filters', function () {
         ]);
     }
 
+    $this->actingAs($user)
+        ->get(route('finance.transaction.ap-payment'))
+        ->assertOk()
+        ->assertSee('Pembayaran Utang');
+
     Livewire::test(APPaymentComponent::class)
         ->assertSee('Tambah Pembayaran')
         ->assertSee('Bersihkan Filter')

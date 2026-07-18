@@ -5,39 +5,59 @@
         :class="toastType === 'success' ? 'bg-green-600' : 'bg-red-600'"
         class="fixed right-5 top-5 z-[80] rounded-lg px-4 py-2 text-sm text-white shadow-lg" x-text="toastMsg"></div>
 
-    <div class="mb-5 flex flex-col gap-4">
-        <div class="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
-            <div class="flex flex-wrap items-center gap-2">
-                <select wire:model.live="perPage" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
-                    <option value="10">10</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                </select>
-                <label class="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <input type="checkbox" wire:model.live="showTrashed" class="rounded border-gray-300">
-                    Tampilkan terhapus
-                </label>
-            </div>
-
-            <div class="flex flex-col gap-2 sm:flex-row">
+    <div class="my-4 flex flex-col gap-3 dark:bg-zinc-900">
+        <div class="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <div class="relative w-full sm:w-72">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <svg aria-hidden="true" class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
                 <input wire:model.live.debounce.300ms="search" type="search" placeholder="Cari kode, penerima, referensi..."
-                    class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm sm:w-72 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
-                <button type="button" wire:click="openCreate"
-                    class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700">
-                    + Tambah Pengeluaran
-                </button>
+                    class="block w-full rounded-lg border border-gray-600 p-2.5 pl-10 text-sm placeholder-gray-400 focus:border-primary-500 focus:ring-primary-500 dark:bg-zinc-800 dark:text-white">
             </div>
-        </div>
 
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <select wire:model.live="statusFilter" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
+            <select wire:model.live="statusFilter"
+                class="w-full rounded-lg border border-gray-600 px-8 py-2.5 text-sm focus:ring-primary-500 sm:w-auto dark:bg-zinc-800 dark:text-white">
                 <option value="">Semua Status</option>
                 <option value="Draft">Draf</option>
                 <option value="Posted">Diposting</option>
             </select>
-            <input wire:model.live="dateFrom" type="date" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
-            <input wire:model.live="dateTo" type="date" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
-            <button type="button" wire:click="resetFilters" class="cursor-pointer rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-zinc-600 dark:text-gray-200">
+
+            <select wire:model.live="perPage"
+                class="w-full rounded-lg border border-gray-600 px-8 py-2.5 text-sm sm:w-auto dark:bg-zinc-800 dark:text-white">
+                <option value="10">10 / hal</option>
+                <option value="25">25 / hal</option>
+                <option value="50">50 / hal</option>
+            </select>
+
+            <label
+                class="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg border border-gray-600 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300">
+                <input type="checkbox" wire:model.live="showTrashed"
+                    class="h-4 w-4 rounded border-gray-600 text-blue-600 dark:bg-zinc-800">
+                Tampilkan Terhapus
+            </label>
+
+            <button type="button" wire:click="openCreate"
+                class="order-last inline-flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 sm:ml-auto sm:w-auto">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Tambah Pengeluaran
+            </button>
+        </div>
+
+        <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+            <span class="text-sm font-medium text-gray-600 sm:min-w-28 dark:text-gray-300">Rentang tanggal</span>
+            <input wire:model.live="dateFrom" type="date" title="Tanggal mulai" aria-label="Tanggal mulai"
+                class="w-full rounded-lg border border-gray-600 px-3 py-2.5 text-sm sm:w-auto dark:bg-zinc-800 dark:text-white">
+            <span class="hidden text-gray-400 sm:inline">s.d.</span>
+            <input wire:model.live="dateTo" type="date" title="Tanggal akhir" aria-label="Tanggal akhir"
+                class="w-full rounded-lg border border-gray-600 px-3 py-2.5 text-sm sm:w-auto dark:bg-zinc-800 dark:text-white">
+            <button type="button" wire:click="resetFilters"
+                class="cursor-pointer rounded-lg border border-gray-600 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-zinc-800">
                 Bersihkan Filter
             </button>
         </div>

@@ -2,11 +2,13 @@
 
 namespace App\Providers;
 
+use App\Livewire\Finance\Transaction\APPayment;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Livewire::component('finance.transaction.ap-payment', APPayment::class);
+
         $this->configureDefaults();
     }
 
