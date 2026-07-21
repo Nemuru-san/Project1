@@ -131,6 +131,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('pages.sales.salesMaster.customer');
     })->name('sales.master.customer');
 
+    Route::get('sales/master/salesman', function () {
+        return view('pages.sales.salesMaster.salesMan');
+    })->name('sales.master.salesman');
+
+    Route::get('sales/transaction/salesCanvas', function () {
+        return view('pages.sales.salesTransaction.salesCanvas');
+    })->name('sales.transaction.salesCanvas');
+
+    Route::get('sales/transaction/salesPreOrder', function () {
+        return view('pages.sales.salesTransaction.salesPreOrder');
+    })->name('sales.transaction.salesPreOrder');
+
+    Route::get('sales/transaction/salesOrder', function () {
+        return view('pages.sales.salesTransaction.salesOrder');
+    })->name('sales.transaction.salesOrder');
+
     // Finance
     Route::get('finance/master/accounts', function () {
         return view('pages.finance.master.chartOfAccount');
@@ -162,4 +178,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('user.action.role');
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

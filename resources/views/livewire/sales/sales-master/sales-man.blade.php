@@ -60,7 +60,7 @@
     </div>
 
     {{-- TABLE --}}
-    <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
+    {{-- <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
         <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
             <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
@@ -178,74 +178,79 @@
                 @endforelse
             </tbody>
         </table>
-    </div>
+    </div> --}}
 
     {{-- PAGINATION --}}
-    <div class="mt-4">
+    {{-- <div class="mt-4">
         {{ $suppliers->links() }}
-    </div>
+    </div> --}}
 
     {{-- MODAL CREATE/EDIT --}}
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm" x-data>
-            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-lg mx-auto p-6 max-h-[min(80vh,calc(100dvh-2rem))] overflow-y-auto"
-                @click.outside="$wire.showModal = false">
-                <div class="flex items-center justify-between mb-5">
-                    <h3 class="text-lg font-semibold dark:text-white">
-                        {{ $supplierId ? 'Edit Supplier' : 'Tambah Supplier' }}
-                    </h3>
-                    <button wire:click="$set('showModal', false)"
-                        class="text-gray-400 hover:text-white cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
+        <div class="fixed inset-0 z-40 flex items-center justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm">
+            <div class="mx-auto flex w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-800">
+                <div class="flex shrink-0 items-center justify-between border-b border-gray-200 bg-zinc-50 px-8 py-6 dark:border-zinc-700 dark:bg-zinc-900">
+                    <h3 class="text-lg font-semibold dark:text-white">Master Salesman</h3>
+                    <button type="button" wire:click="$set('showModal', false)" class="cursor-pointer text-gray-500 hover:text-gray-800 dark:hover:text-white">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
 
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium dark:text-gray-300 mb-1">Kode Pemasok</label>
-                        <input wire:model="code" type="text" placeholder="SUP-001"
-                            class="w-full text-sm dark:bg-zinc-700 border border-gray-600 dark:text-white rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('code') border-red-500 @enderror" />
-                        @error('code')
-                            <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium dark:text-gray-300 mb-1">Nama Pemasok</label>
-                        <input wire:model="name" type="text" placeholder="PT. Contoh Pemasok"
-                            class="w-full text-sm dark:bg-zinc-700 border border-gray-600 dark:text-white rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('name') border-red-500 @enderror" />
-                        @error('name')
-                            <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium dark:text-gray-300 mb-1">Alamat</label>
-                        <textarea wire:model="address" rows="2" placeholder="Jl. Contoh No. 1..."
-                            class="w-full text-sm dark:bg-zinc-700 border border-gray-600 dark:text-white rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('address') border-red-500 @enderror"></textarea>
-                        @error('address')
-                            <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium dark:text-gray-300 mb-1">Kontak</label>
-                        <input wire:model="contact" type="text" placeholder="08xxxxxxxxxx"
-                            class="w-full text-sm dark:bg-zinc-700 border border-gray-600 dark:text-white rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('contact') border-red-500 @enderror" />
-                        @error('contact')
-                            <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                <div class="min-h-0 flex-1 touch-pan-y space-y-4 overflow-y-auto items-center justify-center px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6"
+                    data-testid="customer-modal-scroll-container"
+                    style="overscroll-behavior: contain; scrollbar-gutter: stable; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="mb-1 block text-sm font-medium dark:text-white">Kode Salesman</label>
+                            <input type="text" value="SM-001" placeholder="SM-001"
+                                class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-sm font-medium dark:text-white">Nama Salesman</label>
+                            <input type="text" value="Budi Santoso" placeholder="Nama salesman"
+                                class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-sm font-medium dark:text-white">Akun Salesman</label>
+                            <select class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                                <option value="">Pilih akun salesman</option>
+                                <option value="1">Akun Penjualan 01</option>
+                                <option value="2">Akun Penjualan 02</option>
+                                <option value="3">Akun Penjualan 03</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-sm font-medium dark:text-white">Customer Default</label>
+                            <select class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                                <option value="">Pilih customer default</option>
+                                <option value="1">PT. ABC</option>
+                                <option value="2">PT. XYZ</option>
+                                <option value="3">CV. Maju</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-sm font-medium dark:text-white">Customer Delivery Address</label>
+                            <select class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                                <option value="">Pilih alamat delivery</option>
+                                <option value="1">Jl. Merdeka No. 10</option>
+                                <option value="2">Jl. Sudirman No. 20</option>
+                                <option value="3">Jl. Pahlawan No. 30</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-2 mt-6">
-                    <button wire:click="$set('showModal', false)"
-                        class="px-4 py-2 text-sm rounded-lg border border-gray-600 dark:text-gray-300 hover:bg-zinc-700">
-                        Batal
-                    </button>
-                    <button wire:click="save" wire:loading.attr="disabled"
-                        class="px-4 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 cursor-pointer">
-                        <span wire:loading.remove wire:target="save">Simpan</span>
+                <div class="flex shrink-0 justify-end gap-2 border-t border-gray-200 bg-white px-4 py-4 sm:px-6 lg:px-8 dark:border-zinc-700 dark:bg-zinc-900">
+                    <button type="button" wire:click="$set('showModal', false)" class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2.5 text-sm dark:border-gray-600 dark:text-gray-200">Batal</button>
+                    <button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save"
+                        class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm text-white hover:bg-blue-700 disabled:opacity-50">
+                        <span wire:loading.remove wire:target="save">Simpan Pelanggan</span>
                         <span wire:loading wire:target="save">Menyimpan...</span>
                     </button>
                 </div>
@@ -254,7 +259,7 @@
     @endif
 
     {{-- MODAL DELETE CONFIRM --}}
-    @if ($showDeleteModal)
+    {{-- @if ($showDeleteModal)
         <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
             <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-sm mx-4 p-6">
                 <div class="flex items-center gap-3 mb-4">
@@ -279,5 +284,5 @@
                 </div>
             </div>
         </div>
-    @endif
+    @endif --}}
 </div>

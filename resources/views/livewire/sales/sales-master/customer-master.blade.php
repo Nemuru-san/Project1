@@ -7,7 +7,8 @@
         <span x-text="toastMsg"></span>
     </div>
 
-    <div class="my-4 flex flex-col items-center gap-3 md:flex-row dark:bg-zinc-900">
+    <div class="my-4 flex flex-col items-center justify-between gap-3 md:flex-row dark:bg-zinc-900">
+        <h1 class="text-lg">Data Tabel Master Customer</h1>
         <div class="flex w-full flex-col items-center gap-3 sm:flex-row md:w-auto">
             <div class="relative w-full sm:w-72">
                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -163,7 +164,7 @@
     <div class="mt-4">{{ $customers->links() }}</div>
 
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm">
+        <div class="fixed inset-0 z-40 flex items-center justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm">
             <div class="mx-auto flex h-[80vh] max-h-[calc(100dvh-2rem)] w-full max-w-full flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-800">
                 <div class="flex shrink-0 items-center justify-between border-b border-gray-200 bg-zinc-50 px-8 py-6 dark:border-zinc-700 dark:bg-zinc-900">
                     <h3 class="text-lg font-semibold dark:text-white">{{ $editingId ? 'Ubah Pelanggan' : 'Tambah Pelanggan' }}</h3>

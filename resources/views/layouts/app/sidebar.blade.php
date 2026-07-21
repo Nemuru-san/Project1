@@ -104,14 +104,14 @@
                     :expanded="request()->routeIs('sales.master.*')">
                     <flux:sidebar.item href="{{ route('sales.master.customer') }}" wire:navigate>Pelanggan
                     </flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Tenaga Penjualan</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('sales.master.salesman') }}" wire:navigate>Tenaga Penjualan</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Transaksi" class="grid"
                     :expanded="request()->routeIs('sales.transaction.*')">
-                    <flux:sidebar.item href="#" wire:navigate>Penjualan Kanvas</flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Pesanan Awal</flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Pesanan Penjualan</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('sales.transaction.salesCanvas') }}" wire:navigate>Penjualan Kanvas</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('sales.transaction.salesPreOrder') }}" wire:navigate>Pesanan Awal</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('sales.transaction.salesOrder') }}" wire:navigate>Pesanan Penjualan</flux:sidebar.item>
                     <flux:sidebar.item href="#" wire:navigate>Surat Jalan</flux:sidebar.item>
                     <flux:sidebar.item href="#" wire:navigate>Faktur Penjualan</flux:sidebar.item>
                 </flux:sidebar.group>
