@@ -1,10 +1,10 @@
-<x-layouts::app :title="__('Sales PreOrder')">
+<x-layouts::app :title="__('Pesanan Awal')">
 
     <div class="flex flex-col items-center justify-between min-h-full gap-6 w-full">
         <div class="flex flex-col gap-6 w-full">
             {{-- header --}}
-            <x-layouts::page-header :title="__('Sales PreOrder Transaction')"
-                description="Kelola data pelanggan secara terpusat untuk mendukung proses operasional dan pencatatan yang rapi.">
+            <x-layouts::page-header :title="__('Pesanan Awal')"
+                description="Kelola pesanan awal pelanggan, pembayaran DP, dan konversi ke Sales Order.">
                 <x-slot:breadcrumbs>
                     <li class="inline-flex items-center">
                         <a href="#" class="inline-flex items-center text-sm font-medium hover:text-fg-brand">
@@ -19,7 +19,7 @@
                                     stroke-width="2" d="m9 5 7 7-7 7" />
                             </svg>
                             <a href="#"
-                                class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Master</a>
+                                class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Transaksi</a>
                         </div>
                     </li>
                     <li aria-current="page">
@@ -30,7 +30,7 @@
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                     stroke-width="2" d="m9 5 7 7-7 7" />
                             </svg>
-                            <span class="inline-flex items-center text-sm font-medium">Sales PreOrder</span>
+                            <span class="inline-flex items-center text-sm font-medium">Pesanan Awal</span>
                         </div>
                     </li>
                 </x-slot:breadcrumbs>

@@ -103,6 +103,12 @@ class JournalEntry extends Component
 
     public function delete(): void
     {
+        if (! auth()->user()?->isSuperAdmin()) {
+            $this->dispatch('toast', message: 'Hanya Super Admin yang dapat menghapus data.', type: 'error');
+
+            return;
+        }
+
         if (! $this->deleteTargetId) {
             return;
         }

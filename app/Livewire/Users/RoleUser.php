@@ -38,64 +38,78 @@ class RoleUser extends Component
             'dashboard' => 'Dashboard',
         ],
 
-        'Purchasing - Master' => [
+        'Pembelian - Master' => [
             'purchases.master.supplier' => 'Supplier',
         ],
 
-        'Purchasing - Transaction' => [
+        'Pembelian - Transaksi' => [
             'purchases.transaction.purchase-order' => 'Pesanan Pembelian',
             'purchases.transaction.good-receive' => 'Penerimaan Barang',
             'purchases.transaction.purchase-invoice' => 'Faktur Pembelian',
         ],
 
-        'Purchasing - Return' => [
+        'Pembelian - Retur' => [
             'purchases.return.purchase-return' => 'Retur Pembelian',
             'purchases.return.purchase-return-invoice' => 'Faktur Retur Pembelian',
         ],
 
-        'Purchasing - Report' => [
-            'purchases.report.po-outstanding' => 'PO Outstanding',
-            'purchases.report.invoice-outstanding' => 'Invoice Outstanding',
+        'Pembelian - Laporan' => [
+            'purchases.report.unfinished-purchase-order' => 'PO Belum Selesai',
+            'purchases.report.unfinished-purchase-invoice' => 'Faktur Belum Selesai',
         ],
 
-        'Inventory - Master' => [
+        'Persediaan - Master' => [
             'inventory.product.productMaster' => 'Master Produk',
             'inventory.product.productCategory' => 'Kategori Produk',
             'inventory.product.uom' => 'Satuan',
             'inventory.product.warehouse' => 'Gudang',
         ],
 
-        'Inventory - Transaction' => [
+        'Persediaan - Transaksi' => [
             'inventory.transaction.transfer-stock' => 'Transfer Stok',
             'inventory.transaction.adjustment-in' => 'Penyesuaian Stok Masuk',
             'inventory.transaction.adjustment-out' => 'Penyesuaian Stok Keluar',
         ],
 
-        'Inventory - Report' => [
+        'Persediaan - Laporan' => [
             'inventory.report.stock-balance' => 'Saldo Stok',
             'inventory.report.stock-card' => 'Kartu Stok',
             'inventory.report.stock-movement' => 'Pergerakan Stok',
         ],
 
-        'Sales - Master' => [
+        'Penjualan - Master' => [
             'sales.master.customer' => 'Pelanggan',
+            'sales.master.salesman' => 'Tenaga Penjualan',
         ],
 
-        'Sales - Transaction' => [
-            'sales.transaction.sales-order' => 'Pesanan Penjualan',
+        'Penjualan - Transaksi' => [
+            'sales.transaction.salesCanvas' => 'Penjualan Kanvas',
+            'sales.transaction.salesPreOrder' => 'Pesanan Awal',
+            'sales.transaction.salesOrder' => 'Pesanan Penjualan',
             'sales.transaction.delivery-order' => 'Surat Jalan',
             'sales.transaction.sales-invoice' => 'Faktur Penjualan',
         ],
 
-        'Sales - Report' => [
-            'sales.report.po-outstanding' => 'PO Outstanding',
-            'sales.report.invoice-outstanding' => 'Invoice Outstanding',
+        'Penjualan - Laporan' => [
+            'sales.report.po-outstanding' => 'PO Belum Selesai',
+            'sales.report.invoice-outstanding' => 'Faktur Belum Selesai',
         ],
 
-        'Finance - Transaction' => [
+        'Keuangan - Master' => [
+            'finance.master.chart-of-accounts' => 'Daftar Akun',
+            'finance.master.bank-accounts' => 'Rekening Bank',
+            'finance.master.payment-terms' => 'Termin Pembayaran',
+        ],
+
+        'Keuangan - Transaksi' => [
             'finance.transaction.ap-payment' => 'Pembayaran Utang',
             'finance.transaction.expense' => 'Pengeluaran',
+            'finance.transaction.ar-dp-payment' => 'Penerimaan DP Pelanggan',
             'finance.transaction.ar-payment' => 'Pembayaran Piutang',
+        ],
+
+        'Keuangan - Laporan' => [
+            'finance.report.journal-entry' => 'Entri Jurnal',
         ],
 
         'Pengguna' => [
@@ -116,7 +130,10 @@ class RoleUser extends Component
                     ->ignore($this->editingId),
             ],
             'selectedPermissions' => 'array',
-            'selectedPermissions.*' => 'string',
+            'selectedPermissions.*' => [
+                'string',
+                Rule::in(array_merge(['*'], $this->availablePermissionKeys())),
+            ],
         ];
     }
 
@@ -161,7 +178,19 @@ class RoleUser extends Component
 
         $this->editingId = $role->id;
         $this->name = $role->name;
-        $this->selectedPermissions = $role->permissions ?? [];
+        $legacyPermissionMap = [
+            'purchases.report.po-outstanding' => 'purchases.report.unfinished-purchase-order',
+            'purchases.report.invoice-outstanding' => 'purchases.report.unfinished-purchase-invoice',
+            'sales.transaction.sales-order' => 'sales.transaction.salesOrder',
+        ];
+
+        $allowedPermissions = array_merge(['*'], $this->availablePermissionKeys());
+        $this->selectedPermissions = collect($role->permissions ?? [])
+            ->map(fn (string $permission) => $legacyPermissionMap[$permission] ?? $permission)
+            ->filter(fn (string $permission) => in_array($permission, $allowedPermissions, true))
+            ->unique()
+            ->values()
+            ->all();
         $this->showModal = true;
     }
 
@@ -215,6 +244,12 @@ class RoleUser extends Component
 
     public function delete(): void
     {
+        if (! auth()->user()?->isSuperAdmin()) {
+            $this->dispatch('toast', message: 'Hanya Super Admin yang dapat menghapus data.', type: 'error');
+
+            return;
+        }
+
         if (! $this->deleteTargetId) {
             return;
         }
@@ -245,6 +280,14 @@ class RoleUser extends Component
         $this->selectedPermissions = [];
 
         $this->resetValidation();
+    }
+
+    private function availablePermissionKeys(): array
+    {
+        return collect($this->permissionGroups)
+            ->flatMap(fn (array $permissions) => array_keys($permissions))
+            ->values()
+            ->all();
     }
 
     public function render()

@@ -4,6 +4,7 @@ use App\Livewire\Sales\SalesMaster\CustomerMaster;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\CustomerPic;
+use App\Models\Role;
 use App\Models\User;
 use Livewire\Livewire;
 
@@ -202,7 +203,8 @@ it('automatically assigns a primary pic and address when none is selected', func
 });
 
 it('soft deletes and restores a customer', function () {
-    $user = User::factory()->create();
+    $superAdminRole = Role::create(['name' => 'Super Admin', 'permissions' => ['*']]);
+    $user = User::factory()->for($superAdminRole)->create();
     $customer = Customer::factory()->for($user, 'creator')->create();
     $this->actingAs($user);
 

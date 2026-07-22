@@ -6,6 +6,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -72,6 +73,11 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+    public function salesman(): HasOne
+    {
+        return $this->hasOne(Salesman::class);
+    }
+
     public function canAccessModule(string $permission): bool
     {
         $permissions = $this->role?->permissions ?? [];
@@ -81,5 +87,10 @@ class User extends Authenticatable
         }
 
         return in_array($permission, $permissions, true);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role?->name === 'Super Admin';
     }
 }

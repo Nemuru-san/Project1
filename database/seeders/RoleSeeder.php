@@ -18,6 +18,28 @@ class RoleSeeder extends Seeder
             ['permissions' => ['*']]
         );
 
+        $salesmanPermissions = [
+            'dashboard',
+            'sales.master.customer',
+            'sales.transaction.salesCanvas',
+            'sales.transaction.salesPreOrder',
+            'sales.transaction.salesOrder',
+            'sales.transaction.delivery-order',
+            'sales.transaction.sales-invoice',
+        ];
+
+        $salesman = Role::withTrashed()->firstOrCreate(
+            ['name' => 'Salesman'],
+            ['permissions' => $salesmanPermissions]
+        );
+
+        $salesman->restore();
+        $salesman->permissions = array_values(array_unique([
+            ...($salesman->permissions ?? []),
+            ...$salesmanPermissions,
+        ]));
+        $salesman->save();
+
         User::whereNull('role_id')->update([
             'role_id' => $superAdmin->id,
         ]);

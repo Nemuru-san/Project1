@@ -56,4 +56,14 @@ class Product extends Model
     {
         return $this->hasMany(StockTransferItem::class);
     }
+
+    public function salesCanvasItems(): HasMany
+    {
+        return $this->hasMany(SalesCanvasItem::class);
+    }
+
+    public function salesOrderItems(): HasMany
+    {
+        return $this->hasMany(SalesOrderItem::class);
+    }
 }

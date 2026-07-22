@@ -35,6 +35,8 @@ class JournalEntry extends Model
 
     const SOURCE_AP_PAYMENT = 'APPayment';
 
+    const SOURCE_AR_DP_PAYMENT = 'ArDpPayment';
+
     const SOURCE_EXPENSE = 'Expense';
 
     const SOURCE_MANUAL_JOURNAL = 'ManualJournal';

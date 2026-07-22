@@ -55,8 +55,8 @@
 
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-4">
+            <thead class="text-sm font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 w-12">No.</th>
 
@@ -85,7 +85,7 @@
                 </tr>
             </thead>
 
-            <tbody class="dark:bg-zinc-950 text-base">
+            <tbody class="dark:bg-zinc-950 text-sm">
                 @forelse ($users as $index => $user)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $user->trashed() ? 'opacity-50' : '' }}">
@@ -179,8 +179,8 @@
                                         </ul>
 
                                         <div class="py-1">
-                                            <button wire:click="confirmDelete({{ $user->id }})"
-                                                @click="open = false" @disabled($user->id === auth()->id())
+                                            <button wire:click="confirmDelete({{ $user->id }})" @disabled(! auth()->user()->isSuperAdmin() || $user->id === auth()->id())
+                                                @click="open = false"
                                                 class="flex items-center gap-2 w-full py-2 px-4 text-base {{ $user->id === auth()->id() ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white' }}">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -334,7 +334,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="delete" wire:loading.attr="disabled"
+                    <button wire:click="delete" wire:loading.attr="disabled" @disabled(! auth()->user()->isSuperAdmin())
                         class="px-4 py-2 text-sm rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-50">
                         <span wire:loading.remove wire:target="delete">Hapus</span>
                         <span wire:loading wire:target="delete">Menghapus...</span>

@@ -23,6 +23,7 @@ class ChartOfAccountSeeder extends Seeder
                 ['code' => '2000', 'name' => 'Liabilities', 'type' => 'Liability', 'normal_balance' => 'Credit', 'parent_code' => null, 'is_postable' => false],
                 ['code' => '2100', 'name' => 'Account Payable', 'type' => 'Liability', 'normal_balance' => 'Credit', 'parent_code' => '2000', 'is_postable' => true],
                 ['code' => '2200', 'name' => 'Tax Out', 'type' => 'Liability', 'normal_balance' => 'Credit', 'parent_code' => '2000', 'is_postable' => true],
+                ['code' => '2300', 'name' => 'Customer Advances', 'type' => 'Liability', 'normal_balance' => 'Credit', 'parent_code' => '2000', 'is_postable' => true],
 
                 ['code' => '3000', 'name' => 'Equity', 'type' => 'Equity', 'normal_balance' => 'Credit', 'parent_code' => null, 'is_postable' => false],
                 ['code' => '3100', 'name' => 'Owner Capital', 'type' => 'Equity', 'normal_balance' => 'Credit', 'parent_code' => '3000', 'is_postable' => true],

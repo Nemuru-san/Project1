@@ -50,8 +50,8 @@
 
     {{-- ═══════════════════════ TABLE ═══════════════════════ --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-4">
+            <thead class="text-sm font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 w-12">No.</th>
 
@@ -81,7 +81,7 @@
                 </tr>
             </thead>
 
-            <tbody class="dark:bg-zinc-950 text-base">
+            <tbody class="dark:bg-zinc-950 text-sm">
                 @forelse($transfers as $index => $transfer)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $transfer->trashed() ? 'opacity-50' : '' }}">
@@ -232,7 +232,7 @@
 
                                         <div class="py-1">
                                             @if ($transfer->status === 'draft')
-                                                <button wire:click="confirmDelete({{ $transfer->id }})"
+                                                <button wire:click="confirmDelete({{ $transfer->id }})" @disabled(! auth()->user()->isSuperAdmin())
                                                     @click="open = false"
                                                     class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -348,7 +348,7 @@
 
                     <div class="overflow-x-auto mt-6">
                         <table
-                            class="w-full text-base text-left text-gray-900 dark:text-white border-collapse border border-gray-300 dark:border-zinc-600 min-w-max whitespace-nowrap">
+                            class="w-full text-sm text-left text-gray-900 dark:text-white border-collapse border border-gray-300 dark:border-zinc-600 min-w-max whitespace-nowrap">
                             <thead
                                 class="text-sm font-bold text-gray-900 uppercase bg-gray-200 dark:bg-zinc-700 dark:text-white">
                                 <tr>
@@ -511,10 +511,11 @@
 
                                         <tbody>
                                             @forelse ($products as $product)
-                                                <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800">
+                                                <tr @click="$event.currentTarget.querySelector('input[type=checkbox]')?.click()"
+                                                    class="cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800">
                                                     <td
                                                         class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-center">
-                                                        <input wire:model.live="selectedProductIds" type="checkbox"
+                                                        <input wire:model.live="selectedProductIds" type="checkbox" @click.stop
                                                             value="{{ $product->id }}"
                                                             class="h-4 w-4 rounded border-gray-300 text-blue-600" />
                                                     </td>
@@ -789,7 +790,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="delete"
+                    <button wire:click="delete" @disabled(! auth()->user()->isSuperAdmin())
                         class="px-4 py-2 text-sm rounded-lg bg-red-600 hover:bg-red-700 text-white">
                         Hapus
                     </button>

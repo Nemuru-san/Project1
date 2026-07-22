@@ -46,6 +46,21 @@ class Customer extends Model
         return $this->hasMany(CustomerAddress::class);
     }
 
+    public function salesmen(): HasMany
+    {
+        return $this->hasMany(Salesman::class, 'default_customer_id');
+    }
+
+    public function salesCanvases(): HasMany
+    {
+        return $this->hasMany(SalesCanvas::class);
+    }
+
+    public function salesOrders(): HasMany
+    {
+        return $this->hasMany(SalesOrder::class);
+    }
+
     public function primaryPic(): HasOne
     {
         return $this->hasOne(CustomerPic::class)->where('is_primary', true);

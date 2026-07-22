@@ -67,8 +67,8 @@
 
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-lg font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-4">
+            <thead class="text-sm font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 w-12">No.</th>
 
@@ -106,7 +106,7 @@
                 </tr>
             </thead>
 
-            <tbody class="dark:bg-zinc-950 text-base text-white">
+            <tbody class="dark:bg-zinc-950 text-sm text-white">
                 @forelse($stockBalances as $index => $row)
                     @if ($isZeroMode)
                         @php

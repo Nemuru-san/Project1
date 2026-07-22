@@ -72,11 +72,9 @@
 
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-lg font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-4">
+            <thead class="text-sm font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
-                    <th class="px-4 py-4 w-12">No.</th>
-
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('code')">
                         <div class="flex items-center gap-1">
                             Kode GR
@@ -102,14 +100,10 @@
                 </tr>
             </thead>
 
-            <tbody class="dark:bg-zinc-950 text-base text-white">
-                @forelse($goodsReceives as $index => $gr)
+            <tbody class="dark:bg-zinc-950 text-sm text-white">
+                @forelse($goodsReceives as $gr)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $gr->trashed() ? 'opacity-50' : '' }}">
-                        <td class="px-4 py-4 text-gray-500">
-                            {{ $goodsReceives->firstItem() + $index }}
-                        </td>
-
                         <td class="px-4 py-4 font-mono font-medium text-gray-900 dark:text-white">
                             {{ $gr->code }}
                         </td>
@@ -248,7 +242,8 @@
 
                                         <div class="py-1">
                                             <button
-                                                @if (!$locked) wire:click="confirmDelete({{ $gr->id }})" @endif
+                                                @if (!$locked && auth()->user()?->isSuperAdmin()) wire:click="confirmDelete({{ $gr->id }})" @endif
+                                                @disabled($locked || ! auth()->user()?->isSuperAdmin())
                                                 @click="open = false" @disabled($locked)
                                                 class="flex items-center gap-2 w-full py-2 px-4 text-base {{ $locked ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer' }}">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -266,7 +261,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-10 text-center text-gray-400 dark:text-gray-500">
+                        <td colspan="6" class="px-4 py-10 text-center text-gray-400 dark:text-gray-500">
                             Tidak ada data goods receive ditemukan.
                         </td>
                     </tr>
@@ -371,9 +366,9 @@
 
                         <div class="overflow-x-auto">
                             <table
-                                class="w-full text-base text-left text-gray-900 dark:text-white my-2 min-w-425 whitespace-nowrap border-collapse border border-gray-300 dark:border-zinc-600">
+                                class="w-full text-sm text-left text-gray-900 dark:text-white my-2 min-w-425 whitespace-nowrap border-collapse border border-gray-300 dark:border-zinc-600">
                                 <thead
-                                    class="text-base font-bold text-gray-900 uppercase bg-gray-200 dark:bg-zinc-700 dark:text-white">
+                                    class="text-sm font-bold text-gray-900 uppercase bg-gray-200 dark:bg-zinc-700 dark:text-white">
                                     <tr>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Tidak
                                         </th>
@@ -510,7 +505,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="delete" wire:loading.attr="disabled"
+                    <button wire:click="delete" wire:loading.attr="disabled" @disabled(! auth()->user()?->isSuperAdmin())
                         class="px-4 py-2 text-sm rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-50">
                         <span wire:loading.remove wire:target="delete">Hapus</span>
                         <span wire:loading wire:target="delete">Menghapus...</span>

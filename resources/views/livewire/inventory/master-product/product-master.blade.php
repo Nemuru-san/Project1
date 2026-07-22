@@ -159,8 +159,8 @@
 
     {{-- ═══════════════════════ TABLE ═══════════════════════ --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-4">
+            <thead class="text-sm font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 w-12">No.</th>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('sku')">
@@ -186,7 +186,7 @@
                     <th class="px-4 py-4">Aksi</th>
                 </tr>
             </thead>
-            <tbody class="dark:bg-zinc-950 text-base">
+            <tbody class="dark:bg-zinc-950 text-sm">
                 @forelse($products as $index => $product)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $product->trashed() ? 'opacity-50' : '' }}">
@@ -273,7 +273,7 @@
                                         </ul>
 
                                         <div class="py-1">
-                                            <button wire:click="confirmDelete({{ $product->id }})"
+                                            <button wire:click="confirmDelete({{ $product->id }})" @disabled(! auth()->user()->isSuperAdmin())
                                                 @click="open = false"
                                                 class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -623,7 +623,7 @@
                         class="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-zinc-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700">
                         Batal
                     </button>
-                    <button wire:click="delete" wire:loading.attr="disabled"
+                    <button wire:click="delete" wire:loading.attr="disabled" @disabled(! auth()->user()->isSuperAdmin())
                         class="px-4 py-2 text-sm rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-50">
                         <span wire:loading.remove wire:target="delete">Ya, Hapus</span>
                         <span wire:loading wire:target="delete">Menghapus...</span>

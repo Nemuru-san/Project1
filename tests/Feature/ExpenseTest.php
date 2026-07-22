@@ -5,6 +5,7 @@ use App\Models\BankAccount;
 use App\Models\ChartOfAccount;
 use App\Models\Expense;
 use App\Models\JournalEntry;
+use App\Models\Role;
 use App\Models\User;
 use Livewire\Livewire;
 
@@ -155,7 +156,8 @@ it('filters expenses by date and exposes the authenticated route', function () {
 });
 
 it('soft deletes and restores a draft expense without losing its details', function () {
-    $user = User::factory()->create();
+    $superAdminRole = Role::create(['name' => 'Super Admin', 'permissions' => ['*']]);
+    $user = User::factory()->for($superAdminRole)->create();
     $bank = expenseBankAccount();
     $account = expenseAccount('6201', 'Biaya Operasional');
     $expense = Expense::create([

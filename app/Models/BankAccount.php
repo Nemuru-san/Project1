@@ -34,6 +34,11 @@ class BankAccount extends Model
         return $this->hasMany(APPayment::class, 'bank_account_id');
     }
 
+    public function arDpPayments(): HasMany
+    {
+        return $this->hasMany(ArDpPayment::class, 'bank_account_id');
+    }
+
     public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class);

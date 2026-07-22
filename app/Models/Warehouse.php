@@ -40,4 +40,9 @@ class Warehouse extends Model
     {
         return $this->hasMany(StockTransfer::class, 'warehouse_to_id');
     }
+
+    public function salesOrderItems(): HasMany
+    {
+        return $this->hasMany(SalesOrderItem::class);
+    }
 }

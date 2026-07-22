@@ -56,6 +56,124 @@
     }
 }
 
+div:has(> table.text-gray-500),
+div:has(> table.text-gray-600) {
+    overflow-x: auto;
+    border: 1px solid var(--color-gray-200) !important;
+    border-radius: var(--radius-xl) !important;
+    background-color: transparent !important;
+}
+
+table.text-gray-500,
+table.text-gray-600 {
+    width: 100%;
+    margin-top: 0 !important;
+    color: var(--color-gray-600) !important;
+    font-size: var(--text-sm) !important;
+    line-height: var(--text-sm--line-height) !important;
+    text-align: left;
+}
+
+table.text-gray-500 > thead,
+table.text-gray-600 > thead {
+    background-color: var(--color-gray-50) !important;
+    color: var(--color-gray-700) !important;
+    font-size: var(--text-xs) !important;
+    line-height: var(--text-xs--line-height) !important;
+    font-weight: var(--font-weight-medium) !important;
+    text-transform: uppercase;
+}
+
+table.text-gray-500 > thead > tr > th,
+table.text-gray-600 > thead > tr > th {
+    padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4) !important;
+    color: inherit !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
+    font-weight: var(--font-weight-medium) !important;
+}
+
+table.text-gray-500 > tbody,
+table.text-gray-600 > tbody {
+    background-color: var(--color-white) !important;
+    color: var(--color-gray-600) !important;
+    font-size: var(--text-sm) !important;
+    line-height: var(--text-sm--line-height) !important;
+}
+
+table.text-gray-500 > tbody > tr,
+table.text-gray-600 > tbody > tr {
+    background-color: transparent;
+    transition: background-color 150ms ease;
+}
+
+table.text-gray-500 > tbody > tr + tr,
+table.text-gray-600 > tbody > tr + tr {
+    border-top: 1px solid var(--color-gray-200);
+}
+
+table.text-gray-500 > tbody > tr:hover,
+table.text-gray-600 > tbody > tr:hover {
+    background-color: var(--color-gray-50) !important;
+}
+
+table.text-gray-500 > tbody > tr > td,
+table.text-gray-600 > tbody > tr > td {
+    padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4) !important;
+    color: var(--color-gray-600) !important;
+    font-size: var(--text-sm) !important;
+    line-height: var(--text-sm--line-height) !important;
+}
+
+table.text-gray-500 > tbody > tr > td:first-child,
+table.text-gray-600 > tbody > tr > td:first-child {
+    color: var(--color-gray-900) !important;
+    font-weight: var(--font-weight-medium);
+}
+
+.dark div:has(> table.text-gray-500),
+.dark div:has(> table.text-gray-600) {
+    border-color: var(--color-zinc-700) !important;
+}
+
+.dark table.text-gray-500,
+.dark table.text-gray-600,
+.dark table.text-gray-500 > tbody,
+.dark table.text-gray-600 > tbody {
+    color: var(--color-gray-300) !important;
+}
+
+.dark table.text-gray-500 > thead,
+.dark table.text-gray-600 > thead {
+    background-color: var(--color-zinc-800) !important;
+    color: var(--color-gray-200) !important;
+}
+
+.dark table.text-gray-500 > tbody,
+.dark table.text-gray-600 > tbody {
+    background-color: var(--color-zinc-900) !important;
+}
+
+.dark table.text-gray-500 > tbody > tr + tr,
+.dark table.text-gray-600 > tbody > tr + tr {
+    border-color: var(--color-zinc-700);
+}
+
+.dark table.text-gray-500 > tbody > tr:hover,
+.dark table.text-gray-600 > tbody > tr:hover {
+    background-color: var(--color-zinc-800) !important;
+}
+
+.dark table.text-gray-500 > tbody > tr > td,
+.dark table.text-gray-600 > tbody > tr > td {
+    color: var(--color-gray-300) !important;
+}
+
+.dark table.text-gray-500 > tbody > tr > td:first-child,
+.dark table.text-gray-600 > tbody > tr > td:first-child {
+    color: var(--color-white) !important;
+}
+
 [data-flux-field]:not(ui-radio, ui-checkbox) {
     @apply grid gap-2;
 }
@@ -68,6 +186,31 @@ input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+}
+
+button:disabled[wire\:click^="confirmDelete"],
+button:disabled[wire\:click="delete"] {
+    @apply cursor-not-allowed opacity-40;
+}
+
+/* Rows with an Alpine action menu can be opened from anywhere on the row. */
+tbody > tr:has([x-data*="open"]) {
+    cursor: pointer;
+}
+
+table > tbody > tr.erp-table-row-active {
+    background-color: var(--color-blue-50) !important;
+    box-shadow: inset 3px 0 0 var(--color-blue-600), inset 0 0 0 1px var(--color-blue-200);
+}
+
+.dark table > tbody > tr.erp-table-row-active {
+    background-color: color-mix(in srgb, var(--color-blue-900) 32%, var(--color-zinc-900)) !important;
+    box-shadow: inset 3px 0 0 var(--color-blue-500), inset 0 0 0 1px var(--color-blue-800);
+}
+
+.erp-action-menu-centered {
+    z-index: 70 !important;
+    margin: 0 !important;
 }
 
 /* \[:where(&)\]:size-4 {

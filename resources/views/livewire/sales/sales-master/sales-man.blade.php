@@ -1,288 +1,265 @@
 <div x-data="{ toastMsg: '', toastType: '' }"
     @toast.window="toastMsg = $event.detail.message; toastType = $event.detail.type; setTimeout(() => toastMsg = '', 3000)">
-
-    {{-- TOAST --}}
-    <div x-show="toastMsg" x-transition :class="toastType === 'success' ? 'bg-green-500' : 'bg-red-500'"
-        class="fixed top-5 right-5 z-50 text-white px-4 py-2 rounded shadow-lg text-sm">
+    <div x-cloak x-show="toastMsg" x-transition
+        :class="toastType === 'success' ? 'bg-green-600' : 'bg-red-600'"
+        class="fixed right-5 top-5 z-50 rounded-lg px-4 py-2 text-sm text-white shadow-lg">
         <span x-text="toastMsg"></span>
     </div>
 
-    {{-- FILTER BAR --}}
-    <div
-        class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-            <h1 class="text-lg">Data Tabel Master Supplier</h1>
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 w-full md:w-auto">
-            {{-- Search --}}
+    <div class="my-4 flex flex-col items-center justify-between gap-3 md:flex-row">
+        <h1 class="text-lg font-semibold dark:text-white">Data Tenaga Penjualan</h1>
+
+        <div class="flex w-full flex-col items-center gap-3 sm:flex-row md:w-auto">
             <div class="relative w-full sm:w-72">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg aria-hidden="true" class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <input wire:model.live.debounce.300ms="search" type="text"
-                    class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2.5 placeholder-gray-400"
-                    placeholder="Cari kode, nama, kontak..." />
+                <svg class="pointer-events-none absolute left-3 top-3 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                </svg>
+                <input wire:model.live.debounce.300ms="search" type="search"
+                    class="block w-full rounded-lg border border-gray-300 p-2.5 pl-10 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
+                    placeholder="Cari kode, nama, atau email...">
             </div>
 
-            {{-- Per Page --}}
             <select wire:model.live="perPage"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 w-full sm:w-auto">
+                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white sm:w-auto">
                 <option value="10">10 / hal</option>
                 <option value="25">25 / hal</option>
                 <option value="50">50 / hal</option>
             </select>
-            {{-- Show Trashed --}}
-            <label class="flex items-center gap-2 text-sm dark:text-gray-300 cursor-pointer whitespace-nowrap">
-                <input type="checkbox" wire:model.live="showTrashed"
-                    class="w-4 h-4 rounded border-gray-600 dark:bg-zinc-800 text-blue-600">
-                Tampilkan Terhapus
+
+            <label class="flex cursor-pointer items-center gap-2 whitespace-nowrap text-sm dark:text-gray-300">
+                <input type="checkbox" wire:model.live="showTrashed" class="h-4 w-4 rounded">
+                Tampilkan terhapus
             </label>
-            {{-- Export --}}
-            {{-- <button wire:click="export"
-                class="inline-flex items-center gap-2 text-white bg-indigo-600 hover:bg-indigo-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v6m0 0l-3-3m3 3l3-3M12 3v9" />
-                </svg>
-                Export CSV
-            </button> --}}
-            {{-- Tambah --}}
+
             <button wire:click="openCreate"
-                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:ml-auto sm:w-auto w-full justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Tambah Pemasok
+                class="inline-flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 sm:w-auto">
+                <span class="text-lg leading-none">+</span> Tambah Salesman
             </button>
         </div>
     </div>
 
-    {{-- TABLE --}}
-    {{-- <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+    <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700">
+        <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
+            <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-zinc-800 dark:text-gray-200">
                 <tr>
-                    <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('code')">
-                        <div class="flex items-center gap-1">Code
-                            @if ($sortField === 'code')
-                                <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
-                            @endif
-                        </div>
-                    </th>
-                    <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
-                        <div class="flex items-center gap-1">Name
-                            @if ($sortField === 'name')
-                                <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
-                            @endif
-                        </div>
-                    </th>
-                    <th class="px-4 py-4">Alamat</th>
-                    <th class="px-4 py-4">Kontak</th>
-                    <th class="px-4 py-4">Status</th>
-                    <th class="px-4 py-4">Dibuat Oleh</th>
-                    <th class="px-4 py-4">Aksi</th>
+                    <th class="cursor-pointer px-4 py-3" wire:click="sortBy('code')">Kode</th>
+                    <th class="cursor-pointer px-4 py-3" wire:click="sortBy('name')">Nama</th>
+                    <th class="px-4 py-3">Login ERP</th>
+                    <th class="px-4 py-3">Customer Default</th>
+                    <th class="px-4 py-3">Status</th>
+                    <th class="px-4 py-3">Aksi</th>
                 </tr>
             </thead>
-            <tbody class="dark:bg-zinc-950 text-base">
-                @forelse ($suppliers as $supplier)
-                    <tr
-                        class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $supplier->trashed() ? 'opacity-60' : '' }}">
-                        <th scope="row"
-                            class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white uppercase">
-                            {{ $supplier->code }}
-                        </th>
-                        <td class="px-4 py-4 uppercase">{{ $supplier->name }}</td>
-                        <td class="px-4 py-4 max-w-xs truncate">{{ $supplier->address }}</td>
-                        <td class="px-4 py-4">{{ $supplier->contact }}</td>
-                        <td class="px-4 py-4">
-                            @if ($supplier->trashed())
-                                <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-700 text-white">
-                                    Terhapus
-                                </span>
+            <tbody class="divide-y divide-gray-200 bg-white dark:divide-zinc-700 dark:bg-zinc-900">
+                @forelse ($salesmen as $salesman)
+                    <tr wire:key="salesman-{{ $salesman->id }}" class="hover:bg-gray-50 dark:hover:bg-zinc-800 {{ $salesman->trashed() ? 'opacity-60' : '' }}">
+                        <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white">{{ $salesman->code }}</td>
+                        <td class="px-4 py-3">{{ $salesman->name }}</td>
+                        <td class="px-4 py-3">
+                            @if ($salesman->user)
+                                <div>{{ $salesman->user->name }}</div>
+                                <div class="text-xs text-gray-400">{{ $salesman->user->email }}</div>
                             @else
-                                <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-green-700 text-white">
-                                    Aktif
-                                </span>
+                                <span class="text-gray-400">Belum terhubung</span>
                             @endif
                         </td>
-                        <td class="px-4 py-4">{{ $supplier->created_by }}</td>
-                        <td class="px-4 py-4">
-                            @if ($supplier->trashed())
-                                <div class="px-4 py-2 text-sm text-gray-400">
-                                    Data sudah terhapus
-                                </div>
+                        <td class="px-4 py-3">
+                            @if ($salesman->defaultCustomer)
+                                <div>{{ $salesman->defaultCustomer->name }}</div>
+                                @if ($salesman->defaultCustomerAddress)
+                                    <div class="max-w-xs truncate text-xs text-gray-400">{{ $salesman->defaultCustomerAddress->label }}</div>
+                                @endif
                             @else
-                                <div class="inline-block" x-data="{
-                                    open: false,
-                                    top: 0,
-                                    left: 0,
-                                    toggle($el) {
-                                        const rect = $el.getBoundingClientRect();
-                                
-                                        this.top = rect.bottom + 6;
-                                        this.left = rect.left - 128;
-                                
-                                        this.open = !this.open;
-                                    }
-                                }">
-                                    <button @click="toggle($el)" @click.outside="open = false"
-                                        class="inline-flex items-center p-0.5 text-md font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100 cursor-pointer"
-                                        type="button">
-                                        <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
-                                            <path
-                                                d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-                                        </svg>
-                                    </button>
+                                <span class="text-gray-400">-</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3">
+                            @if ($salesman->trashed())
+                                <span class="rounded-full bg-red-100 px-2.5 py-1 text-xs text-red-700 dark:bg-red-900/40 dark:text-red-300">Terhapus</span>
+                            @elseif ($salesman->is_active)
+                                <span class="rounded-full bg-green-100 px-2.5 py-1 text-xs text-green-700 dark:bg-green-900/40 dark:text-green-300">Aktif</span>
+                            @else
+                                <span class="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-600 dark:bg-zinc-700 dark:text-gray-300">Nonaktif</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="inline-block" x-data="{
+                                open: false,
+                                top: 0,
+                                left: 0,
+                                toggle($el) {
+                                    const rect = $el.getBoundingClientRect();
+                                    this.top = rect.bottom + 6;
+                                    this.left = rect.left - 128;
+                                    this.open = !this.open;
+                                }
+                            }">
+                                <button type="button" @click="toggle($el)" @click.outside="open = false"
+                                    aria-label="Buka aksi salesman"
+                                    class="inline-flex cursor-pointer items-center rounded-lg p-0.5 text-center text-gray-500 hover:text-gray-800 focus:outline-none dark:text-gray-400 dark:hover:text-gray-100">
+                                    <svg class="h-5 w-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                                    </svg>
+                                </button>
 
-                                    <div x-show="open" x-cloak
-                                        :style="`position: fixed; top: ${top}px; left: ${left}px;`"
-                                        class="z-50 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
-                                        <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
+                                <div x-cloak x-show="open" :style="`position: fixed; top: ${top}px; left: ${left}px;`"
+                                    class="z-50 w-44 divide-y divide-gray-100 rounded bg-white shadow dark:divide-gray-600 dark:bg-gray-700">
+                                    @unless ($salesman->trashed())
+                                        <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
                                             <li>
-                                                <button wire:click="openEdit({{ $supplier->id }})" @click="open = false"
-                                                    class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>Ubah
+                                                <button type="button" wire:click="openEdit({{ $salesman->id }})" @click="open = false"
+                                                    class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                    Ubah
                                                 </button>
                                             </li>
                                         </ul>
-                                        <div class="py-1">
-                                            <button wire:click="confirmDelete({{ $supplier->id }})"
-                                                @click="open = false"
-                                                class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2"
-                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>Hapus
+                                    @endunless
+
+                                    <div class="py-1">
+                                        @if ($salesman->trashed())
+                                            <button type="button" wire:click="restore({{ $salesman->id }})" @click="open = false"
+                                                class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-green-600 hover:bg-green-600 hover:text-white dark:text-green-400">
+                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                </svg>
+                                                Pulihkan
                                             </button>
-                                        </div>
+                                        @else
+                                            <button type="button" wire:click="confirmDelete({{ $salesman->id }})" @click="open = false" @disabled(! auth()->user()->isSuperAdmin())
+                                                class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200">
+                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                                Hapus
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
-                            @endif
+                            </div>
                         </td>
                     </tr>
                 @empty
-                    <tr>
-                        <td colspan="7" class="text-center py-8 text-gray-400 dark:text-gray-500">
-                            Tidak ada data supplier.
-                        </td>
-                    </tr>
+                    <tr><td colspan="6" class="px-4 py-10 text-center text-gray-400">Belum ada data salesman.</td></tr>
                 @endforelse
             </tbody>
         </table>
-    </div> --}}
+    </div>
 
-    {{-- PAGINATION --}}
-    {{-- <div class="mt-4">
-        {{ $suppliers->links() }}
-    </div> --}}
+    <div class="mt-4">{{ $salesmen->links() }}</div>
 
-    {{-- MODAL CREATE/EDIT --}}
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-center justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm">
-            <div class="mx-auto flex w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-800">
-                <div class="flex shrink-0 items-center justify-between border-b border-gray-200 bg-zinc-50 px-8 py-6 dark:border-zinc-700 dark:bg-zinc-900">
-                    <h3 class="text-lg font-semibold dark:text-white">Master Salesman</h3>
-                    <button type="button" wire:click="$set('showModal', false)" class="cursor-pointer text-gray-500 hover:text-gray-800 dark:hover:text-white">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <div class="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-800">
+                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-zinc-700">
+                    <h3 class="text-lg font-semibold dark:text-white">{{ $salesmanId ? 'Ubah' : 'Tambah' }} Salesman</h3>
+                    <button type="button" wire:click="$set('showModal', false)" class="cursor-pointer text-2xl text-gray-500">&times;</button>
                 </div>
 
-                <div class="min-h-0 flex-1 touch-pan-y space-y-4 overflow-y-auto items-center justify-center px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6"
-                    data-testid="customer-modal-scroll-container"
-                    style="overscroll-behavior: contain; scrollbar-gutter: stable; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
-                    <div class="space-y-4">
+                <form wire:submit="save" class="min-h-0 flex-1 overflow-y-auto">
+                    <div class="space-y-4 px-6 py-5">
                         <div>
-                            <label class="mb-1 block text-sm font-medium dark:text-white">Kode Salesman</label>
-                            <input type="text" value="SM-001" placeholder="SM-001"
-                                class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                            <label class="mb-1 block text-sm font-medium dark:text-white">Kode Salesman <span class="text-red-500">*</span></label>
+                            <input wire:model="code" type="text" placeholder="SM-001"
+                                class="w-full rounded-lg border border-gray-300 p-2.5 text-sm uppercase dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                            @error('code') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
-                            <label class="mb-1 block text-sm font-medium dark:text-white">Nama Salesman</label>
-                            <input type="text" value="Budi Santoso" placeholder="Nama salesman"
+                            <label class="mb-1 block text-sm font-medium dark:text-white">Nama Salesman <span class="text-red-500">*</span></label>
+                            <input wire:model="name" type="text" placeholder="Nama salesman"
                                 class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                            @error('name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
 
-                        <div>
-                            <label class="mb-1 block text-sm font-medium dark:text-white">Akun Salesman</label>
-                            <select class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
-                                <option value="">Pilih akun salesman</option>
-                                <option value="1">Akun Penjualan 01</option>
-                                <option value="2">Akun Penjualan 02</option>
-                                <option value="3">Akun Penjualan 03</option>
-                            </select>
+                        <div class="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/30">
+                            <h4 class="mb-3 text-sm font-semibold text-blue-900 dark:text-blue-200">Akun Login ERP</h4>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium dark:text-white">Email / Username <span class="text-red-500">*</span></label>
+                                    <input wire:model="login" type="text" autocomplete="username" placeholder="salesman@perusahaan.com"
+                                        class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                                    @error('login') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                </div>
+
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label class="mb-1 block text-sm font-medium dark:text-white">Password {{ $salesmanId ? '(opsional)' : '' }} <span class="text-red-500">{{ $salesmanId ? '' : '*' }}</span></label>
+                                        <input wire:model="password" type="password" autocomplete="new-password" placeholder="Minimal 8 karakter"
+                                            class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                                        @error('password') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                    </div>
+
+                                    <div>
+                                        <label class="mb-1 block text-sm font-medium dark:text-white">Konfirmasi Password <span class="text-red-500">{{ $salesmanId ? '' : '*' }}</span></label>
+                                        <input wire:model="passwordConfirmation" type="password" autocomplete="new-password" placeholder="Ulangi password"
+                                            class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                                        @error('passwordConfirmation') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                    </div>
+                                </div>
+
+                                @if ($salesmanId)
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Kosongkan password bila tidak ingin mengubahnya.</p>
+                                @else
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Akun otomatis dibuat dengan role Salesman saat data disimpan.</p>
+                                @endif
+                            </div>
                         </div>
 
                         <div>
                             <label class="mb-1 block text-sm font-medium dark:text-white">Customer Default</label>
-                            <select class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
-                                <option value="">Pilih customer default</option>
-                                <option value="1">PT. ABC</option>
-                                <option value="2">PT. XYZ</option>
-                                <option value="3">CV. Maju</option>
+                            <select wire:model.live="defaultCustomerId" class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                                <option value="">Tanpa customer default</option>
+                                @foreach ($customers as $customer)
+                                    <option value="{{ $customer->id }}">{{ $customer->code }} - {{ $customer->name }}</option>
+                                @endforeach
                             </select>
+                            @error('defaultCustomerId') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
-                            <label class="mb-1 block text-sm font-medium dark:text-white">Customer Delivery Address</label>
-                            <select class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
-                                <option value="">Pilih alamat delivery</option>
-                                <option value="1">Jl. Merdeka No. 10</option>
-                                <option value="2">Jl. Sudirman No. 20</option>
-                                <option value="3">Jl. Pahlawan No. 30</option>
+                            <label class="mb-1 block text-sm font-medium dark:text-white">Alamat Pengiriman Default</label>
+                            <select wire:model="defaultCustomerAddressId" @disabled(!$defaultCustomerId)
+                                class="w-full rounded-lg border border-gray-300 p-2.5 text-sm disabled:opacity-50 dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                                <option value="">Tanpa alamat default</option>
+                                @foreach ($customerAddresses as $address)
+                                    <option value="{{ $address->id }}">{{ $address->code }} - {{ $address->label }}</option>
+                                @endforeach
                             </select>
+                            @error('defaultCustomerAddressId') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
-                    </div>
-                </div>
 
-                <div class="flex shrink-0 justify-end gap-2 border-t border-gray-200 bg-white px-4 py-4 sm:px-6 lg:px-8 dark:border-zinc-700 dark:bg-zinc-900">
-                    <button type="button" wire:click="$set('showModal', false)" class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2.5 text-sm dark:border-gray-600 dark:text-gray-200">Batal</button>
-                    <button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save"
-                        class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm text-white hover:bg-blue-700 disabled:opacity-50">
-                        <span wire:loading.remove wire:target="save">Simpan Pelanggan</span>
-                        <span wire:loading wire:target="save">Menyimpan...</span>
-                    </button>
-                </div>
+                        <label class="flex cursor-pointer items-center gap-2 text-sm dark:text-white">
+                            <input wire:model="isActive" type="checkbox" class="h-4 w-4 rounded">
+                            Salesman aktif
+                        </label>
+                    </div>
+
+                    <div class="flex justify-end gap-2 border-t border-gray-200 px-6 py-4 dark:border-zinc-700">
+                        <button type="button" wire:click="$set('showModal', false)" class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2.5 text-sm dark:border-gray-600 dark:text-gray-200">Batal</button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="save" class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm text-white hover:bg-blue-700 disabled:opacity-50">
+                            <span wire:loading.remove wire:target="save">Simpan Salesman</span>
+                            <span wire:loading wire:target="save">Menyimpan...</span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     @endif
 
-    {{-- MODAL DELETE CONFIRM --}}
-    {{-- @if ($showDeleteModal)
-        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-sm mx-4 p-6">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="p-2 bg-red-900 rounded-full">
-                        <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-base font-semibold dark:text-white">Hapus Pemasok?</h3>
-                </div>
-                <p class="text-sm text-gray-400 mb-5">Data akan dipindahkan ke tempat sampah.</p>
+    @if ($showDeleteModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <div class="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl dark:bg-zinc-800">
+                <h3 class="mb-2 font-semibold dark:text-white">Hapus salesman?</h3>
+                <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">Profil dan akun login ERP akan dinonaktifkan. Keduanya dapat dipulihkan kembali.</p>
                 <div class="flex justify-end gap-2">
-                    <button wire:click="$set('showDeleteModal', false)"
-                        class="px-4 py-2 text-sm rounded-lg border border-gray-600 dark:text-gray-300 hover:bg-zinc-700">
-                        Batal
-                    </button>
-                    <button wire:click="delete"
-                        class="px-4 py-2 text-sm rounded-lg bg-red-700 text-white hover:bg-red-800 cursor-pointer">
-                        Ya, Hapus
-                    </button>
+                    <button wire:click="$set('showDeleteModal', false)" class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2 text-sm dark:border-gray-600 dark:text-gray-200">Batal</button>
+                    <button wire:click="delete" @disabled(! auth()->user()->isSuperAdmin()) class="cursor-pointer rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700">Ya, Hapus</button>
                 </div>
             </div>
         </div>
-    @endif --}}
+    @endif
 </div>

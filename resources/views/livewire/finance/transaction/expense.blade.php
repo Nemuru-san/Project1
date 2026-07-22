@@ -105,7 +105,7 @@
                                     @if (!$expense->trashed() && $expense->status === 'Draft')
                                         <button type="button" wire:click="openEdit({{ $expense->id }})" @click="open = false" class="block w-full cursor-pointer px-4 py-2 text-left text-sm hover:bg-gray-100 dark:text-white dark:hover:bg-zinc-700">Ubah</button>
                                         <button type="button" wire:click="confirmPost({{ $expense->id }})" @click="open = false" class="block w-full cursor-pointer px-4 py-2 text-left text-sm text-green-600 hover:bg-gray-100 dark:hover:bg-zinc-700">Posting</button>
-                                        <button type="button" wire:click="confirmDelete({{ $expense->id }})" @click="open = false" class="block w-full cursor-pointer px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-zinc-700">Hapus</button>
+                                        <button type="button" wire:click="confirmDelete({{ $expense->id }})" @click="open = false" @disabled(! auth()->user()->isSuperAdmin()) class="block w-full cursor-pointer px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-zinc-700">Hapus</button>
                                     @endif
                                 </div>
                             </div>
@@ -265,7 +265,7 @@
             <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-900">
                 <h3 class="mb-2 text-lg font-semibold dark:text-white">Hapus Pengeluaran?</h3>
                 <p class="mb-6 text-sm text-gray-500">Pengeluaran berstatus Draf akan dipindahkan ke data terhapus.</p>
-                <div class="flex justify-end gap-2"><button wire:click="$set('showDeleteModal', false)" class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2 text-sm dark:text-white">Batal</button><button wire:click="delete" class="cursor-pointer rounded-lg bg-red-600 px-4 py-2 text-sm text-white">Hapus</button></div>
+                <div class="flex justify-end gap-2"><button wire:click="$set('showDeleteModal', false)" class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2 text-sm dark:text-white">Batal</button><button wire:click="delete" @disabled(! auth()->user()->isSuperAdmin()) class="cursor-pointer rounded-lg bg-red-600 px-4 py-2 text-sm text-white">Hapus</button></div>
             </div>
         </div>
     @endif

@@ -95,8 +95,8 @@
 
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-4">
+            <thead class="text-sm font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('code')">
                         <div class="flex items-center gap-1">
@@ -124,7 +124,7 @@
                 </tr>
             </thead>
 
-            <tbody class="dark:bg-zinc-950 text-base">
+            <tbody class="dark:bg-zinc-950 text-sm">
                 @forelse ($invoices as $invoice)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $invoice->trashed() ? 'opacity-60' : '' }}">
@@ -260,7 +260,8 @@
 
                                         <div class="py-1">
                                             <button
-                                                @if (!$locked) wire:click="confirmDelete({{ $invoice->id }})" @endif
+                                                @if (!$locked && auth()->user()?->isSuperAdmin()) wire:click="confirmDelete({{ $invoice->id }})" @endif
+                                                @disabled($locked || ! auth()->user()?->isSuperAdmin())
                                                 @click="open = false" @disabled($locked)
                                                 class="flex items-center gap-2 w-full py-2 px-4 text-base {{ $locked ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer' }}">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -461,9 +462,9 @@
 
                             <div class="overflow-x-auto">
                                 <table
-                                    class="w-full text-base text-left text-gray-900 dark:text-white my-2 min-w-425 whitespace-nowrap border-collapse border border-gray-300 dark:border-zinc-600">
+                                    class="w-full text-sm text-left text-gray-900 dark:text-white my-2 min-w-425 whitespace-nowrap border-collapse border border-gray-300 dark:border-zinc-600">
                                     <thead
-                                        class="text-base font-bold text-gray-900 uppercase bg-gray-200 dark:bg-zinc-700 dark:text-white">
+                                        class="text-sm font-bold text-gray-900 uppercase bg-gray-200 dark:bg-zinc-700 dark:text-white">
                                         <tr>
                                             <th scope="col"
                                                 class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">No.</th>
@@ -969,7 +970,7 @@
                         class="px-4 py-2 text-sm rounded-lg border border-gray-600 dark:text-gray-300 hover:bg-zinc-700">
                         Batal
                     </button>
-                    <button wire:click="delete"
+                    <button wire:click="delete" @disabled(! auth()->user()?->isSuperAdmin())
                         class="px-4 py-2 text-sm rounded-lg bg-red-700 text-white hover:bg-red-800 cursor-pointer">
                         Ya, Hapus
                     </button>

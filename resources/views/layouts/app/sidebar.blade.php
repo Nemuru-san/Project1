@@ -143,6 +143,9 @@
                     <flux:sidebar.item href="{{ route('finance.transaction.expense') }}"
                         :current="request()->routeIs('finance.transaction.expense')" wire:navigate>Pengeluaran
                     </flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('finance.transaction.ar-dp-payment') }}"
+                        :current="request()->routeIs('finance.transaction.ar-dp-payment')" wire:navigate>Penerimaan DP Pelanggan
+                    </flux:sidebar.item>
                     <flux:sidebar.item href="#" wire:navigate>Pembayaran Piutang</flux:sidebar.item>
                 </flux:sidebar.group>
 

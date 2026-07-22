@@ -82,10 +82,9 @@
 
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400">
-            <thead class="text-lg font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-sm font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
-                    <th class="px-4 py-4 w-12">No.</th>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('code')">
                         <div class="flex items-center gap-1">
                             Kode PO
@@ -115,11 +114,10 @@
                     <th class="px-4 py-4">Aksi</th>
                 </tr>
             </thead>
-            <tbody class="dark:bg-zinc-950 text-base text-white">
-                @forelse($purchaseOrders as $index => $po)
+            <tbody class="dark:bg-zinc-950 text-sm text-white">
+                @forelse($purchaseOrders as $po)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $po->trashed() ? 'opacity-50' : '' }}">
-                        <td class="px-4 py-4 text-gray-500">{{ $purchaseOrders->firstItem() + $index }}</td>
                         <td class="px-4 py-4 font-mono font-medium text-gray-900 dark:text-white">{{ $po->code }}
                         </td>
                         <td class="px-4 py-4 text-gray-900 dark:text-white">{{ $po->date->format('d/m/Y') }}</td>
@@ -256,7 +254,8 @@
 
                                         <div class="py-1">
                                             <button
-                                                @if (!$locked) wire:click="confirmDelete({{ $po->id }})" @endif
+                                                @if (!$locked && auth()->user()->isSuperAdmin()) wire:click="confirmDelete({{ $po->id }})" @endif
+                                                @disabled($locked || ! auth()->user()->isSuperAdmin())
                                                 @click="open = false" @disabled($locked)
                                                 class="flex items-center gap-2 w-full py-2 px-4 text-base {{ $locked ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer' }}">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -274,7 +273,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-10 text-center text-gray-400 dark:text-gray-500">
+                        <td colspan="6" class="px-4 py-10 text-center text-gray-400 dark:text-gray-500">
                             Tidak ada data purchase order ditemukan.
                         </td>
                     </tr>
@@ -379,7 +378,7 @@
 
                         <div class="overflow-x-auto">
                             <table
-                                class="w-full text-base text-left text-gray-900 dark:text-white border-collapse border border-gray-300 dark:border-zinc-600 min-w-max whitespace-nowrap">
+                                class="w-full text-sm text-left text-gray-900 dark:text-white border-collapse border border-gray-300 dark:border-zinc-600 min-w-max whitespace-nowrap">
                                 <thead
                                     class="text-sm font-bold text-gray-900 uppercase bg-gray-200 dark:bg-zinc-700 dark:text-white">
                                     <tr>
@@ -634,10 +633,11 @@
                                                 @endphp
 
                                                 <tr
-                                                    class="hover:bg-gray-50 dark:hover:bg-zinc-800 {{ $alreadyAdded ? 'opacity-50' : '' }}">
+                                                    @click="$event.currentTarget.querySelector('input[type=checkbox]:not(:disabled)')?.click()"
+                                                    class="hover:bg-gray-50 dark:hover:bg-zinc-800 {{ $alreadyAdded ? 'cursor-not-allowed opacity-50' : 'cursor-pointer' }}">
                                                     <td
                                                         class="border border-gray-300 dark:border-zinc-700 px-4 py-3 text-center">
-                                                        <input type="checkbox" wire:model.live="selectedProductIds"
+                                                        <input type="checkbox" wire:model.live="selectedProductIds" @click.stop
                                                             value="{{ $product->id }}" @disabled($alreadyAdded)
                                                             class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:bg-zinc-800 dark:border-gray-600">
                                                     </td>
@@ -952,7 +952,7 @@
                         class="px-4 py-2 text-sm rounded-lg border border-gray-600 dark:text-gray-300 hover:bg-zinc-700">
                         Batal
                     </button>
-                    <button wire:click="delete"
+                    <button wire:click="delete" @disabled(! auth()->user()->isSuperAdmin())
                         class="px-4 py-2 text-sm rounded-lg bg-red-600 hover:bg-red-700 text-white">
                         Hapus
                     </button>

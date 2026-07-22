@@ -1,391 +1,107 @@
-<div x-data="{ toastMsg: '', toastType: '' }"
-    @toast.window="toastMsg = $event.detail.message; toastType = $event.detail.type; setTimeout(() => toastMsg = '', 3000)">
+<div x-data="{ toastMsg: '', toastType: '' }" @toast.window="toastMsg = $event.detail.message; toastType = $event.detail.type; setTimeout(() => toastMsg = '', 3500)">
+    <div x-cloak x-show="toastMsg" x-transition :class="toastType === 'success' ? 'bg-green-600' : 'bg-red-600'" class="fixed right-5 top-5 z-[80] rounded-lg px-4 py-2 text-sm text-white shadow-lg"><span x-text="toastMsg"></span></div>
 
-    {{-- TOAST --}}
-    <div x-show="toastMsg" x-transition :class="toastType === 'success' ? 'bg-green-500' : 'bg-red-500'"
-        class="fixed top-5 right-5 z-50 text-white px-4 py-2 rounded shadow-lg text-sm">
-        <span x-text="toastMsg"></span>
-    </div>
-
-    {{-- FILTER BAR --}}
-    <div
-        class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <h1 class="text-lg">Data Tabel Master Supplier</h1>
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 w-full md:w-auto">
-            {{-- Search --}}
+    <div class="my-4 flex flex-col gap-3 dark:bg-zinc-900">
+        <div class="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <div class="relative w-full sm:w-72">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg aria-hidden="true" class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <input wire:model.live.debounce.300ms="search" type="text"
-                    class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2.5 placeholder-gray-400"
-                    placeholder="Cari kode, nama, kontak..." />
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg></div>
+                <input wire:model.live.debounce.300ms="search" type="search" placeholder="Cari nomor atau customer..." class="block w-full rounded-lg border border-gray-600 p-2.5 pl-10 text-sm placeholder-gray-400 dark:bg-zinc-800 dark:text-white">
             </div>
-
-            {{-- Per Page --}}
-            <select wire:model.live="perPage"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 w-full sm:w-auto">
-                <option value="10">10 / hal</option>
-                <option value="25">25 / hal</option>
-                <option value="50">50 / hal</option>
-            </select>
-            {{-- Show Trashed --}}
-            <label class="flex items-center gap-2 text-sm dark:text-gray-300 cursor-pointer whitespace-nowrap">
-                <input type="checkbox" wire:model.live="showTrashed"
-                    class="w-4 h-4 rounded border-gray-600 dark:bg-zinc-800 text-blue-600">
-                Tampilkan Terhapus
-            </label>
-            {{-- Export --}}
-            {{-- <button wire:click="export"
-                class="inline-flex items-center gap-2 text-white bg-indigo-600 hover:bg-indigo-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v6m0 0l-3-3m3 3l3-3M12 3v9" />
-                </svg>
-                Export CSV
-            </button> --}}
-            {{-- Tambah --}}
-            <button wire:click="openCreate"
-                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:ml-auto sm:w-auto w-full justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Tambah Pemasok
-            </button>
+            <select wire:model.live="statusFilter" class="w-full rounded-lg border border-gray-600 px-8 py-2.5 text-sm dark:bg-zinc-800 dark:text-white sm:w-auto"><option value="">Semua Status</option><option value="draft">Draf</option><option value="sales_order">Menjadi Sales Order</option></select>
+            <select wire:model.live="perPage" class="w-full rounded-lg border border-gray-600 px-8 py-2.5 text-sm dark:bg-zinc-800 dark:text-white sm:w-auto"><option value="10">10 / hal</option><option value="25">25 / hal</option><option value="50">50 / hal</option></select>
+            <label class="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg border border-gray-600 px-3 py-2.5 text-sm dark:text-gray-300"><input wire:model.live="showTrashed" type="checkbox" class="h-4 w-4 rounded border-gray-600 text-blue-600 dark:bg-zinc-800"> Tampilkan Terhapus</label>
+            <button wire:click="openCreate" type="button" class="order-last inline-flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 sm:ml-auto sm:w-auto"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>Tambah Transaksi</button>
+        </div>
+        <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-300 sm:min-w-28">Rentang tanggal</span>
+            <input wire:model.live="dateFrom" type="date" class="w-full rounded-lg border border-gray-600 px-3 py-2.5 text-sm dark:bg-zinc-800 dark:text-white sm:w-auto"><span class="hidden text-gray-400 sm:inline">s.d.</span>
+            <input wire:model.live="dateTo" type="date" class="w-full rounded-lg border border-gray-600 px-3 py-2.5 text-sm dark:bg-zinc-800 dark:text-white sm:w-auto">
+            <button wire:click="resetFilters" type="button" class="cursor-pointer rounded-lg border border-gray-600 px-4 py-2.5 text-sm hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-zinc-800">Bersihkan Filter</button>
         </div>
     </div>
 
-    {{-- TABLE --}}
-    {{-- <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
-                <tr>
-                    <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('code')">
-                        <div class="flex items-center gap-1">Code
-                            @if ($sortField === 'code')
-                                <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
-    @endif
-</div>
-</th>
-<th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
-    <div class="flex items-center gap-1">Name
-        @if ($sortField === 'name')
-        <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
-        @endif
-    </div>
-</th>
-<th class="px-4 py-4">Alamat</th>
-<th class="px-4 py-4">Kontak</th>
-<th class="px-4 py-4">Status</th>
-<th class="px-4 py-4">Dibuat Oleh</th>
-<th class="px-4 py-4">Aksi</th>
-</tr>
-</thead>
-<tbody class="dark:bg-zinc-950 text-base">
-    @forelse ($suppliers as $supplier)
-    <tr
-        class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $supplier->trashed() ? 'opacity-60' : '' }}">
-        <th scope="row"
-            class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white uppercase">
-            {{ $supplier->code }}
-        </th>
-        <td class="px-4 py-4 uppercase">{{ $supplier->name }}</td>
-        <td class="px-4 py-4 max-w-xs truncate">{{ $supplier->address }}</td>
-        <td class="px-4 py-4">{{ $supplier->contact }}</td>
-        <td class="px-4 py-4">
-            @if ($supplier->trashed())
-            <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-700 text-white">
-                Terhapus
-            </span>
-            @else
-            <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-green-700 text-white">
-                Aktif
-            </span>
-            @endif
-        </td>
-        <td class="px-4 py-4">{{ $supplier->created_by }}</td>
-        <td class="px-4 py-4">
-            @if ($supplier->trashed())
-            <div class="px-4 py-2 text-sm text-gray-400">
-                Data sudah terhapus
-            </div>
-            @else
-            <div class="inline-block" x-data="{
-                                    open: false,
-                                    top: 0,
-                                    left: 0,
-                                    toggle($el) {
-                                        const rect = $el.getBoundingClientRect();
-                                
-                                        this.top = rect.bottom + 6;
-                                        this.left = rect.left - 128;
-                                
-                                        this.open = !this.open;
-                                    }
-                                }">
-                <button @click="toggle($el)" @click.outside="open = false"
-                    class="inline-flex items-center p-0.5 text-md font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100 cursor-pointer"
-                    type="button">
-                    <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                            d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-                    </svg>
-                </button>
-
-                <div x-show="open" x-cloak
-                    :style="`position: fixed; top: ${top}px; left: ${left}px;`"
-                    class="z-50 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
-                    <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
-                        <li>
-                            <button wire:click="openEdit({{ $supplier->id }})" @click="open = false"
-                                class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>Ubah
-                            </button>
-                        </li>
-                    </ul>
-                    <div class="py-1">
-                        <button wire:click="confirmDelete({{ $supplier->id }})"
-                            @click="open = false"
-                            class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>Hapus
-                        </button>
-                    </div>
-                </div>
-            </div>
-            @endif
-        </td>
-    </tr>
-    @empty
-    <tr>
-        <td colspan="7" class="text-center py-8 text-gray-400 dark:text-gray-500">
-            Tidak ada data supplier.
-        </td>
-    </tr>
-    @endforelse
-</tbody>
-</table>
-</div> --}}
-
-{{-- PAGINATION --}}
-{{-- <div class="mt-4">
-        {{ $suppliers->links() }}
-</div> --}}
-
-{{-- MODAL CREATE/EDIT --}}
-
-@if ($showModal)
-<div class="fixed inset-0 z-40 flex items-center justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm">
-    <div class="mx-auto flex w-full max-w-5xl h-[85vh] max-h-[750px] flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-800"
-        x-data="{}">
-        <div class="flex shrink-0 items-center justify-between border-b border-gray-200 bg-zinc-50 px-8 py-6 dark:border-zinc-700 dark:bg-zinc-900">
-            <h3 class="text-lg font-semibold dark:text-white">Sales PreOrder</h3>
-            <button type="button" wire:click="$set('showModal', false)" class="cursor-pointer text-gray-500 hover:text-gray-800 dark:hover:text-white">
-                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-
-        <div class="min-h-0 flex-1 touch-pan-y overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6"
-            data-testid="customer-modal-scroll-container"
-            style="overscroll-behavior: contain; scrollbar-gutter: stable; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                    <label class="mb-1 block text-sm font-medium dark:text-white">PreOrder No</label>
-                    <input type="text" value="PRE-001" readonly
-                        class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-sm font-medium dark:text-white">Date</label>
-                    <input type="date" value="2026-07-19"
-                        class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-sm font-medium dark:text-white">Customer</label>
-                    <select class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
-                        <option value="">Pilih customer</option>
-                        <option value="1">PT. ABC</option>
-                        <option value="2">PT. XYZ</option>
-                        <option value="3">CV. Maju</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-sm font-medium dark:text-white">Customer Delivery Address</label>
-                    <select class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
-                        <option value="">Pilih alamat delivery</option>
-                        <option value="1">Jl. Merdeka No. 10</option>
-                        <option value="2">Jl. Sudirman No. 20</option>
-                        <option value="3">Jl. Pahlawan No. 30</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-sm font-medium dark:text-white">Disc (%)</label>
-                    <input type="number" placeholder="0" value="0"
-                        class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-sm font-medium dark:text-white">Disc (Amount)</label>
-                    <input type="number" placeholder="0" value="0"
-                        class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-sm font-medium dark:text-white">Tax</label>
-                    <label class="inline-flex items-center cursor-pointer">
-                        <span
-                            class="select-none text-base font-medium text-gray-600 dark:text-gray-400">Tidak</span>
-                        <div class="relative mx-3">
-                            <input type="checkbox" checked class="sr-only peer">
-                            <div
-                                class="w-9 h-5 bg-red-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-red-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-red-500 after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-red-500 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600">
+    <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700">
+        <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
+            <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-zinc-800 dark:text-gray-200"><tr><th class="px-4 py-3">Nomor Pre Order</th><th class="px-4 py-3">Tanggal</th><th class="px-4 py-3">Customer</th><th class="px-4 py-3">Total</th><th class="px-4 py-3">DP Posted</th><th class="px-4 py-3">Sisa</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Aksi</th></tr></thead>
+            <tbody class="divide-y divide-gray-200 bg-white dark:divide-zinc-700 dark:bg-zinc-900">
+                @forelse($preOrders as $preOrder)
+                    @php $postedDp=(int)($preOrder->posted_dp_amount ?? 0); @endphp
+                    <tr wire:key="pre-order-{{ $preOrder->id }}" class="hover:bg-gray-50 dark:hover:bg-zinc-800 {{ $preOrder->trashed() ? 'opacity-60' : '' }}">
+                        <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-900 dark:text-white">{{ $preOrder->pre_order_no }}</td><td class="whitespace-nowrap px-4 py-3">{{ $preOrder->date->format('d/m/Y') }}</td><td class="px-4 py-3">{{ $preOrder->customer?->name ?? '-' }}</td>
+                        <td class="whitespace-nowrap px-4 py-3">Rp {{ number_format($preOrder->grand_total,0,',','.') }}</td><td class="whitespace-nowrap px-4 py-3 text-green-600">Rp {{ number_format($postedDp,0,',','.') }}</td><td class="whitespace-nowrap px-4 py-3 font-medium">Rp {{ number_format(max(0,$preOrder->grand_total-$postedDp),0,',','.') }}</td>
+                        <td class="px-4 py-3">@if($preOrder->trashed())<span class="rounded-full bg-red-100 px-2.5 py-1 text-xs text-red-700">Terhapus</span>@elseif($preOrder->status==='sales_order')<span class="rounded-full bg-green-100 px-2.5 py-1 text-xs text-green-700">Sales Order</span>@else<span class="rounded-full bg-yellow-100 px-2.5 py-1 text-xs text-yellow-700">Draf</span>@endif</td>
+                        <td class="px-4 py-3">
+                            <div class="inline-block" x-data="{open:false,top:0,left:0,toggle(el){const r=el.getBoundingClientRect();this.top=r.bottom+6;this.left=Math.max(8,r.right-224);this.open=!this.open}}">
+                                <button @click="toggle($el)" @click.outside="open=false" class="cursor-pointer p-0.5 text-gray-500"><svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" /></svg></button>
+                                <div x-cloak x-show="open" :style="`position:fixed;top:${top}px;left:${left}px`" class="z-50 w-56 divide-y divide-gray-100 rounded bg-white shadow dark:divide-gray-600 dark:bg-gray-700">
+                                    @if($preOrder->trashed())
+                                        <button wire:click="restore({{ $preOrder->id }})" @disabled(!auth()->user()?->isSuperAdmin()) class="w-full px-4 py-2 text-left text-sm text-green-600 disabled:opacity-40">Pulihkan</button>
+                                    @else
+                                        <ul class="whitespace-nowrap py-1 text-sm dark:text-gray-200">
+                                            <li><button wire:click="openDetail({{ $preOrder->id }})" @click="open=false" class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>Rincian</button></li>
+                                            <li><button wire:click="openEdit({{ $preOrder->id }})" @click="open=false" @disabled($preOrder->status!=='draft'||$postedDp>0) class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-600"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>Ubah</button></li>
+                                            <li><button wire:click="confirmConvert({{ $preOrder->id }})" @click="open=false" @disabled($preOrder->status!=='draft') class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-blue-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-600"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h11m0 0-4-4m4 4-4 4M17 17H6m0 0 4 4m-4-4 4-4" /></svg>Jadikan Sales Order</button></li>
+                                        </ul>
+                                        <div class="py-1"><button wire:click="confirmDelete({{ $preOrder->id }})" @click="open=false" @disabled(!auth()->user()?->isSuperAdmin()||$preOrder->status!=='draft'||$postedDp>0) class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>Hapus</button></div>
+                                    @endif
+                                </div>
                             </div>
-                        </div>
-                        <span
-                            class="select-none text-base font-medium text-gray-600 dark:text-gray-400">Ya</span>
-                    </label>
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-sm font-medium dark:text-white">Note</label>
-                    <input type="text" placeholder="Catatan transaksi" value="Catatan Pre-Order Produk"
-                        class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
-                </div>
-            </div>
-
-            <div class="mt-6 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
-                <div class="mb-4">
-                    <h4 class="text-base font-semibold text-gray-900 dark:text-white">Detail Produk</h4>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="min-w-full border-collapse text-sm">
-                        <thead class="bg-white text-gray-700 dark:bg-zinc-800 dark:text-gray-300">
-                            <tr>
-                                <th class="border border-gray-200 px-3 py-2 text-left dark:border-zinc-700">Kode Produk</th>
-                                <th class="border border-gray-200 px-3 py-2 text-left dark:border-zinc-700">Product Name</th>
-                                <th class="border border-gray-200 px-3 py-2 text-left dark:border-zinc-700">Kategori</th>
-                                <th class="border border-gray-200 px-3 py-2 text-left dark:border-zinc-700">Gudang</th>
-                                <th class="border border-gray-200 px-3 py-2 text-left dark:border-zinc-700">Satuan</th>
-                                <th class="border border-gray-200 px-3 py-2 text-right dark:border-zinc-700">Qty Pesanan</th>
-                                <th class="border border-gray-200 px-3 py-2 text-right dark:border-zinc-700">Harga</th>
-                                <th class="border border-gray-200 px-3 py-2 text-right dark:border-zinc-700">Disc (Amount)</th>
-                                <th class="border border-gray-200 px-3 py-2 text-right dark:border-zinc-700">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="bg-white dark:bg-zinc-900">
-                                <td class="border border-gray-200 px-3 py-2 dark:border-zinc-700 text-gray-900 dark:text-white">PRD-001</td>
-                                <td class="border border-gray-200 px-3 py-2 dark:border-zinc-700 text-gray-900 dark:text-white">SEDOTAN STERIL HITAM 6MM</td>
-                                <td class="border border-gray-200 px-3 py-2 dark:border-zinc-700 text-gray-900 dark:text-white">Sedotan</td>
-                                <td class="border border-gray-200 px-3 py-2 dark:border-zinc-700 text-gray-900 dark:text-white">Gudang Jakarta</td>
-                                <td class="border border-gray-200 px-3 py-2 dark:border-zinc-700 text-gray-900 dark:text-white">PCS</td>
-                                <td class="border border-gray-200 px-3 py-2 text-right dark:border-zinc-700 text-gray-900 dark:text-white">100</td>
-                                <td class="border border-gray-200 px-3 py-2 text-right dark:border-zinc-700 text-gray-900 dark:text-white">1.500</td>
-                                <td class="border border-gray-200 px-3 py-2 text-right dark:border-zinc-700 text-gray-900 dark:text-white">0</td>
-                                <td class="border border-gray-200 px-3 py-2 text-right dark:border-zinc-700 text-gray-900 dark:text-white font-medium">150.000</td>
-                            </tr>
-                            <tr class="bg-white dark:bg-zinc-900">
-                                <td class="border border-gray-200 px-3 py-2 dark:border-zinc-700 text-gray-900 dark:text-white">PRD-002</td>
-                                <td class="border border-gray-200 px-3 py-2 dark:border-zinc-700 text-gray-900 dark:text-white">HD SAMPAH HITAM 50 X 75 TEBAL</td>
-                                <td class="border border-gray-200 px-3 py-2 dark:border-zinc-700 text-gray-900 dark:text-white">Plastik Sampah</td>
-                                <td class="border border-gray-200 px-3 py-2 dark:border-zinc-700 text-gray-900 dark:text-white">Gudang Surabaya</td>
-                                <td class="border border-gray-200 px-3 py-2 dark:border-zinc-700 text-gray-900 dark:text-white">BOX</td>
-                                <td class="border border-gray-200 px-3 py-2 text-right dark:border-zinc-700 text-gray-900 dark:text-white">5</td>
-                                <td class="border border-gray-200 px-3 py-2 text-right dark:border-zinc-700 text-gray-900 dark:text-white">50.000</td>
-                                <td class="border border-gray-200 px-3 py-2 text-right dark:border-zinc-700 text-gray-900 dark:text-white">10.000</td>
-                                <td class="border border-gray-200 px-3 py-2 text-right dark:border-zinc-700 text-gray-900 dark:text-white font-medium">250.000</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-5 bg-gray-50 p-4 rounded-xl border border-gray-200 dark:border-zinc-700 dark:bg-zinc-900">
-                    <div>
-                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Nett</label>
-                        <input type="text" readonly disabled value="400.000"
-                            class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-zinc-700 dark:text-white cursor-not-allowed">
-                    </div>
-                    <div>
-                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Total Disc</label>
-                        <input type="text" readonly disabled value="10.000"
-                            class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-zinc-700 dark:text-white cursor-not-allowed">
-                    </div>
-                    <div>
-                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tax</label>
-                        <input type="text" readonly disabled value="42.900"
-                            class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-zinc-700 dark:text-white cursor-not-allowed">
-                    </div>
-                    <div>
-                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Total</label>
-                        <input type="text" readonly disabled value="432.900"
-                            class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm font-semibold text-gray-900 dark:border-gray-600 dark:bg-zinc-700 dark:text-white cursor-not-allowed">
-                    </div>
-
-                    <div>
-                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Total Bayar</label>
-                        <input type="text"
-                            class="w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm font-semibold text-gray-900 dark:border-gray-600 dark:bg-zinc-700 dark:text-white cursor-not-allowed">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="flex shrink-0 justify-end gap-2 border-t border-gray-200 bg-white px-4 py-4 sm:px-6 lg:px-8 dark:border-zinc-700 dark:bg-zinc-900">
-            <button type="button" wire:click="$set('showModal', false)" class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2.5 text-sm dark:border-gray-600 dark:text-gray-200">Batal</button>
-            <button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save"
-                class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm text-white hover:bg-blue-700 disabled:opacity-50">
-                <span wire:loading.remove wire:target="save">Simpan</span>
-                <span wire:loading wire:target="save">Menyimpan...</span>
-            </button>
-        </div>
+                        </td>
+                    </tr>
+                @empty<tr><td colspan="8" class="px-4 py-10 text-center text-gray-400">Belum ada Pesanan Awal.</td></tr>@endforelse
+            </tbody>
+        </table>
     </div>
-</div>
-@endif
+    <div class="mt-4">{{ $preOrders->links() }}</div>
 
-{{-- MODAL DELETE CONFIRM --}}
-{{-- @if ($showDeleteModal)
-        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-sm mx-4 p-6">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="p-2 bg-red-900 rounded-full">
-                        <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                        </svg>
+    @if($showModal)
+        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm">
+            <div class="mx-auto flex h-[80vh] max-h-[calc(100dvh-2rem)] w-full max-w-full flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-800">
+                <div class="flex shrink-0 items-center justify-between border-b bg-zinc-50 px-8 py-6 dark:border-zinc-700 dark:bg-zinc-900"><h3 class="text-lg font-semibold dark:text-white">{{ $editingId?'Ubah':'Tambah' }} Pesanan Awal</h3><button wire:click="$set('showModal',false)" type="button" class="cursor-pointer text-gray-400 hover:text-white"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button></div>
+                <form wire:submit="save" class="flex min-h-0 flex-1 flex-col">
+                    <div class="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+                        <div class="grid gap-5 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-6">
+                            <div><label class="mb-3 block text-base font-medium dark:text-white">Nomor Pre Order</label><input wire:model="preOrderNo" readonly class="block w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-400"></div>
+                            <div><label class="mb-3 block text-base font-medium dark:text-white">Tanggal</label><input wire:model="date" type="date" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">@error('date')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror</div>
+                            <div><label class="mb-3 block text-base font-medium dark:text-white">Customer</label><select wire:model.live="customerId" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><option value="">-- Pilih Customer --</option>@foreach($customers as $customer)<option value="{{ $customer->id }}">{{ $customer->code }} - {{ $customer->name }}</option>@endforeach</select>@error('customerId')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror</div>
+                            <div><label class="mb-3 block text-base font-medium dark:text-white">Pajak (PPN 11%)</label><label class="inline-flex cursor-pointer items-center"><span class="text-base text-gray-600">Tidak</span><span class="relative mx-3"><input wire:model.live="tax" type="checkbox" class="peer sr-only"><span class="block h-5 w-9 rounded-full bg-red-200 after:absolute after:start-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-red-500 after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full"></span></span><span class="text-base text-gray-600">Ya</span></label></div>
+                            <div class="sm:col-span-2"><label class="mb-3 block text-base font-medium dark:text-white">Alamat Pengiriman</label><select wire:model="customerAddressId" @disabled(!$customerId) class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm disabled:opacity-50 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><option value="">Tanpa alamat pengiriman</option>@foreach($customerAddresses as $address)<option value="{{ $address->id }}">{{ $address->code }} - {{ $address->label }}</option>@endforeach</select></div>
+                        </div>
+                        <div class="mt-6"><label class="mb-3 block text-base font-medium dark:text-white">Catatan</label><textarea wire:model="notes" rows="3" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"></textarea></div>
+
+                        <div class="mt-12"><h3 class="mb-4 text-lg font-bold dark:text-white">Detail Produk</h3>@error('items')<p class="mb-2 text-xs text-red-500">{{ $message }}</p>@enderror
+                            <div class="overflow-x-auto"><table class="w-full min-w-max border-collapse border border-gray-300 text-left text-sm dark:border-zinc-600 dark:text-white">
+                                <thead class="bg-gray-200 text-xs font-bold uppercase dark:bg-zinc-700"><tr><th class="w-14 border border-gray-300 px-4 py-3 text-center dark:border-zinc-600"><button wire:click="openProductPicker" type="button" class="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-sm bg-blue-600 text-xl text-white">+</button></th><th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">No.</th><th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">Kode</th><th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">Produk</th><th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">Gudang</th><th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">Satuan</th><th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">Sisa Stok</th><th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">Qty</th><th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">Harga</th><th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">Diskon</th><th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">Subtotal</th></tr></thead>
+                                <tbody>@forelse($items as $index=>$item)<tr wire:key="pre-order-item-{{ $item['product_id'] }}" class="hover:bg-gray-100 dark:hover:bg-zinc-800">
+                                    <td class="border border-gray-300 px-4 py-3 text-center dark:border-zinc-600"><button wire:click="removeItem({{ $index }})" type="button" class="cursor-pointer text-red-500"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button></td><td class="border border-gray-300 px-4 py-3 dark:border-zinc-600">{{ $index+1 }}</td><td class="border border-gray-300 px-4 py-3 dark:border-zinc-600">{{ $item['sku'] }}</td><td class="border border-gray-300 px-4 py-3 dark:border-zinc-600">{{ $item['name'] }}</td>
+                                    <td class="border border-gray-300 px-4 py-3 dark:border-zinc-600"><select wire:model.live="items.{{ $index }}.warehouse_id" class="w-48 rounded-lg border border-gray-300 bg-gray-50 p-2 text-xs dark:border-gray-600 dark:bg-zinc-800 dark:text-white">@foreach($warehouses as $warehouse)<option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>@endforeach</select></td>
+                                    <td class="border border-gray-300 px-4 py-3 dark:border-zinc-600"><select wire:model.live="items.{{ $index }}.unit_id" class="w-36 rounded-lg border border-gray-300 bg-gray-50 p-2 text-xs dark:border-gray-600 dark:bg-zinc-800 dark:text-white">@foreach($item['unit_options'] as $unit)<option value="{{ $unit['unit_id'] }}">{{ $unit['unit_name'] }} (x{{ $unit['conversion'] }})</option>@endforeach</select></td>
+                                    <td class="border border-gray-300 px-4 py-3 dark:border-zinc-600"><span class="rounded bg-blue-100 px-2.5 py-1 text-blue-700">{{ number_format($item['stock_available'],0,',','.') }} {{ $item['base_unit_name'] }}</span></td>
+                                    @foreach(['qty'=>'w-24','unit_price'=>'w-28','discount_amount'=>'w-28'] as $field=>$width)<td class="border border-gray-300 px-4 py-3 dark:border-zinc-600"><input type="text" inputmode="numeric" x-data="{display:'{{ number_format($item[$field]??0,0,',','.') }}'}" x-model="display" @input="let raw=display.replace(/\./g,'').replace(/\D/g,'');display=raw===''?'':Number(raw).toLocaleString('id-ID');$wire.set('items.{{ $index }}.{{ $field }}',raw===''?0:Number(raw))" class="{{ $width }} rounded-lg border border-gray-300 bg-gray-50 p-2 text-xs dark:border-gray-600 dark:bg-zinc-800 dark:text-white">@error("items.$index.$field")<p class="text-xs text-red-500">{{ $message }}</p>@enderror</td>@endforeach
+                                    <td class="border border-gray-300 px-4 py-3 font-medium dark:border-zinc-600">Rp {{ number_format(max(0,$item['qty']*$item['unit_price']-$item['discount_amount']),0,',','.') }}</td>
+                                </tr>@empty<tr><td colspan="11" class="border border-gray-300 px-4 py-8 text-center text-gray-400 dark:border-zinc-600">Belum ada produk. Klik tombol <strong>+</strong>.</td></tr>@endforelse</tbody>
+                            </table></div>
+                        </div>
+                        <div class="mt-6 rounded-lg border border-gray-200 p-4 dark:border-zinc-700"><h4 class="mb-4 font-bold dark:text-white">Detail Harga</h4><div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">@foreach(['Bruto'=>'subtotal','Total Diskon'=>'discount','PPN (11%)'=>'tax','Neto'=>'grand_total'] as $label=>$key)<div><label class="mb-2 block text-sm font-medium dark:text-white">{{ $label }}</label><input value="Rp {{ number_format($totals[$key],0,',','.') }}" disabled class="block w-full rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-400"></div>@endforeach</div></div>
                     </div>
-                    <h3 class="text-base font-semibold dark:text-white">Hapus Pemasok?</h3>
-                </div>
-                <p class="text-sm text-gray-400 mb-5">Data akan dipindahkan ke tempat sampah.</p>
-                <div class="flex justify-end gap-2">
-                    <button wire:click="$set('showDeleteModal', false)"
-                        class="px-4 py-2 text-sm rounded-lg border border-gray-600 dark:text-gray-300 hover:bg-zinc-700">
-                        Batal
-                    </button>
-                    <button wire:click="delete"
-                        class="px-4 py-2 text-sm rounded-lg bg-red-700 text-white hover:bg-red-800 cursor-pointer">
-                        Ya, Hapus
-                    </button>
-                </div>
+                    <div class="flex shrink-0 justify-end gap-2 border-t border-gray-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900"><button wire:click="$set('showModal',false)" type="button" class="cursor-pointer rounded-lg border border-gray-600 px-4 py-2 text-sm dark:text-gray-300">Batal</button><button type="submit" class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">Simpan</button></div>
+                </form>
             </div>
         </div>
-    @endif --}}
+    @endif
+
+    @if($showProductModal)
+        <div class="fixed inset-0 z-[60] flex items-start justify-center bg-black/50 p-4 backdrop-blur-sm"><div class="flex h-[80vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white dark:bg-zinc-900"><div class="flex items-center justify-between border-b px-6 py-4 dark:border-zinc-700"><div><h3 class="text-lg font-semibold dark:text-white">Tambah Detail Produk</h3><p class="text-sm text-gray-500">Cari produk dan pilih dari daftar.</p></div><button wire:click="$set('showProductModal',false)" class="cursor-pointer text-gray-400"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button></div><div class="min-h-0 flex-1 space-y-4 overflow-y-auto p-6"><div class="grid gap-4 sm:grid-cols-[1fr_auto]"><input wire:model.live.debounce.300ms="productSearch" placeholder="Cari produk (nama / kode)..." class="rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><select wire:model.live="categoryFilter" class="rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><option value="">Semua Kategori</option>@foreach($categories as $category)<option value="{{ $category->id }}">{{ $category->name }}</option>@endforeach</select></div><div class="overflow-x-auto rounded-xl border border-gray-300 dark:border-zinc-600"><table class="w-full text-left text-sm dark:text-white"><thead class="bg-gray-100 text-xs uppercase dark:bg-zinc-800"><tr><th class="px-4 py-3 text-center">Pilih</th><th class="px-4 py-3">Kode</th><th class="px-4 py-3">Nama Produk</th><th class="px-4 py-3">Kategori</th></tr></thead><tbody>@forelse($products as $product)@php $added=collect($items)->contains('product_id',$product->id); @endphp<tr @click="$event.currentTarget.querySelector('input:not(:disabled)')?.click()" class="border-t dark:border-zinc-700 {{ $added?'opacity-50':'cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800' }}"><td class="px-4 py-3 text-center"><input wire:model="selectedProductIds" type="checkbox" value="{{ $product->id }}" @click.stop @disabled($added) class="h-4 w-4 rounded border-gray-300 text-blue-600"></td><td class="px-4 py-3">{{ $product->sku }}</td><td class="px-4 py-3">{{ $product->name }}</td><td class="px-4 py-3">{{ $product->category?->name??'-' }}</td></tr>@empty<tr><td colspan="4" class="p-8 text-center text-gray-400">Produk tidak ditemukan.</td></tr>@endforelse</tbody></table></div><div class="flex justify-end gap-2 border-t pt-4 dark:border-zinc-700"><button wire:click="$set('showProductModal',false)" class="cursor-pointer rounded-lg border px-4 py-2 text-sm dark:text-white">Batal</button><button wire:click="addSelectedProducts" class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">Tambah Produk Terpilih</button></div></div></div></div>
+    @endif
+
+    @if($showDeleteModal)<div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4"><div class="w-full max-w-sm rounded-2xl bg-white p-6 dark:bg-zinc-800"><h3 class="mb-2 text-lg font-semibold dark:text-white">Hapus Pesanan Awal?</h3><p class="mb-6 text-sm text-gray-400">Data akan dipindahkan ke tempat sampah.</p><div class="flex justify-end gap-3"><button wire:click="$set('showDeleteModal',false)" class="rounded-lg border px-4 py-2">Batal</button><button wire:click="delete" @disabled(!auth()->user()?->isSuperAdmin()) class="rounded-lg bg-red-600 px-4 py-2 text-white disabled:opacity-40">Hapus</button></div></div></div>@endif
+    @if($showConvertModal)<div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4"><div class="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-zinc-800"><h3 class="mb-2 text-lg font-semibold dark:text-white">Jadikan Sales Order?</h3><p class="mb-6 text-sm text-gray-400">Semua DP berstatus Posted akan otomatis mengurangi sisa tagihan Sales Order.</p><div class="flex justify-end gap-3"><button wire:click="$set('showConvertModal',false)" class="rounded-lg border px-4 py-2">Batal</button><button wire:click="convertToSalesOrder" class="rounded-lg bg-blue-600 px-4 py-2 text-white">Jadikan Sales Order</button></div></div></div>@endif
+
+    @if($showDetailModal&&$selectedPreOrder)
+        <div class="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4"><div class="flex max-h-[80vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white dark:bg-zinc-900"><div class="flex items-center justify-between border-b px-6 py-4 dark:border-zinc-700"><div><h3 class="text-lg font-semibold dark:text-white">Rincian Pesanan Awal</h3><p class="font-mono text-sm text-gray-400">{{ $selectedPreOrder->pre_order_no }}</p></div><button wire:click="$set('showDetailModal',false)">&times;</button></div><div class="min-h-0 flex-1 overflow-y-auto p-6">
+            <dl class="grid gap-4 text-sm sm:grid-cols-3"><div><dt class="text-gray-400">Customer</dt><dd class="font-medium dark:text-white">{{ $selectedPreOrder->customer?->name }}</dd></div><div><dt class="text-gray-400">Tanggal</dt><dd>{{ $selectedPreOrder->date->format('d/m/Y') }}</dd></div><div><dt class="text-gray-400">Sales Order</dt><dd>{{ $selectedPreOrder->salesOrder?->order_no??'-' }}</dd></div></dl>
+            <div class="mt-5 overflow-x-auto rounded-lg border"><table class="w-full text-sm"><thead class="bg-gray-50 dark:bg-zinc-800"><tr><th class="p-3 text-left">Produk</th><th class="p-3 text-left">Gudang</th><th class="p-3 text-left">Satuan</th><th class="p-3">Qty</th><th class="p-3">Harga</th><th class="p-3">Total</th></tr></thead><tbody>@foreach($selectedPreOrder->items as $item)<tr class="border-t"><td class="p-3">{{ $item->product?->name }}</td><td class="p-3">{{ $item->warehouse?->name }}</td><td class="p-3">{{ $item->unit?->name }}</td><td class="p-3">{{ number_format($item->qty,0,',','.') }}</td><td class="p-3">Rp {{ number_format($item->unit_price,0,',','.') }}</td><td class="p-3">Rp {{ number_format($item->line_total,0,',','.') }}</td></tr>@endforeach</tbody></table></div>
+            @php $detailDp=(int)$selectedPreOrder->dpPayments->sum('amount'); @endphp<div class="ml-auto mt-5 max-w-sm space-y-2 text-sm"><div class="flex justify-between"><span>Total</span><span>Rp {{ number_format($selectedPreOrder->grand_total,0,',','.') }}</span></div><div class="flex justify-between text-green-600"><span>DP Posted</span><span>- Rp {{ number_format($detailDp,0,',','.') }}</span></div><div class="flex justify-between border-t pt-2 text-base font-bold"><span>Sisa Tagihan</span><span>Rp {{ number_format(max(0,$selectedPreOrder->grand_total-$detailDp),0,',','.') }}</span></div></div>
+        </div><div class="flex justify-end border-t p-4"><button wire:click="$set('showDetailModal',false)" class="rounded-lg bg-zinc-700 px-5 py-2 text-white">Tutup</button></div></div></div>
+    @endif
 </div>

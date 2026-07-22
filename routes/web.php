@@ -160,6 +160,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('pages.finance.transaction.apPayment');
     })->name('finance.transaction.ap-payment');
 
+    Route::get('finance/transaction/ar-dp-payment', function () {
+        return view('pages.finance.transaction.arDpPayment');
+    })->name('finance.transaction.ar-dp-payment');
+
     Route::get('finance/transaction/expense', function () {
         return view('pages.finance.transaction.expense');
     })->name('finance.transaction.expense');
