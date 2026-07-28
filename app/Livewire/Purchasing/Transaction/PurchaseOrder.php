@@ -315,6 +315,7 @@ class PurchaseOrder extends Component
 
                 // harga sengaja dikosongkan karena kamu input manual
                 $this->items[$index]['price'] = '';
+                $this->items[$index]['price_display'] = '';
             }
         }
 
@@ -396,6 +397,12 @@ class PurchaseOrder extends Component
 
     public function confirmApprove(int $id): void
     {
+        if (! auth()->user()?->hasPermission('purchases.transaction.purchase-order.approve')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menyetujui Pesanan Pembelian.', type: 'error');
+
+            return;
+        }
+
         $purchaseOrder = PurchaseOrderModel::with('items')->findOrFail($id);
 
         if ($purchaseOrder->status !== PurchaseOrderModel::STATUS_DRAFT) {
@@ -428,6 +435,12 @@ class PurchaseOrder extends Component
 
     public function approve(): void
     {
+        if (! auth()->user()?->hasPermission('purchases.transaction.purchase-order.approve')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menyetujui Pesanan Pembelian.', type: 'error');
+
+            return;
+        }
+
         if (! $this->approveTargetId) {
             return;
         }
@@ -658,6 +671,12 @@ class PurchaseOrder extends Component
 
     public function updateStatus(): void
     {
+        if (! auth()->user()?->hasPermission('purchases.transaction.purchase-order.approve')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk mengubah status Pesanan Pembelian.', type: 'error');
+
+            return;
+        }
+
         if (! $this->selectedPO) {
             return;
         }
@@ -740,6 +759,12 @@ class PurchaseOrder extends Component
 
     public function confirmDelete(int $id): void
     {
+        if (! auth()->user()?->hasPermission('purchases.transaction.purchase-order.delete')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menghapus Pesanan Pembelian.', type: 'error');
+
+            return;
+        }
+
         $po = PurchaseOrderModel::findOrFail($id);
 
         if ($po->trashed()) {
@@ -752,8 +777,8 @@ class PurchaseOrder extends Component
 
     public function delete(): void
     {
-        if (! auth()->user()?->isSuperAdmin()) {
-            $this->dispatch('toast', message: 'Hanya Super Admin yang dapat menghapus data.', type: 'error');
+        if (! auth()->user()?->hasPermission('purchases.transaction.purchase-order.delete')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menghapus Pesanan Pembelian.', type: 'error');
 
             return;
         }
@@ -762,7 +787,14 @@ class PurchaseOrder extends Component
             return;
         }
 
-        PurchaseOrderModel::findOrFail($this->deleteTargetId)->delete();
+        $purchaseOrder = PurchaseOrderModel::findOrFail($this->deleteTargetId);
+        if ($purchaseOrder->status !== PurchaseOrderModel::STATUS_DRAFT) {
+            $this->dispatch('toast', message: 'Hanya Pesanan Pembelian berstatus Draf yang dapat dihapus.', type: 'error');
+
+            return;
+        }
+
+        $purchaseOrder->delete();
 
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;

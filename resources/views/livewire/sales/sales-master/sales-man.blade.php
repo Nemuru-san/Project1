@@ -158,7 +158,7 @@
                     <button type="button" wire:click="$set('showModal', false)" class="cursor-pointer text-2xl text-gray-500">&times;</button>
                 </div>
 
-                <form wire:submit="save" class="min-h-0 flex-1 overflow-y-auto">
+                <form wire:submit="save" x-on:keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()" class="min-h-0 flex-1 overflow-y-auto">
                     <div class="space-y-4 px-6 py-5">
                         <div>
                             <label class="mb-1 block text-sm font-medium dark:text-white">Kode Salesman <span class="text-red-500">*</span></label>

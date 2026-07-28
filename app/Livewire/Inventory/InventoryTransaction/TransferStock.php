@@ -274,14 +274,20 @@ class TransferStock extends Component
 
     public function confirmDelete(int $id): void
     {
+        if (! auth()->user()?->hasPermission('inventory.transaction.transfer-stock.delete')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menghapus Transfer Stok.', type: 'error');
+
+            return;
+        }
+
         $this->deleteTargetId = $id;
         $this->showDeleteModal = true;
     }
 
     public function delete(): void
     {
-        if (! auth()->user()?->isSuperAdmin()) {
-            $this->dispatch('toast', message: 'Hanya Super Admin yang dapat menghapus data.', type: 'error');
+        if (! auth()->user()?->hasPermission('inventory.transaction.transfer-stock.delete')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menghapus Transfer Stok.', type: 'error');
 
             return;
         }
@@ -290,7 +296,14 @@ class TransferStock extends Component
             return;
         }
 
-        StockTransfer::findOrFail($this->deleteTargetId)->delete();
+        $transfer = StockTransfer::findOrFail($this->deleteTargetId);
+        if ($transfer->status !== 'draft') {
+            $this->dispatch('toast', message: 'Hanya Transfer Stok berstatus Draf yang dapat dihapus.', type: 'error');
+
+            return;
+        }
+
+        $transfer->delete();
 
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
@@ -343,6 +356,12 @@ class TransferStock extends Component
 
     public function confirmApprove(int $id): void
     {
+        if (! auth()->user()?->hasPermission('inventory.transaction.transfer-stock.approve')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menyetujui Transfer Stok.', type: 'error');
+
+            return;
+        }
+
         $this->approveTargetId = $id;
         $this->showApproveModal = true;
     }
@@ -355,6 +374,12 @@ class TransferStock extends Component
 
     public function approve(): void
     {
+        if (! auth()->user()?->hasPermission('inventory.transaction.transfer-stock.approve')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menyetujui Transfer Stok.', type: 'error');
+
+            return;
+        }
+
         if (! $this->approveTargetId) {
             return;
         }

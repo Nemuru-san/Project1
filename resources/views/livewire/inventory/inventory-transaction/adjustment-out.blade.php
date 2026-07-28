@@ -149,7 +149,7 @@
                                         <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
                                             @if ($adjustment->status === 'draft')
                                                 <li>
-                                                    <button wire:click="confirmApprove({{ $adjustment->id }})"
+                                                    <button wire:click="confirmApprove({{ $adjustment->id }})" @disabled(! auth()->user()?->hasPermission('inventory.transaction.adjustment-out.approve'))
                                                         @click="open = false"
                                                         class="flex items-center gap-2 w-full py-2 px-4 text-blue-700 hover:bg-blue-600 hover:text-white dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white cursor-pointer">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -206,7 +206,7 @@
 
                                         <div class="py-1">
                                             @if ($adjustment->status === 'draft')
-                                                <button wire:click="confirmDelete({{ $adjustment->id }})" @disabled(! auth()->user()->isSuperAdmin())
+                                                <button wire:click="confirmDelete({{ $adjustment->id }})" @disabled(! auth()->user()?->hasPermission('inventory.transaction.adjustment-out.delete'))
                                                     @click="open = false"
                                                     class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -560,7 +560,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="approve" wire:loading.attr="disabled"
+                    <button wire:click="approve" wire:loading.attr="disabled" @disabled(! auth()->user()?->hasPermission('inventory.transaction.adjustment-out.approve'))
                         class="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
                         <span wire:loading.remove wire:target="approve">Ya, Setujui</span>
                         <span wire:loading wire:target="approve">Menyetujui...</span>
@@ -736,7 +736,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="delete" @disabled(! auth()->user()->isSuperAdmin())
+                    <button wire:click="delete" @disabled(! auth()->user()?->hasPermission('inventory.transaction.adjustment-out.delete'))
                         class="px-4 py-2 text-sm rounded-lg bg-red-600 hover:bg-red-700 text-white">
                         Hapus
                     </button>

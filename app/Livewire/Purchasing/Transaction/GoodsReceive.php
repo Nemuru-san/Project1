@@ -470,6 +470,12 @@ class GoodsReceive extends Component
 
     public function updateStatus(): void
     {
+        if (! auth()->user()?->hasPermission('purchases.transaction.good-receive.receive')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk mengubah status Penerimaan Barang.', type: 'error');
+
+            return;
+        }
+
         if (! $this->selectedGR) {
             return;
         }
@@ -583,6 +589,12 @@ class GoodsReceive extends Component
 
     public function confirmReceive(int $id): void
     {
+        if (! auth()->user()?->hasPermission('purchases.transaction.good-receive.receive')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menerima barang.', type: 'error');
+
+            return;
+        }
+
         $goodsReceive = GoodsReceiveModel::with('items')->findOrFail($id);
 
         if ($goodsReceive->status !== GoodsReceiveModel::STATUS_DRAFT) {
@@ -658,6 +670,12 @@ class GoodsReceive extends Component
 
     public function receive(): void
     {
+        if (! auth()->user()?->hasPermission('purchases.transaction.good-receive.receive')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menerima barang.', type: 'error');
+
+            return;
+        }
+
         if (! $this->receiveTargetId) {
             return;
         }
@@ -691,14 +709,20 @@ class GoodsReceive extends Component
 
     public function confirmDelete(int $id): void
     {
+        if (! auth()->user()?->hasPermission('purchases.transaction.good-receive.delete')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menghapus Penerimaan Barang.', type: 'error');
+
+            return;
+        }
+
         $this->deleteTargetId = $id;
         $this->showDeleteModal = true;
     }
 
     public function delete(): void
     {
-        if (! auth()->user()?->isSuperAdmin()) {
-            $this->dispatch('toast', message: 'Hanya Super Admin yang dapat menghapus data.', type: 'error');
+        if (! auth()->user()?->hasPermission('purchases.transaction.good-receive.delete')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menghapus Penerimaan Barang.', type: 'error');
 
             return;
         }

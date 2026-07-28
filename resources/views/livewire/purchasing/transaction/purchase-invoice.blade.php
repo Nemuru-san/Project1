@@ -201,7 +201,7 @@
                                         <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
                                             @if ($invoice->status === 'Draft')
                                                 <li>
-                                                    <button wire:click="confirmPost({{ $invoice->id }})"
+                                                    <button wire:click="confirmPost({{ $invoice->id }})" @disabled(! auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.post'))
                                                         @click="open = false"
                                                         class="flex items-center gap-2 w-full py-2 px-4 text-blue-700 hover:bg-blue-600 hover:text-white dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white cursor-pointer">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -260,8 +260,8 @@
 
                                         <div class="py-1">
                                             <button
-                                                @if (!$locked && auth()->user()?->isSuperAdmin()) wire:click="confirmDelete({{ $invoice->id }})" @endif
-                                                @disabled($locked || ! auth()->user()?->isSuperAdmin())
+                                                @if (!$locked && auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.delete')) wire:click="confirmDelete({{ $invoice->id }})" @endif
+                                                @disabled($locked || ! auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.delete'))
                                                 @click="open = false" @disabled($locked)
                                                 class="flex items-center gap-2 w-full py-2 px-4 text-base {{ $locked ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer' }}">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -312,7 +312,7 @@
                     </div>
 
                     <div class="flex-1 overflow-y-auto px-8 py-6">
-                        <form action="#">
+                        <form action="#" x-on:keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()">
                             <div class="grid gap-5 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-6">
                                 <div class="w-full">
                                     <label for="piv_no"
@@ -891,7 +891,7 @@
                         <div class="border-t dark:border-zinc-700 pt-5">
                             <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Ubah Status</h4>
 
-                            <button wire:click="confirmPost({{ $selectedInvoice->id }})"
+                            <button wire:click="confirmPost({{ $selectedInvoice->id }})" @disabled(! auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.post'))
                                 class="px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium cursor-pointer">
                                 Posting Faktur
                             </button>
@@ -936,7 +936,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="postInvoice" wire:loading.attr="disabled"
+                    <button wire:click="postInvoice" wire:loading.attr="disabled" @disabled(! auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.post'))
                         class="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
                         <span wire:loading.remove wire:target="postInvoice">
                             Ya, Posting Faktur
@@ -970,7 +970,7 @@
                         class="px-4 py-2 text-sm rounded-lg border border-gray-600 dark:text-gray-300 hover:bg-zinc-700">
                         Batal
                     </button>
-                    <button wire:click="delete" @disabled(! auth()->user()?->isSuperAdmin())
+                    <button wire:click="delete" @disabled(! auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.delete'))
                         class="px-4 py-2 text-sm rounded-lg bg-red-700 text-white hover:bg-red-800 cursor-pointer">
                         Ya, Hapus
                     </button>

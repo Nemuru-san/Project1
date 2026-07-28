@@ -48,6 +48,21 @@ class RoleUser extends Component
             'purchases.transaction.purchase-invoice' => 'Faktur Pembelian',
         ],
 
+        'Pesanan Pembelian - Otorisasi' => [
+            'purchases.transaction.purchase-order.approve' => 'Setujui / Ubah Status',
+            'purchases.transaction.purchase-order.delete' => 'Hapus',
+        ],
+
+        'Penerimaan Barang - Otorisasi' => [
+            'purchases.transaction.good-receive.receive' => 'Terima / Ubah Status',
+            'purchases.transaction.good-receive.delete' => 'Hapus',
+        ],
+
+        'Faktur Pembelian - Otorisasi' => [
+            'purchases.transaction.purchase-invoice.post' => 'Posting',
+            'purchases.transaction.purchase-invoice.delete' => 'Hapus',
+        ],
+
         'Pembelian - Retur' => [
             'purchases.return.purchase-return' => 'Retur Pembelian',
             'purchases.return.purchase-return-invoice' => 'Faktur Retur Pembelian',
@@ -71,6 +86,21 @@ class RoleUser extends Component
             'inventory.transaction.adjustment-out' => 'Penyesuaian Stok Keluar',
         ],
 
+        'Transfer Stok - Otorisasi' => [
+            'inventory.transaction.transfer-stock.approve' => 'Setujui',
+            'inventory.transaction.transfer-stock.delete' => 'Hapus',
+        ],
+
+        'Penyesuaian Stok Masuk - Otorisasi' => [
+            'inventory.transaction.adjustment-in.approve' => 'Setujui',
+            'inventory.transaction.adjustment-in.delete' => 'Hapus',
+        ],
+
+        'Penyesuaian Stok Keluar - Otorisasi' => [
+            'inventory.transaction.adjustment-out.approve' => 'Setujui',
+            'inventory.transaction.adjustment-out.delete' => 'Hapus',
+        ],
+
         'Persediaan - Laporan' => [
             'inventory.report.stock-balance' => 'Saldo Stok',
             'inventory.report.stock-card' => 'Kartu Stok',
@@ -88,6 +118,18 @@ class RoleUser extends Component
             'sales.transaction.salesOrder' => 'Pesanan Penjualan',
             'sales.transaction.delivery-order' => 'Surat Jalan',
             'sales.transaction.sales-invoice' => 'Faktur Penjualan',
+        ],
+
+        'Penjualan Kanvas - Otorisasi' => [
+            'sales.transaction.salesCanvas.confirm' => 'Konfirmasi',
+            'sales.transaction.salesCanvas.convert' => 'Konversi ke Sales Order',
+            'sales.transaction.salesCanvas.delete' => 'Hapus / Pulihkan',
+        ],
+
+        'Pesanan Awal - Otorisasi' => [
+            'sales.transaction.salesPreOrder.confirm' => 'Konfirmasi',
+            'sales.transaction.salesPreOrder.convert' => 'Konversi ke Sales Order',
+            'sales.transaction.salesPreOrder.delete' => 'Hapus / Pulihkan',
         ],
 
         'Penjualan - Laporan' => [
@@ -199,6 +241,33 @@ class RoleUser extends Component
         $this->selectedPermissions = in_array('*', $this->selectedPermissions, true)
             ? []
             : ['*'];
+    }
+
+    public function togglePermission(string $permission): void
+    {
+        if (in_array('*', $this->selectedPermissions, true) || ! in_array($permission, $this->availablePermissionKeys(), true)) {
+            return;
+        }
+
+        if (in_array($permission, $this->selectedPermissions, true)) {
+            $this->selectedPermissions = collect($this->selectedPermissions)
+                ->reject(fn (string $selected) => $selected === $permission || str_starts_with($selected, $permission.'.'))
+                ->values()
+                ->all();
+
+            return;
+        }
+
+        $parentPermission = collect($this->availablePermissionKeys())
+            ->filter(fn (string $candidate) => $candidate !== $permission && str_starts_with($permission, $candidate.'.'))
+            ->sortByDesc(fn (string $candidate) => strlen($candidate))
+            ->first();
+
+        $this->selectedPermissions = collect([
+            ...$this->selectedPermissions,
+            $parentPermission,
+            $permission,
+        ])->filter()->unique()->values()->all();
     }
 
     public function save(): void

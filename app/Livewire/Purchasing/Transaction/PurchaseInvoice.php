@@ -506,6 +506,12 @@ class PurchaseInvoice extends Component
 
     public function postInvoice(): void
     {
+        if (! auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.post')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk mem-posting Faktur Pembelian.', type: 'error');
+
+            return;
+        }
+
         if (! $this->postTargetId) {
             return;
         }
@@ -673,6 +679,12 @@ class PurchaseInvoice extends Component
 
     public function confirmPost(int $id): void
     {
+        if (! auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.post')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk mem-posting Faktur Pembelian.', type: 'error');
+
+            return;
+        }
+
         $invoice = ModelsPurchaseInvoice::findOrFail($id);
 
         if ($invoice->status !== ModelsPurchaseInvoice::STATUS_DRAFT) {
@@ -693,6 +705,12 @@ class PurchaseInvoice extends Component
 
     public function confirmDelete(int $id): void
     {
+        if (! auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.delete')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menghapus Faktur Pembelian.', type: 'error');
+
+            return;
+        }
+
         $invoice = ModelsPurchaseInvoice::findOrFail($id);
 
         if ($invoice->trashed()) {
@@ -711,8 +729,8 @@ class PurchaseInvoice extends Component
 
     public function delete(): void
     {
-        if (! auth()->user()?->isSuperAdmin()) {
-            $this->dispatch('toast', message: 'Hanya Super Admin yang dapat menghapus data.', type: 'error');
+        if (! auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.delete')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menghapus Faktur Pembelian.', type: 'error');
 
             return;
         }

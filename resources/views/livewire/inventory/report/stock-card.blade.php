@@ -35,8 +35,16 @@
             Pilih produk untuk menampilkan kartu stok.
         </div>
     @else
-        <div class="mb-3 rounded-lg bg-gray-100 px-4 py-3 text-sm text-gray-700 dark:bg-zinc-800 dark:text-gray-200">
-            Saldo awal periode: <strong>{{ number_format($openingBalance, 0, ',', '.') }}</strong>
+        <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div class="rounded-lg bg-gray-100 px-4 py-3 text-sm text-gray-700 dark:bg-zinc-800 dark:text-gray-200">
+                QOH awal periode: <strong class="block text-lg">{{ number_format($openingBalance, 0, ',', '.') }}</strong>
+            </div>
+            <div class="rounded-lg bg-gray-100 px-4 py-3 text-sm text-gray-700 dark:bg-zinc-800 dark:text-gray-200">
+                QOH saat ini: <strong class="block text-lg">{{ $availability['quantity_on_hand_display'] }}</strong>
+            </div>
+                        <div class="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-950/30 dark:text-green-300">
+                AFS saat ini: <strong class="block text-lg {{ $availability['available_for_sales'] < 0 ? 'text-red-600' : '' }}">{{ $availability['available_for_sales_display'] }}</strong>
+            </div>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">

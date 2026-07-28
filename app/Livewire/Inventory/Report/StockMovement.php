@@ -4,7 +4,9 @@ namespace App\Livewire\Inventory\Report;
 
 use App\Models\Product;
 use App\Models\Warehouse;
+use App\Services\Inventory\AvailableForSalesService;
 use App\Services\Inventory\StockMovementService;
+use App\Services\Inventory\StockQuantityFormatter;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -46,8 +48,9 @@ class StockMovement extends Component
         $this->resetPage();
     }
 
-    public function render(StockMovementService $service)
+    public function render(StockMovementService $service, ?AvailableForSalesService $availabilityService = null)
     {
+        $availabilityService ??= app(AvailableForSalesService::class);
         $opening = $service->openingMovements($this->productFilter, $this->warehouseFilter, $this->dateFrom)
             ->groupBy(fn ($row) => $row['product_id'].'-'.$row['warehouse_id'])
             ->map(fn ($rows) => $rows->sum(fn ($row) => $row['quantity_in'] - $row['quantity_out']));
@@ -68,6 +71,8 @@ class StockMovement extends Component
                 $quantityOut = $movements->sum('quantity_out');
 
                 return [
+                    'product_id' => $first['product_id'],
+                    'warehouse_id' => $first['warehouse_id'],
                     'product_sku' => $first['product_sku'],
                     'product_name' => $first['product_name'],
                     'warehouse_name' => $first['warehouse_name'],
@@ -87,6 +92,36 @@ class StockMovement extends Component
                 ['warehouse_name', 'asc'],
             ])
             ->values();
+
+        $availabilitySummaries = $availabilityService->summaries(
+            $rows->map(fn (array $row) => [
+                'product_id' => $row['product_id'],
+                'warehouse_id' => $row['warehouse_id'],
+            ]),
+        );
+        $rows = $rows->map(function (array $row) use ($availabilitySummaries) {
+            $summary = $availabilitySummaries->get($row['product_id'].'-'.$row['warehouse_id'], [
+                'quantity_on_hand' => 0,
+                'reserved' => 0,
+                'available_for_sales' => 0,
+            ]);
+
+            return $row + [
+                'current_qoh' => $summary['quantity_on_hand'],
+                'reserved' => $summary['reserved'],
+                'available_for_sales' => $summary['available_for_sales'],
+            ];
+        });
+
+        $productsById = Product::with('prices.unit')
+            ->whereIn('id', $rows->pluck('product_id')->unique())
+            ->get()
+            ->keyBy('id');
+        $formatter = app(StockQuantityFormatter::class);
+        $rows = $rows->map(fn (array $row) => $row + [
+            'current_qoh_display' => $formatter->format($productsById->get($row['product_id']), $row['current_qoh']),
+            'available_for_sales_display' => $formatter->format($productsById->get($row['product_id']), $row['available_for_sales']),
+        ]);
 
         $page = $this->getPage();
         $paginatedRows = new LengthAwarePaginator(
