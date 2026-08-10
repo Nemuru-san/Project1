@@ -147,6 +147,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('pages.sales.salesTransaction.salesOrder');
     })->name('sales.transaction.salesOrder');
 
+    Route::get('sales/transaction/deliveryOrder', function () {
+        return view('pages.sales.salesTransaction.deliveryOrder');
+    })->name('sales.transaction.deliveryOrder');
+
+    Route::get('sales/transaction/salesInvoice', function () {
+        return view('pages.sales.salesTransaction.salesInvoice');
+    })->name('sales.transaction.salesInvoice');
+
     // Finance
     Route::get('finance/master/accounts', function () {
         return view('pages.finance.master.chartOfAccount');

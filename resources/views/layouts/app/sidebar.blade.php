@@ -112,8 +112,8 @@
                     <flux:sidebar.item href="{{ route('sales.transaction.salesCanvas') }}" wire:navigate>Penjualan Kanvas</flux:sidebar.item>
                     <flux:sidebar.item href="{{ route('sales.transaction.salesPreOrder') }}" wire:navigate>Pesanan Awal</flux:sidebar.item>
                     <flux:sidebar.item href="{{ route('sales.transaction.salesOrder') }}" wire:navigate>Pesanan Penjualan</flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Surat Jalan</flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Faktur Penjualan</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('sales.transaction.deliveryOrder') }}" wire:navigate>Surat Jalan</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('sales.transaction.salesInvoice') }}" wire:navigate>Faktur Penjualan</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Laporan" class="grid"
