@@ -6,6 +6,8 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\StockBalance as StockBalanceModel;
 use App\Models\Warehouse;
+use App\Services\Inventory\AvailableForSalesService;
+use App\Services\Inventory\StockQuantityFormatter;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -89,85 +91,30 @@ class StockBalance extends Component
 
     public function formatStockQuantity(?Product $product, int $quantity): string
     {
-        if (! $product) {
-            return number_format($quantity, 0, ',', '.');
-        }
-
-        if (! $product->relationLoaded('prices')) {
-            $product->load('prices.unit');
-        }
-
-        $prices = $product->prices
-            ->filter(fn ($price) => $price->conversion > 0 && $price->unit)
-            ->sortByDesc('conversion')
-            ->values();
-
-        if ($prices->isEmpty()) {
-            return number_format($quantity, 0, ',', '.');
-        }
-
-        if ($quantity <= 0) {
-            $smallestUnit = $prices->sortBy('conversion')->first()?->unit?->code
-                ?? $prices->sortBy('conversion')->first()?->unit?->name
-                ?? '';
-
-            return '0 '.$smallestUnit;
-        }
-
-        $remaining = $quantity;
-        $result = [];
-
-        foreach ($prices as $price) {
-            $conversion = (int) $price->conversion;
-
-            if ($conversion <= 0) {
-                continue;
-            }
-
-            $unitQty = intdiv($remaining, $conversion);
-
-            if ($unitQty > 0) {
-                $unitName = $price->unit?->code ?: $price->unit?->name;
-
-                $result[] = number_format($unitQty, 0, ',', '.').' '.$unitName;
-
-                $remaining = $remaining % $conversion;
-            }
-        }
-
-        return $result ? implode(', ', $result) : number_format($quantity, 0, ',', '.');
+        return app(StockQuantityFormatter::class)->format($product, $quantity);
     }
 
     public function openDetail(int $productId, int|string $warehouseId = ''): void
     {
-        $product = Product::with('category')->findOrFail($productId);
+        $product = Product::with(['category', 'prices.unit'])->findOrFail($productId);
         $warehouse = $warehouseId ? Warehouse::find($warehouseId) : null;
+        $availability = $warehouse
+            ? app(AvailableForSalesService::class)->summary($product->id, $warehouse->id)
+            : ['quantity_on_hand' => 0, 'reserved' => 0, 'available_for_sales' => 0];
 
         $this->selectedStock = [
             'product_sku' => $product->sku,
             'product_name' => $product->name,
             'category_name' => $product->category?->name ?? '-',
             'warehouse_name' => $warehouse?->name ?? '-',
+            ...$availability,
+            'quantity_on_hand_display' => app(StockQuantityFormatter::class)->format($product, $availability['quantity_on_hand']),
+            'available_for_sales_display' => app(StockQuantityFormatter::class)->format($product, $availability['available_for_sales']),
         ];
 
-        $this->stockBookings = [
-            [
-                'so_code' => 'SO/060626/0001',
-                'customer_name' => 'Pelanggan A',
-                'date' => '06/06/2026',
-                'qty_order' => 100,
-                'qty_booking' => 50,
-                'status' => 'Draft',
-            ],
-            [
-                'so_code' => 'SO/060626/0002',
-                'customer_name' => 'Pelanggan B',
-                'date' => '06/06/2026',
-                'qty_order' => 200,
-                'qty_booking' => 120,
-                'status' => 'Approved',
-            ],
-        ];
+        $this->stockBookings = $warehouse
+            ? app(AvailableForSalesService::class)->bookings($product->id, $warehouse->id)->all()
+            : [];
 
         $this->showDetailModal = true;
     }
@@ -179,7 +126,7 @@ class StockBalance extends Component
         $this->stockBookings = [];
     }
 
-    public function render()
+    public function render(AvailableForSalesService $availabilityService)
     {
         $warehouses = Warehouse::query()
             ->orderBy('name')
@@ -230,6 +177,12 @@ class StockBalance extends Component
             }
 
             $stockBalances = $query->paginate($this->perPage);
+            $stockSummaries = $availabilityService->summaries(
+                $stockBalances->getCollection()->map(fn (Product $product) => [
+                    'product_id' => $product->id,
+                    'warehouse_id' => (int) $this->warehouseFilter,
+                ]),
+            );
 
             return view('livewire.inventory.report.stock-balance', [
                 'stockBalances' => $stockBalances,
@@ -238,6 +191,7 @@ class StockBalance extends Component
                 'products' => $products,
                 'selectedWarehouse' => Warehouse::find($this->warehouseFilter),
                 'isZeroMode' => true,
+                'stockSummaries' => $stockSummaries,
             ]);
         }
 
@@ -284,6 +238,12 @@ class StockBalance extends Component
         }
 
         $stockBalances = $query->paginate($this->perPage);
+        $stockSummaries = $availabilityService->summaries(
+            $stockBalances->getCollection()->map(fn (StockBalanceModel $balance) => [
+                'product_id' => $balance->product_id,
+                'warehouse_id' => $balance->warehouse_id,
+            ]),
+        );
 
         return view('livewire.inventory.report.stock-balance', [
             'stockBalances' => $stockBalances,
@@ -292,6 +252,7 @@ class StockBalance extends Component
             'products' => $products,
             'selectedWarehouse' => null,
             'isZeroMode' => false,
+            'stockSummaries' => $stockSummaries,
         ]);
     }
 }

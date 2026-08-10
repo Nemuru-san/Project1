@@ -38,10 +38,12 @@ it('allows only users with the Super Admin role to delete records', function () 
     expect($supplier->fresh()->trashed())->toBeTrue();
 });
 
-it('guards every Livewire delete method with a Super Admin authorization check', function () {
+it('guards every Livewire delete method with a Super Admin or granular permission check', function () {
     $unguardedComponents = collect(File::allFiles(app_path('Livewire')))
         ->filter(fn ($file) => str_contains($file->getContents(), 'public function delete(): void'))
-        ->reject(fn ($file) => str_contains($file->getContents(), 'isSuperAdmin()'))
+        ->reject(fn ($file) => str_contains($file->getContents(), 'isSuperAdmin()')
+            || str_contains($file->getContents(), 'hasPermission(')
+            || str_contains($file->getContents(), 'canPerform('))
         ->map(fn ($file) => $file->getRelativePathname())
         ->values()
         ->all();

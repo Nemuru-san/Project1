@@ -16,12 +16,20 @@ class ConvertPreOrderToSalesOrder
         return DB::transaction(function () use ($preOrderId) {
             $preOrder = PreOrder::with('items')->lockForUpdate()->findOrFail($preOrderId);
 
-            if ($preOrder->status !== PreOrder::STATUS_DRAFT || $preOrder->salesOrder()->exists()) {
+            if ($preOrder->salesOrder()->exists()) {
                 throw new RuntimeException('Pesanan Awal sudah pernah dikonversi.');
             }
 
-            $dpAmount = (int) ArDpPayment::where('pre_order_id', $preOrder->id)
-                ->where('status', ArDpPayment::STATUS_POSTED)
+            if ($preOrder->status !== PreOrder::STATUS_CONFIRMED) {
+                throw new RuntimeException('Pesanan Awal harus dikonfirmasi sebelum dijadikan Sales Order.');
+            }
+
+            if ($preOrder->dp_payment_status !== PreOrder::DP_STATUS_PAID) {
+                throw new RuntimeException('Target DP Pesanan Awal harus dibayar lunas sebelum dijadikan Sales Order.');
+            }
+
+            $dpAmount = (int) $preOrder->dpAllocations()
+                ->whereHas('payment', fn ($query) => $query->where('status', ArDpPayment::STATUS_POSTED))
                 ->sum('amount');
             $dpAmount = min($dpAmount, (int) $preOrder->grand_total);
 

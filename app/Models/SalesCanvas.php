@@ -12,6 +12,12 @@ class SalesCanvas extends Model
 {
     use SoftDeletes;
 
+    public const STATUS_DRAFT = 'draft';
+
+    public const STATUS_CONFIRMED = 'confirmed';
+
+    public const STATUS_SALES_ORDER = 'sales_order';
+
     protected $fillable = [
         'canvas_no',
         'date',

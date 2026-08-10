@@ -8,8 +8,9 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductPrice;
 use App\Models\SalesOrder as SalesOrderModel;
-use App\Models\StockBalance;
 use App\Models\Warehouse;
+use App\Services\Inventory\AvailableForSalesService;
+use App\Services\Inventory\StockQuantityFormatter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -376,7 +377,7 @@ class SalesOrder extends Component
         $price = $product->prices->firstWhere('unit_id', $unitId) ?? $product->prices->first();
         $warehouseId ??= Warehouse::query()->orderBy('id')->value('id');
         $stock = $warehouseId
-            ? (int) (StockBalance::where('warehouse_id', $warehouseId)->where('product_id', $product->id)->value('quantity') ?? 0)
+            ? app(AvailableForSalesService::class)->available($product->id, $warehouseId, $this->editingId)
             : 0;
 
         return [
@@ -390,10 +391,12 @@ class SalesOrder extends Component
             'unit_price' => $unitPrice ?? (int) ($price?->price ?? 0),
             'discount_amount' => $discountAmount,
             'stock_available' => $stock,
+            'stock_available_display' => app(StockQuantityFormatter::class)->format($product, $stock),
             'base_unit_name' => $product->baseUnit?->name ?? '-',
             'unit_options' => $product->prices->map(fn ($item) => [
                 'unit_id' => $item->unit_id,
                 'unit_name' => $item->unit?->name ?? '-',
+                'unit_code' => $item->unit?->code,
                 'conversion' => (int) $item->conversion,
             ])->values()->all(),
         ];
@@ -402,9 +405,22 @@ class SalesOrder extends Component
     private function refreshItemStock(int $index): void
     {
         $item = $this->items[$index];
-        $this->items[$index]['stock_available'] = $item['warehouse_id']
-            ? (int) (StockBalance::where('warehouse_id', $item['warehouse_id'])->where('product_id', $item['product_id'])->value('quantity') ?? 0)
+        $stock = $item['warehouse_id']
+            ? app(AvailableForSalesService::class)->available(
+                (int) $item['product_id'],
+                (int) $item['warehouse_id'],
+                $this->editingId,
+            )
             : 0;
+        $this->items[$index]['stock_available'] = $stock;
+        $this->items[$index]['stock_available_display'] = app(StockQuantityFormatter::class)->formatUnits(
+            $stock,
+            collect($item['unit_options'])->map(fn (array $unit) => [
+                'conversion' => $unit['conversion'],
+                'code' => $unit['unit_code'] ?? null,
+                'name' => $unit['unit_name'],
+            ]),
+        );
     }
 
     private function resetForm(): void

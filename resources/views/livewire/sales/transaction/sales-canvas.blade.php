@@ -22,6 +22,7 @@
                 class="w-full rounded-lg border border-gray-600 px-8 py-2.5 text-sm focus:ring-primary-500 dark:bg-zinc-800 dark:text-white sm:w-auto">
                 <option value="">Semua Status</option>
                 <option value="draft">Draf</option>
+                <option value="confirmed">Dikonfirmasi</option>
                 <option value="sales_order">Sales Order</option>
             </select>
 
@@ -81,6 +82,8 @@
                         <td class="px-4 py-3">
                             @if ($canvas->trashed())
                                 <span class="rounded-full bg-red-100 px-2.5 py-1 text-xs text-red-700 dark:bg-red-900/40 dark:text-red-300">Terhapus</span>
+                            @elseif ($canvas->status === 'confirmed')
+                                <span class="rounded-full bg-green-100 px-2.5 py-1 text-xs text-green-700 dark:bg-green-900/40 dark:text-green-300">Dikonfirmasi</span>
                             @elseif ($canvas->status === 'sales_order')
                                 <span class="rounded-full bg-blue-100 px-2.5 py-1 text-xs text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">Sales Order</span>
                             @elseif ($canvas->status !== 'draft')
@@ -112,6 +115,11 @@
                                                     Ubah
                                                 </button>
                                             </li>
+                                            @if (auth()->user()?->canPerform('sales.transaction.salesCanvas', 'confirm'))
+                                                <li><button type="button" wire:click="openConfirmCanvas({{ $canvas->id }})" @click="open = false" class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-green-600 hover:bg-green-600 hover:text-white dark:text-green-400"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>Konfirmasi</button></li>
+                                            @endif
+                                        @endif
+                                        @if (! $canvas->trashed() && $canvas->status === 'confirmed' && auth()->user()?->canPerform('sales.transaction.salesCanvas', 'convert'))
                                             <li>
                                                 <button type="button" wire:click="confirmConvertToSalesOrder({{ $canvas->id }})" @click="open = false" class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-600 hover:text-white dark:text-blue-400">
                                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0-4-4m4 4-4 4M16 17H4m0 0 4 4m-4-4 4-4" /></svg>
@@ -122,11 +130,11 @@
                                     </ul>
                                     <div class="py-1">
                                         @if ($canvas->trashed())
-                                            <button type="button" wire:click="restore({{ $canvas->id }})" @click="open = false" @disabled(! auth()->user()?->isSuperAdmin()) class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-green-600 hover:bg-green-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-40">
+                                            <button type="button" wire:click="restore({{ $canvas->id }})" @click="open = false" @disabled(! auth()->user()?->canPerform('sales.transaction.salesCanvas', 'delete')) class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-green-600 hover:bg-green-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-40">
                                                 Pulihkan
                                             </button>
                                         @elseif ($canvas->status === 'draft')
-                                            <button type="button" wire:click="confirmDelete({{ $canvas->id }})" @click="open = false" @disabled(! auth()->user()?->isSuperAdmin()) class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-40">
+                                            <button type="button" wire:click="confirmDelete({{ $canvas->id }})" @click="open = false" @disabled(! auth()->user()?->canPerform('sales.transaction.salesCanvas', 'delete')) class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-40">
                                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                 Hapus
                                             </button>
@@ -155,7 +163,7 @@
                     </button>
                 </div>
 
-                <form wire:submit="save" class="flex min-h-0 flex-1 flex-col">
+                <form wire:submit="save" x-on:keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()" class="flex min-h-0 flex-1 flex-col">
                     <div class="min-h-0 flex-1 overflow-y-auto px-8 py-6">
                         <div class="grid gap-5 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-6">
                             <div class="w-full">
@@ -241,7 +249,7 @@
                                             <th class="border border-gray-300 px-4 py-3 text-sm dark:border-zinc-600">Nama Produk</th>
                                             <th class="border border-gray-300 px-4 py-3 text-sm dark:border-zinc-600">Gudang</th>
                                             <th class="border border-gray-300 px-4 py-3 text-sm dark:border-zinc-600">Satuan</th>
-                                            <th class="border border-gray-300 px-4 py-3 text-sm dark:border-zinc-600">Sisa Stok</th>
+                                            <th class="border border-gray-300 px-4 py-3 text-sm dark:border-zinc-600">AFS (Stok Tersedia)</th>
                                             <th class="border border-gray-300 px-4 py-3 text-sm dark:border-zinc-600">Qty</th>
                                             <th class="border border-gray-300 px-4 py-3 text-sm dark:border-zinc-600">Harga</th>
                                             <th class="border border-gray-300 px-4 py-3 text-sm dark:border-zinc-600">Disc (Rp)</th>
@@ -278,7 +286,7 @@
                                                 <td class="border border-gray-300 px-4 py-3 dark:border-zinc-600">
                                                     @if ($item['warehouse_id'])
                                                         <span class="inline-flex rounded bg-blue-100 px-2.5 py-1 font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                                                            {{ number_format($item['stock_available'], 0, ',', '.') }} {{ $item['base_unit_name'] ?? '' }}
+                                                            {{ $item['stock_available_display'] ?? number_format($item['stock_available'], 0, ',', '.') . ' ' . ($item['base_unit_name'] ?? '') }}
                                                         </span>
                                                     @else
                                                         <span class="text-gray-400">Pilih gudang</span>
@@ -298,6 +306,7 @@
                                                 </td>
                                                 <td class="border border-gray-300 px-4 py-3 dark:border-zinc-600">
                                                     <input type="text" inputmode="numeric" autocomplete="off"
+                                                        wire:key="canvas-unit-price-{{ $item['product_id'] }}-{{ $item['unit_id'] }}"
                                                         x-data="{ display: '{{ number_format($item['unit_price'] ?? 0, 0, ',', '.') }}' }"
                                                         x-model="display"
                                                         @input="
@@ -422,6 +431,15 @@
         </div>
     @endif
 
+    @if ($showConfirmModal)
+        <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-zinc-800">
+                <div class="mb-4 flex items-center gap-3"><div class="rounded-full bg-green-100 p-2 dark:bg-green-900/40"><svg class="h-5 w-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg></div><h3 class="text-lg font-semibold dark:text-white">Konfirmasi Penjualan Kanvas?</h3></div>
+                <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">Setelah dikonfirmasi, Penjualan Kanvas tidak dapat diubah dan dapat dilanjutkan menjadi Sales Order.</p>
+                <div class="flex justify-end gap-3"><button wire:click="$set('showConfirmModal',false)" type="button" class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-zinc-700">Batal</button><button wire:click="confirmCanvas({{ $confirmTargetId }})" wire:loading.attr="disabled" wire:target="confirmCanvas" type="button" class="cursor-pointer rounded-lg bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-50"><span wire:loading.remove wire:target="confirmCanvas">Ya, Konfirmasi</span><span wire:loading wire:target="confirmCanvas">Memproses...</span></button></div>
+            </div>
+        </div>
+    @endif
     @if ($showConvertModal)
         <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
             <div class="mx-4 w-full max-w-sm rounded-xl bg-white p-6 shadow-xl dark:bg-zinc-800">
@@ -445,7 +463,7 @@
                 <p class="mb-6 text-sm text-gray-400">Data akan dipindahkan ke tempat sampah.</p>
                 <div class="flex justify-end gap-3">
                     <button wire:click="$set('showDeleteModal', false)" class="cursor-pointer rounded-lg border border-gray-600 px-4 py-2 text-sm hover:bg-zinc-700 dark:text-gray-300">Batal</button>
-                    <button wire:click="delete" @disabled(! auth()->user()?->isSuperAdmin()) class="cursor-pointer rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40">Hapus</button>
+                    <button wire:click="delete" @disabled(! auth()->user()?->canPerform('sales.transaction.salesCanvas', 'delete')) class="cursor-pointer rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40">Hapus</button>
                 </div>
             </div>
         </div>

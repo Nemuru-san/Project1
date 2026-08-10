@@ -10,8 +10,9 @@ use App\Models\ProductPrice;
 use App\Models\SalesCanvas as SalesCanvasModel;
 use App\Models\Salesman;
 use App\Models\SalesOrder as SalesOrderModel;
-use App\Models\StockBalance;
 use App\Models\Warehouse;
+use App\Services\Inventory\AvailableForSalesService;
+use App\Services\Inventory\StockQuantityFormatter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -46,6 +47,8 @@ class SalesCanvas extends Component
 
     public bool $showConvertModal = false;
 
+    public bool $showConfirmModal = false;
+
     public bool $showProductModal = false;
 
     public bool $showDetailModal = false;
@@ -55,6 +58,8 @@ class SalesCanvas extends Component
     public ?int $deleteTargetId = null;
 
     public ?int $convertTargetId = null;
+
+    public ?int $confirmTargetId = null;
 
     public ?SalesCanvasModel $selectedCanvas = null;
 
@@ -356,7 +361,7 @@ class SalesCanvas extends Component
             if ($canvas->exists) {
                 $this->authorizeCanvas($canvas);
 
-                if ($canvas->status !== 'draft') {
+                if ($canvas->status !== SalesCanvasModel::STATUS_DRAFT) {
                     throw ValidationException::withMessages(['status' => 'Transaksi posted tidak dapat diubah.']);
                 }
             }
@@ -400,13 +405,59 @@ class SalesCanvas extends Component
         $this->dispatch('toast', message: 'Penjualan kanvas berhasil disimpan sebagai draf.', type: 'success');
     }
 
+    public function openConfirmCanvas(int $id): void
+    {
+        if (! auth()->user()?->canPerform('sales.transaction.salesCanvas', 'confirm')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk mengonfirmasi Penjualan Kanvas.', type: 'error');
+
+            return;
+        }
+
+        $canvas = SalesCanvasModel::findOrFail($id);
+        if ($canvas->status !== SalesCanvasModel::STATUS_DRAFT) {
+            $this->dispatch('toast', message: 'Hanya Penjualan Kanvas berstatus Draf yang dapat dikonfirmasi.', type: 'error');
+
+            return;
+        }
+
+        $this->confirmTargetId = $id;
+        $this->showConfirmModal = true;
+    }
+
+    public function confirmCanvas(int $id): void
+    {
+        if (! auth()->user()?->canPerform('sales.transaction.salesCanvas', 'confirm')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk mengonfirmasi Penjualan Kanvas.', type: 'error');
+
+            return;
+        }
+
+        $canvas = SalesCanvasModel::findOrFail($id);
+
+        if ($canvas->status !== SalesCanvasModel::STATUS_DRAFT) {
+            $this->dispatch('toast', message: 'Hanya Penjualan Kanvas berstatus Draf yang dapat dikonfirmasi.', type: 'error');
+
+            return;
+        }
+
+        $canvas->update(['status' => SalesCanvasModel::STATUS_CONFIRMED]);
+        $this->showConfirmModal = false;
+        $this->confirmTargetId = null;
+        $this->dispatch('toast', message: 'Penjualan Kanvas berhasil dikonfirmasi.', type: 'success');
+    }
+
     public function confirmConvertToSalesOrder(int $id): void
     {
-        $canvas = SalesCanvasModel::findOrFail($id);
-        $this->authorizeCanvas($canvas);
+        if (! auth()->user()?->canPerform('sales.transaction.salesCanvas', 'convert')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk mengonversi Penjualan Kanvas.', type: 'error');
 
-        if ($canvas->status !== 'draft') {
-            $this->dispatch('toast', message: 'Hanya penjualan kanvas berstatus draf yang dapat dijadikan Sales Order.', type: 'error');
+            return;
+        }
+
+        $canvas = SalesCanvasModel::findOrFail($id);
+
+        if ($canvas->status !== SalesCanvasModel::STATUS_CONFIRMED) {
+            $this->dispatch('toast', message: 'Penjualan Kanvas harus dikonfirmasi sebelum dijadikan Sales Order.', type: 'error');
 
             return;
         }
@@ -417,6 +468,12 @@ class SalesCanvas extends Component
 
     public function convertToSalesOrder(): void
     {
+        if (! auth()->user()?->canPerform('sales.transaction.salesCanvas', 'convert')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk mengonversi Penjualan Kanvas.', type: 'error');
+
+            return;
+        }
+
         if (! $this->convertTargetId) {
             return;
         }
@@ -424,9 +481,7 @@ class SalesCanvas extends Component
         try {
             DB::transaction(function () {
                 $canvas = SalesCanvasModel::with('items')->lockForUpdate()->findOrFail($this->convertTargetId);
-                $this->authorizeCanvas($canvas);
-
-                if ($canvas->status !== 'draft') {
+                if ($canvas->status !== SalesCanvasModel::STATUS_CONFIRMED) {
                     throw new \RuntimeException('Penjualan kanvas sudah diproses.');
                 }
 
@@ -475,14 +530,20 @@ class SalesCanvas extends Component
 
     public function confirmDelete(int $id): void
     {
+        if (! auth()->user()?->canPerform('sales.transaction.salesCanvas', 'delete')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menghapus Penjualan Kanvas.', type: 'error');
+
+            return;
+        }
+
         $this->deleteTargetId = $id;
         $this->showDeleteModal = true;
     }
 
     public function delete(): void
     {
-        if (! auth()->user()?->isSuperAdmin()) {
-            $this->dispatch('toast', message: 'Hanya Super Admin yang dapat menghapus data.', type: 'error');
+        if (! auth()->user()?->canPerform('sales.transaction.salesCanvas', 'delete')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menghapus Penjualan Kanvas.', type: 'error');
 
             return;
         }
@@ -493,8 +554,8 @@ class SalesCanvas extends Component
 
         $canvas = SalesCanvasModel::findOrFail($this->deleteTargetId);
 
-        if ($canvas->status !== 'draft') {
-            $this->dispatch('toast', message: 'Transaksi posted tidak dapat dihapus.', type: 'error');
+        if ($canvas->status !== SalesCanvasModel::STATUS_DRAFT) {
+            $this->dispatch('toast', message: 'Hanya Penjualan Kanvas berstatus Draf yang dapat dihapus.', type: 'error');
 
             return;
         }
@@ -507,8 +568,8 @@ class SalesCanvas extends Component
 
     public function restore(int $id): void
     {
-        if (! auth()->user()?->isSuperAdmin()) {
-            $this->dispatch('toast', message: 'Hanya Super Admin yang dapat memulihkan data.', type: 'error');
+        if (! auth()->user()?->canPerform('sales.transaction.salesCanvas', 'delete')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk memulihkan Penjualan Kanvas.', type: 'error');
 
             return;
         }
@@ -560,7 +621,7 @@ class SalesCanvas extends Component
         $selectedPrice = $product->prices->firstWhere('unit_id', $unitId) ?? $product->prices->first();
         $warehouseId ??= Warehouse::query()->orderBy('id')->value('id');
         $stock = $warehouseId
-            ? (int) (StockBalance::where('warehouse_id', $warehouseId)->where('product_id', $product->id)->value('quantity') ?? 0)
+            ? app(AvailableForSalesService::class)->available($product->id, $warehouseId)
             : 0;
 
         return [
@@ -574,10 +635,12 @@ class SalesCanvas extends Component
             'unit_price' => $unitPrice ?? (int) ($selectedPrice?->price ?? 0),
             'discount_amount' => $discountAmount,
             'stock_available' => $stock,
+            'stock_available_display' => app(StockQuantityFormatter::class)->format($product, $stock),
             'base_unit_name' => $product->baseUnit?->name ?? '-',
             'unit_options' => $product->prices->map(fn ($price) => [
                 'unit_id' => $price->unit_id,
                 'unit_name' => $price->unit?->name ?? '-',
+                'unit_code' => $price->unit?->code,
                 'conversion' => (int) $price->conversion,
                 'price' => (int) $price->price,
             ])->values()->all(),
@@ -587,11 +650,18 @@ class SalesCanvas extends Component
     private function refreshItemStock(int $index): void
     {
         $item = $this->items[$index];
-        $this->items[$index]['stock_available'] = $item['warehouse_id']
-            ? (int) (StockBalance::where('warehouse_id', $item['warehouse_id'])
-                ->where('product_id', $item['product_id'])
-                ->value('quantity') ?? 0)
+        $stock = $item['warehouse_id']
+            ? app(AvailableForSalesService::class)->available((int) $item['product_id'], (int) $item['warehouse_id'])
             : 0;
+        $this->items[$index]['stock_available'] = $stock;
+        $this->items[$index]['stock_available_display'] = app(StockQuantityFormatter::class)->formatUnits(
+            $stock,
+            collect($item['unit_options'])->map(fn (array $unit) => [
+                'conversion' => $unit['conversion'],
+                'code' => $unit['unit_code'] ?? null,
+                'name' => $unit['unit_name'],
+            ]),
+        );
     }
 
     private function validateItemAmounts(): void
@@ -624,11 +694,20 @@ class SalesCanvas extends Component
 
     private function authorizeCanvas(SalesCanvasModel $canvas): void
     {
-        if (auth()->user()?->isSuperAdmin()) {
+        if (auth()->user()?->isSuperAdmin() || $this->canManageCanvas()) {
             return;
         }
 
         abort_unless($this->currentSalesman()?->id === $canvas->salesman_id, 403);
+    }
+
+    private function canManageCanvas(): bool
+    {
+        $user = auth()->user();
+
+        return $user?->canPerform('sales.transaction.salesCanvas', 'confirm')
+            || $user?->canPerform('sales.transaction.salesCanvas', 'convert')
+            || $user?->canPerform('sales.transaction.salesCanvas', 'delete');
     }
 
     private function resetForm(): void
@@ -636,10 +715,12 @@ class SalesCanvas extends Component
         $this->reset([
             'showModal',
             'showDeleteModal',
+            'showConfirmModal',
             'showProductModal',
             'showDetailModal',
             'editingId',
             'deleteTargetId',
+            'confirmTargetId',
             'selectedCanvas',
             'canvasNo',
             'salesmanId',
@@ -675,7 +756,7 @@ class SalesCanvas extends Component
         $currentSalesman = $this->currentSalesman();
         $salesCanvases = SalesCanvasModel::query()
             ->with(['salesman', 'customer', 'creator'])
-            ->when(! auth()->user()->isSuperAdmin(), fn (Builder $query) => $query->where('salesman_id', $currentSalesman?->id ?? 0))
+            ->when(! auth()->user()->isSuperAdmin() && ! $this->canManageCanvas(), fn (Builder $query) => $query->where('salesman_id', $currentSalesman?->id ?? 0))
             ->when($this->showTrashed, fn (Builder $query) => $query->withTrashed())
             ->when($this->statusFilter !== '', fn (Builder $query) => $query->where('status', $this->statusFilter))
             ->when($this->dateFrom !== '', fn (Builder $query) => $query->whereDate('date', '>=', $this->dateFrom))

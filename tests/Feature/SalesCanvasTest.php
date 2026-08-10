@@ -36,6 +36,7 @@ function salesCanvasFixture(array $overrides = []): array
         'name' => 'Kategori Test',
     ]);
     $unit = ProductUnit::create(['code' => 'BOX', 'name' => 'Box']);
+    $baseUnit = ProductUnit::create(['code' => 'PCS', 'name' => 'Pcs']);
     $warehouse = Warehouse::create([
         'name' => 'Gudang Test',
         'desc' => 'Gudang untuk pengujian',
@@ -45,7 +46,7 @@ function salesCanvasFixture(array $overrides = []): array
         'name' => 'Produk Test',
         'sku' => fake()->unique()->bothify('SKU-###'),
         'category_id' => $category->id,
-        'base_unit_id' => $unit->id,
+        'base_unit_id' => $baseUnit->id,
         'created_by' => 'test',
     ]);
     ProductPrice::create([
@@ -53,6 +54,12 @@ function salesCanvasFixture(array $overrides = []): array
         'unit_id' => $unit->id,
         'conversion' => 2,
         'price' => 10000,
+    ]);
+    ProductPrice::create([
+        'product_id' => $product->id,
+        'unit_id' => $baseUnit->id,
+        'conversion' => 1,
+        'price' => 5000,
     ]);
     StockBalance::create([
         'warehouse_id' => $warehouse->id,
@@ -87,6 +94,26 @@ it('automatically uses the logged in salesman and their customer defaults', func
         ->and($component->html())->not->toContain('type="number"');
 });
 
+it('refreshes the displayed unit price when the sales unit changes', function () {
+    $data = salesCanvasFixture();
+    $otherUnit = ProductUnit::create(['code' => 'CTN', 'name' => 'Kotak']);
+    ProductPrice::create([
+        'product_id' => $data['product']->id,
+        'unit_id' => $otherUnit->id,
+        'conversion' => 12,
+        'price' => 50000,
+    ]);
+    $this->actingAs($data['user']);
+
+    Livewire::test(SalesCanvas::class)
+        ->call('openCreate')
+        ->call('addProduct', $data['product']->id)
+        ->set('items.0.unit_id', $otherUnit->id)
+        ->assertSet('items.0.conversion', 12)
+        ->assertSet('items.0.unit_price', 50000)
+        ->assertSeeHtml("wire:key=\"canvas-unit-price-{$data['product']->id}-{$otherUnit->id}\"")
+        ->assertSeeHtml("x-data=\"{ display: '50.000' }\"");
+});
 it('creates a draft canvas sale with calculated totals', function () {
     $data = salesCanvasFixture();
     $this->actingAs($data['user']);
@@ -134,6 +161,7 @@ it('shows the remaining product stock from the selected warehouse', function () 
         'desc' => 'Gudang kedua untuk pengujian',
         'address' => 'Bandung',
     ]);
+
     StockBalance::create([
         'warehouse_id' => $otherWarehouse->id,
         'product_id' => $data['product']->id,
@@ -146,11 +174,12 @@ it('shows the remaining product stock from the selected warehouse', function () 
         ->call('addProduct', $data['product']->id)
         ->set('items.0.warehouse_id', $otherWarehouse->id)
         ->assertSet('items.0.stock_available', 17)
-        ->assertSee('Sisa Stok')
-        ->assertSee('17 Box');
+        ->assertSet('items.0.stock_available_display', '8 BOX, 1 PCS')
+        ->assertSee('AFS (Stok Tersedia)')
+        ->assertSee('8 BOX, 1 PCS');
 });
 
-it('converts a draft canvas sale into a sales order and updates its status', function () {
+it('requires confirmation before converting a canvas sale into a sales order', function () {
     $data = salesCanvasFixture();
     $canvas = SalesCanvasModel::create([
         'canvas_no' => 'SC-220726-002',
@@ -176,9 +205,24 @@ it('converts a draft canvas sale into a sales order and updates its status', fun
         'discount_amount' => 1000,
         'line_total' => 19000,
     ]);
+    $data['role']->update(['permissions' => [
+        'sales.transaction.salesCanvas',
+        'sales.transaction.salesCanvas.confirm',
+        'sales.transaction.salesCanvas.convert',
+    ]]);
     $this->actingAs($data['user']);
 
     Livewire::test(SalesCanvas::class)
+        ->call('confirmConvertToSalesOrder', $canvas->id)
+        ->assertSet('showConvertModal', false)
+        ->assertDispatched('toast', message: 'Penjualan Kanvas harus dikonfirmasi sebelum dijadikan Sales Order.', type: 'error')
+        ->call('openConfirmCanvas', $canvas->id)
+        ->assertSet('showConfirmModal', true)
+        ->assertSet('confirmTargetId', $canvas->id)
+        ->assertSee('Konfirmasi Penjualan Kanvas?')
+        ->call('confirmCanvas', $canvas->id)
+        ->assertSet('showConfirmModal', false)
+        ->assertDispatched('toast', message: 'Penjualan Kanvas berhasil dikonfirmasi.', type: 'success')
         ->assertSee('Jadikan Sales Order')
         ->assertDontSee('Posting')
         ->assertSeeHtml('w-56')

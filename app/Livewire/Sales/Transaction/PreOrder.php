@@ -9,9 +9,10 @@ use App\Models\PreOrder as PreOrderModel;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductPrice;
-use App\Models\StockBalance;
 use App\Models\Warehouse;
 use App\Services\ConvertPreOrderToSalesOrder;
+use App\Services\Inventory\AvailableForSalesService;
+use App\Services\Inventory\StockQuantityFormatter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -46,11 +47,15 @@ class PreOrder extends Component
 
     public bool $showConvertModal = false;
 
+    public bool $showConfirmModal = false;
+
     public ?int $editingId = null;
 
     public ?int $deleteTargetId = null;
 
     public ?int $convertTargetId = null;
+
+    public ?int $confirmTargetId = null;
 
     public ?PreOrderModel $selectedPreOrder = null;
 
@@ -63,6 +68,8 @@ class PreOrder extends Component
     public ?int $customerAddressId = null;
 
     public bool $tax = false;
+
+    public int $dpAmount = 0;
 
     public string $notes = '';
 
@@ -81,6 +88,7 @@ class PreOrder extends Component
             'customerId' => ['required', 'integer', 'exists:customers,id'],
             'customerAddressId' => ['nullable', 'integer', Rule::exists('customer_addresses', 'id')->where(fn ($query) => $query->where('customer_id', $this->customerId)->whereNull('deleted_at'))],
             'tax' => ['boolean'],
+            'dpAmount' => ['required', 'integer', 'min:1'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
@@ -95,6 +103,8 @@ class PreOrder extends Component
 
     protected $messages = [
         'customerId.required' => 'Customer wajib dipilih.',
+        'dpAmount.required' => 'Nominal DP wajib diisi.',
+        'dpAmount.min' => 'Nominal DP harus lebih dari 0.',
         'items.required' => 'Tambahkan minimal satu produk.',
         'items.min' => 'Tambahkan minimal satu produk.',
         'items.*.warehouse_id.required' => 'Gudang wajib dipilih.',
@@ -154,7 +164,7 @@ class PreOrder extends Component
         $preOrder = PreOrderModel::with(['items.product.prices.unit', 'items.product.baseUnit'])->findOrFail($id);
         $this->authorizePreOrder($preOrder);
 
-        if ($preOrder->status !== PreOrderModel::STATUS_DRAFT || $preOrder->dpPayments()->where('status', ArDpPayment::STATUS_POSTED)->exists()) {
+        if ($preOrder->status !== PreOrderModel::STATUS_DRAFT || $preOrder->dpAllocations()->whereHas('payment', fn ($query) => $query->where('status', ArDpPayment::STATUS_POSTED))->exists()) {
             $this->dispatch('toast', message: 'Pesanan Awal yang sudah memiliki DP posted atau sudah dikonversi tidak dapat diubah.', type: 'error');
 
             return;
@@ -167,6 +177,7 @@ class PreOrder extends Component
         $this->customerId = $preOrder->customer_id;
         $this->customerAddressId = $preOrder->customer_address_id;
         $this->tax = $preOrder->is_taxed;
+        $this->dpAmount = (int) $preOrder->dp_amount;
         $this->notes = $preOrder->notes ?? '';
         $this->items = $preOrder->items->map(fn ($item) => $this->makeItem($item->product, $item->warehouse_id, $item->unit_id, $item->qty, $item->unit_price, $item->discount_amount))->toArray();
         $this->showModal = true;
@@ -231,6 +242,11 @@ class PreOrder extends Component
         $wasEditing = (bool) $this->editingId;
         $this->validate();
 
+        $totals = $this->totals();
+        if ($this->dpAmount > $totals['grand_total']) {
+            throw ValidationException::withMessages(['dpAmount' => 'Nominal DP tidak boleh melebihi Neto.']);
+        }
+
         foreach ($this->items as $index => $item) {
             if ((int) $item['discount_amount'] > ((int) $item['qty'] * (int) $item['unit_price'])) {
                 throw ValidationException::withMessages(["items.$index.discount_amount" => 'Diskon tidak boleh melebihi nilai produk.']);
@@ -242,7 +258,7 @@ class PreOrder extends Component
             $preOrder = $this->editingId ? PreOrderModel::lockForUpdate()->findOrFail($this->editingId) : new PreOrderModel;
             if ($preOrder->exists) {
                 $this->authorizePreOrder($preOrder);
-                if ($preOrder->status !== PreOrderModel::STATUS_DRAFT || $preOrder->dpPayments()->where('status', ArDpPayment::STATUS_POSTED)->exists()) {
+                if ($preOrder->status !== PreOrderModel::STATUS_DRAFT || $preOrder->dpAllocations()->whereHas('payment', fn ($query) => $query->where('status', ArDpPayment::STATUS_POSTED))->exists()) {
                     throw ValidationException::withMessages(['date' => 'Pesanan Awal sudah diproses dan tidak dapat diubah.']);
                 }
             }
@@ -258,6 +274,8 @@ class PreOrder extends Component
                 'discount_total' => $totals['discount'],
                 'tax_amount' => $totals['tax'],
                 'grand_total' => $totals['grand_total'],
+                'dp_amount' => $this->dpAmount,
+                'dp_payment_status' => PreOrderModel::DP_STATUS_UNPAID,
                 'notes' => trim($this->notes) ?: null,
                 'status' => PreOrderModel::STATUS_DRAFT,
                 'created_by' => $preOrder->exists ? $preOrder->created_by : Auth::id(),
@@ -278,12 +296,69 @@ class PreOrder extends Component
         $this->dispatch('toast', message: $wasEditing ? 'Pesanan Awal berhasil diperbarui.' : 'Pesanan Awal berhasil dibuat.', type: 'success');
     }
 
+    public function openConfirmPreOrder(int $id): void
+    {
+        if (! auth()->user()?->canPerform('sales.transaction.salesPreOrder', 'confirm')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk mengonfirmasi Pesanan Awal.', type: 'error');
+
+            return;
+        }
+
+        $preOrder = PreOrderModel::findOrFail($id);
+        if ($preOrder->status !== PreOrderModel::STATUS_DRAFT) {
+            $this->dispatch('toast', message: 'Hanya Pesanan Awal berstatus Draf yang dapat dikonfirmasi.', type: 'error');
+
+            return;
+        }
+
+        $this->confirmTargetId = $id;
+        $this->showConfirmModal = true;
+    }
+
+    public function confirmPreOrder(int $id): void
+    {
+        if (! auth()->user()?->canPerform('sales.transaction.salesPreOrder', 'confirm')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk mengonfirmasi Pesanan Awal.', type: 'error');
+
+            return;
+        }
+
+        $preOrder = PreOrderModel::findOrFail($id);
+
+        if ($preOrder->status !== PreOrderModel::STATUS_DRAFT) {
+            $this->dispatch('toast', message: 'Hanya Pesanan Awal berstatus Draf yang dapat dikonfirmasi.', type: 'error');
+
+            return;
+        }
+
+        if ((int) $preOrder->dp_amount <= 0 || (int) $preOrder->dp_amount > (int) $preOrder->grand_total) {
+            $this->dispatch('toast', message: 'Nominal DP harus diisi dan tidak boleh melebihi Neto sebelum dikonfirmasi.', type: 'error');
+
+            return;
+        }
+
+        $preOrder->update(['status' => PreOrderModel::STATUS_CONFIRMED]);
+        $this->showConfirmModal = false;
+        $this->confirmTargetId = null;
+        $this->dispatch('toast', message: 'Pesanan Awal berhasil dikonfirmasi.', type: 'success');
+    }
+
     public function confirmConvert(int $id): void
     {
+        if (! auth()->user()?->canPerform('sales.transaction.salesPreOrder', 'convert')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk mengonversi Pesanan Awal.', type: 'error');
+
+            return;
+        }
+
         $preOrder = PreOrderModel::findOrFail($id);
-        $this->authorizePreOrder($preOrder);
-        if ($preOrder->status !== PreOrderModel::STATUS_DRAFT) {
-            $this->dispatch('toast', message: 'Pesanan Awal sudah pernah dikonversi.', type: 'error');
+        if ($preOrder->status !== PreOrderModel::STATUS_CONFIRMED) {
+            $this->dispatch('toast', message: 'Pesanan Awal harus dikonfirmasi sebelum dijadikan Sales Order.', type: 'error');
+
+            return;
+        }
+        if ($preOrder->dp_payment_status !== PreOrderModel::DP_STATUS_PAID) {
+            $this->dispatch('toast', message: 'Target DP harus dibayar lunas sebelum Pesanan Awal dijadikan Sales Order.', type: 'error');
 
             return;
         }
@@ -293,6 +368,12 @@ class PreOrder extends Component
 
     public function convertToSalesOrder(ConvertPreOrderToSalesOrder $converter): void
     {
+        if (! auth()->user()?->canPerform('sales.transaction.salesPreOrder', 'convert')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk mengonversi Pesanan Awal.', type: 'error');
+
+            return;
+        }
+
         if (! $this->convertTargetId) {
             return;
         }
@@ -308,9 +389,15 @@ class PreOrder extends Component
 
     public function confirmDelete(int $id): void
     {
+        if (! auth()->user()?->canPerform('sales.transaction.salesPreOrder', 'delete')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menghapus Pesanan Awal.', type: 'error');
+
+            return;
+        }
+
         $preOrder = PreOrderModel::findOrFail($id);
         $this->authorizePreOrder($preOrder);
-        if ($preOrder->status !== PreOrderModel::STATUS_DRAFT || $preOrder->dpPayments()->where('status', ArDpPayment::STATUS_POSTED)->exists()) {
+        if ($preOrder->status !== PreOrderModel::STATUS_DRAFT || $preOrder->dpAllocations()->whereHas('payment', fn ($query) => $query->where('status', ArDpPayment::STATUS_POSTED))->exists()) {
             $this->dispatch('toast', message: 'Pesanan Awal yang sudah diproses tidak dapat dihapus.', type: 'error');
 
             return;
@@ -321,15 +408,22 @@ class PreOrder extends Component
 
     public function delete(): void
     {
-        if (! auth()->user()?->isSuperAdmin()) {
-            $this->dispatch('toast', message: 'Hanya Super Admin yang dapat menghapus data.', type: 'error');
+        if (! auth()->user()?->canPerform('sales.transaction.salesPreOrder', 'delete')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menghapus Pesanan Awal.', type: 'error');
 
             return;
         }
         if (! $this->deleteTargetId) {
             return;
         }
-        PreOrderModel::findOrFail($this->deleteTargetId)->delete();
+        $preOrder = PreOrderModel::findOrFail($this->deleteTargetId);
+        if ($preOrder->status !== PreOrderModel::STATUS_DRAFT || $preOrder->dpAllocations()->whereHas('payment', fn ($query) => $query->where('status', ArDpPayment::STATUS_POSTED))->exists()) {
+            $this->dispatch('toast', message: 'Pesanan Awal yang sudah diproses tidak dapat dihapus.', type: 'error');
+
+            return;
+        }
+
+        $preOrder->delete();
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
         $this->dispatch('toast', message: 'Pesanan Awal berhasil dihapus.', type: 'success');
@@ -337,7 +431,7 @@ class PreOrder extends Component
 
     public function restore(int $id): void
     {
-        abort_unless(auth()->user()?->isSuperAdmin(), 403);
+        abort_unless(auth()->user()?->canPerform('sales.transaction.salesPreOrder', 'delete'), 403);
         PreOrderModel::onlyTrashed()->findOrFail($id)->restore();
         $this->dispatch('toast', message: 'Pesanan Awal berhasil dipulihkan.', type: 'success');
     }
@@ -346,7 +440,7 @@ class PreOrder extends Component
     {
         $preOrder = PreOrderModel::withTrashed()->with([
             'customer', 'customerAddress', 'creator', 'items.product', 'items.warehouse', 'items.unit',
-            'dpPayments' => fn ($query) => $query->where('status', ArDpPayment::STATUS_POSTED)->orderBy('payment_date'),
+            'dpAllocations' => fn ($query) => $query->whereHas('payment', fn ($payment) => $payment->where('status', ArDpPayment::STATUS_POSTED))->with('payment')->orderBy('id'),
             'salesOrder',
         ])->findOrFail($id);
         $this->authorizePreOrder($preOrder);
@@ -366,7 +460,16 @@ class PreOrder extends Component
 
     private function authorizePreOrder(PreOrderModel $preOrder): void
     {
-        abort_unless(auth()->user()?->isSuperAdmin() || $preOrder->created_by === Auth::id(), 403);
+        abort_unless(auth()->user()?->isSuperAdmin() || $this->canManagePreOrders() || $preOrder->created_by === Auth::id(), 403);
+    }
+
+    private function canManagePreOrders(): bool
+    {
+        $user = auth()->user();
+
+        return $user?->canPerform('sales.transaction.salesPreOrder', 'confirm')
+            || $user?->canPerform('sales.transaction.salesPreOrder', 'convert')
+            || $user?->canPerform('sales.transaction.salesPreOrder', 'delete');
     }
 
     private function makeItem(Product $product, ?int $warehouseId = null, ?int $unitId = null, int $qty = 1, ?int $unitPrice = null, int $discountAmount = 0): array
@@ -374,26 +477,33 @@ class PreOrder extends Component
         $product->loadMissing(['prices.unit', 'baseUnit']);
         $price = $product->prices->firstWhere('unit_id', $unitId) ?? $product->prices->first();
         $warehouseId ??= Warehouse::query()->orderBy('id')->value('id');
-        $stock = $warehouseId ? (int) (StockBalance::where('warehouse_id', $warehouseId)->where('product_id', $product->id)->value('quantity') ?? 0) : 0;
+        $stock = $warehouseId ? app(AvailableForSalesService::class)->available($product->id, $warehouseId) : 0;
 
         return [
             'product_id' => $product->id, 'sku' => $product->sku, 'name' => $product->name,
             'warehouse_id' => $warehouseId, 'unit_id' => $price?->unit_id, 'conversion' => (int) ($price?->conversion ?? 1),
             'qty' => $qty, 'unit_price' => $unitPrice ?? (int) ($price?->price ?? 0), 'discount_amount' => $discountAmount,
-            'stock_available' => $stock, 'base_unit_name' => $product->baseUnit?->name ?? '-',
-            'unit_options' => $product->prices->map(fn ($item) => ['unit_id' => $item->unit_id, 'unit_name' => $item->unit?->name ?? '-', 'conversion' => (int) $item->conversion])->values()->all(),
+            'stock_available' => $stock, 'stock_available_display' => app(StockQuantityFormatter::class)->format($product, $stock), 'base_unit_name' => $product->baseUnit?->name ?? '-',
+            'unit_options' => $product->prices->map(fn ($item) => ['unit_id' => $item->unit_id, 'unit_name' => $item->unit?->name ?? '-', 'unit_code' => $item->unit?->code, 'conversion' => (int) $item->conversion])->values()->all(),
         ];
     }
 
     private function refreshItemStock(int $index): void
     {
         $item = $this->items[$index];
-        $this->items[$index]['stock_available'] = $item['warehouse_id'] ? (int) (StockBalance::where('warehouse_id', $item['warehouse_id'])->where('product_id', $item['product_id'])->value('quantity') ?? 0) : 0;
+        $stock = $item['warehouse_id'] ? app(AvailableForSalesService::class)->available((int) $item['product_id'], (int) $item['warehouse_id']) : 0;
+        $this->items[$index]['stock_available'] = $stock;
+        $this->items[$index]['stock_available_display'] = app(StockQuantityFormatter::class)->formatUnits(
+            $stock,
+            collect($item['unit_options'])->map(fn (array $unit) => [
+                'conversion' => $unit['conversion'], 'code' => $unit['unit_code'] ?? null, 'name' => $unit['unit_name'],
+            ]),
+        );
     }
 
     private function resetForm(): void
     {
-        $this->reset(['showModal', 'showProductModal', 'showDeleteModal', 'showConvertModal', 'editingId', 'deleteTargetId', 'convertTargetId', 'preOrderNo', 'customerId', 'customerAddressId', 'tax', 'notes', 'items', 'productSearch', 'categoryFilter', 'selectedProductIds']);
+        $this->reset(['showModal', 'showProductModal', 'showDeleteModal', 'showConvertModal', 'showConfirmModal', 'editingId', 'deleteTargetId', 'convertTargetId', 'confirmTargetId', 'preOrderNo', 'customerId', 'customerAddressId', 'tax', 'dpAmount', 'notes', 'items', 'productSearch', 'categoryFilter', 'selectedProductIds']);
         $this->date = now()->format('Y-m-d');
         $this->resetErrorBag();
     }
@@ -411,8 +521,8 @@ class PreOrder extends Component
     {
         $preOrders = PreOrderModel::query()
             ->with(['customer', 'salesOrder'])
-            ->withSum(['dpPayments as posted_dp_amount' => fn ($query) => $query->where('status', ArDpPayment::STATUS_POSTED)], 'amount')
-            ->when(! auth()->user()->isSuperAdmin(), fn (Builder $query) => $query->where('created_by', Auth::id()))
+            ->withSum(['dpAllocations as posted_dp_amount' => fn ($query) => $query->whereHas('payment', fn ($payment) => $payment->where('status', ArDpPayment::STATUS_POSTED))], 'amount')
+            ->when(! auth()->user()->isSuperAdmin() && ! $this->canManagePreOrders(), fn (Builder $query) => $query->where('created_by', Auth::id()))
             ->when($this->showTrashed, fn (Builder $query) => $query->withTrashed())
             ->when($this->statusFilter !== '', fn (Builder $query) => $query->where('status', $this->statusFilter))
             ->when($this->dateFrom !== '', fn (Builder $query) => $query->whereDate('date', '>=', $this->dateFrom))

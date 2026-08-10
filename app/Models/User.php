@@ -86,7 +86,20 @@ class User extends Authenticatable
             return true;
         }
 
-        return in_array($permission, $permissions, true);
+        return in_array($permission, $permissions, true)
+            || collect($permissions)->contains(fn (string $granted) => str_starts_with($granted, $permission.'.'));
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        $permissions = $this->role?->permissions ?? [];
+
+        return in_array('*', $permissions, true) || in_array($permission, $permissions, true);
+    }
+
+    public function canPerform(string $module, string $action): bool
+    {
+        return $this->hasPermission($module.'.'.$action);
     }
 
     public function isSuperAdmin(): bool

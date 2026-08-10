@@ -7,13 +7,16 @@ use App\Models\ProductCategory;
 use App\Models\ProductPrice;
 use App\Models\ProductUnit;
 use App\Models\PurchaseOrder;
+use App\Models\Role;
 use App\Models\StockBalance;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Models\Warehouse;
 
 it('cancels a received goods receive by reversing stock and recalculating purchase order status', function () {
-    $user = User::factory()->create();
+    $role = Role::create(['name' => 'Goods Receive Manager', 'permissions' => ['purchases.transaction.good-receive.receive']]);
+    $user = User::factory()->for($role)->create();
+    $this->actingAs($user);
 
     $supplier = Supplier::create([
         'code' => 'SUP-001',
@@ -118,7 +121,9 @@ it('cancels a received goods receive by reversing stock and recalculating purcha
 });
 
 it('keeps partially received purchase orders available for the next goods receive', function () {
-    $user = User::factory()->create();
+    $role = Role::create(['name' => 'Goods Receive Manager', 'permissions' => ['purchases.transaction.good-receive.receive']]);
+    $user = User::factory()->for($role)->create();
+    $this->actingAs($user);
 
     $supplier = Supplier::create([
         'code' => 'SUP-001',

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ArDpPayment extends Model
@@ -26,6 +28,18 @@ class ArDpPayment extends Model
     public function preOrder(): BelongsTo
     {
         return $this->belongsTo(PreOrder::class);
+    }
+
+    public function allocations(): HasMany
+    {
+        return $this->hasMany(ArDpPaymentAllocation::class);
+    }
+
+    public function preOrders(): BelongsToMany
+    {
+        return $this->belongsToMany(PreOrder::class, 'ar_dp_payment_allocations')
+            ->withPivot('amount')
+            ->withTimestamps();
     }
 
     public function customer(): BelongsTo

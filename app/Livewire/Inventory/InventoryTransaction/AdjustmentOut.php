@@ -300,6 +300,12 @@ class AdjustmentOut extends Component
 
     public function confirmApprove(int $id): void
     {
+        if (! auth()->user()?->hasPermission('inventory.transaction.adjustment-out.approve')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menyetujui Penyesuaian Stok Keluar.', type: 'error');
+
+            return;
+        }
+
         $this->approveTargetId = $id;
         $this->showApproveModal = true;
     }
@@ -312,6 +318,12 @@ class AdjustmentOut extends Component
 
     public function approve(): void
     {
+        if (! auth()->user()?->hasPermission('inventory.transaction.adjustment-out.approve')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menyetujui Penyesuaian Stok Keluar.', type: 'error');
+
+            return;
+        }
+
         if (! $this->approveTargetId) {
             return;
         }
@@ -357,14 +369,20 @@ class AdjustmentOut extends Component
 
     public function confirmDelete(int $id): void
     {
+        if (! auth()->user()?->hasPermission('inventory.transaction.adjustment-out.delete')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menghapus Penyesuaian Stok Keluar.', type: 'error');
+
+            return;
+        }
+
         $this->deleteTargetId = $id;
         $this->showDeleteModal = true;
     }
 
     public function delete(): void
     {
-        if (! auth()->user()?->isSuperAdmin()) {
-            $this->dispatch('toast', message: 'Hanya Super Admin yang dapat menghapus data.', type: 'error');
+        if (! auth()->user()?->hasPermission('inventory.transaction.adjustment-out.delete')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menghapus Penyesuaian Stok Keluar.', type: 'error');
 
             return;
         }

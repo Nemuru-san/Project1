@@ -195,7 +195,7 @@
                                         <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
                                             @if ($po->status === 'Draft')
                                                 <li>
-                                                    <button wire:click="confirmApprove({{ $po->id }})"
+                                                    <button wire:click="confirmApprove({{ $po->id }})" @disabled(! auth()->user()?->hasPermission('purchases.transaction.purchase-order.approve'))
                                                         @click="open = false"
                                                         class="flex items-center gap-2 w-full py-2 px-4 text-blue-700 hover:bg-blue-600 hover:text-white dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white cursor-pointer">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -254,8 +254,8 @@
 
                                         <div class="py-1">
                                             <button
-                                                @if (!$locked && auth()->user()->isSuperAdmin()) wire:click="confirmDelete({{ $po->id }})" @endif
-                                                @disabled($locked || ! auth()->user()->isSuperAdmin())
+                                                @if (!$locked && auth()->user()?->hasPermission('purchases.transaction.purchase-order.delete')) wire:click="confirmDelete({{ $po->id }})" @endif
+                                                @disabled($locked || ! auth()->user()?->hasPermission('purchases.transaction.purchase-order.delete'))
                                                 @click="open = false" @disabled($locked)
                                                 class="flex items-center gap-2 w-full py-2 px-4 text-base {{ $locked ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer' }}">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -445,6 +445,7 @@
                                                 {{ $item['category'] }}</td>
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
                                                 <select wire:model.live="items.{{ $i }}.price_id"
+                                                    @change="item.price = null; item.price_display = ''"
                                                     class="bg-gray-50 border @error('items.' . $i . '.price_id') border-red-500 @else border-gray-300 @enderror text-gray-900 text-xs rounded-lg block w-36 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                                     @foreach ($item['prices'] as $p)
                                                         <option value="{{ $p['id'] }}">{{ $p['unit_name'] }}
@@ -878,7 +879,7 @@
                                     <option value="Draft">Draf</option>
                                     <option value="Approved">Disetujui</option>
                                 </select>
-                                <button wire:click="updateStatus" wire:loading.attr="disabled"
+                                <button wire:click="updateStatus" wire:loading.attr="disabled" @disabled(! auth()->user()?->hasPermission('purchases.transaction.purchase-order.approve'))
                                     class="px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium disabled:opacity-50 cursor-pointer">
                                     <span wire:loading.remove wire:target="updateStatus">Simpan Status</span>
                                     <span wire:loading wire:target="updateStatus">Menyimpan...</span>
@@ -928,7 +929,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="approve" wire:loading.attr="disabled"
+                    <button wire:click="approve" wire:loading.attr="disabled" @disabled(! auth()->user()?->hasPermission('purchases.transaction.purchase-order.approve'))
                         class="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
                         <span wire:loading.remove wire:target="approve">
                             Ya, Setujui
@@ -952,7 +953,7 @@
                         class="px-4 py-2 text-sm rounded-lg border border-gray-600 dark:text-gray-300 hover:bg-zinc-700">
                         Batal
                     </button>
-                    <button wire:click="delete" @disabled(! auth()->user()->isSuperAdmin())
+                    <button wire:click="delete" @disabled(! auth()->user()?->hasPermission('purchases.transaction.purchase-order.delete'))
                         class="px-4 py-2 text-sm rounded-lg bg-red-600 hover:bg-red-700 text-white">
                         Hapus
                     </button>

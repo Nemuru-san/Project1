@@ -29,7 +29,7 @@
             <thead class="bg-gray-100 text-xs uppercase text-gray-700 dark:bg-zinc-800 dark:text-gray-200">
                 <tr><th class="px-4 py-3">SKU</th><th class="px-4 py-3">Produk</th><th class="px-4 py-3">Gudang</th>
                     <th class="px-4 py-3 text-right">Saldo Awal</th><th class="px-4 py-3 text-right">Masuk</th>
-                    <th class="px-4 py-3 text-right">Keluar</th><th class="px-4 py-3 text-right">Saldo Akhir</th></tr>
+                    <th class="px-4 py-3 text-right">Keluar</th><th class="px-4 py-3 text-right">QOH Akhir Periode</th><th class="px-4 py-3 text-right">QOH Saat Ini</th><th class="px-4 py-3 text-right">AFS Saat Ini</th></tr>
             </thead>
             <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
                 @forelse ($rows as $row)
@@ -39,9 +39,11 @@
                         <td class="px-4 py-3 text-right text-green-600 dark:text-green-400">{{ number_format($row['quantity_in'], 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-right text-red-600 dark:text-red-400">{{ number_format($row['quantity_out'], 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">{{ number_format($row['ending_balance'], 0, ',', '.') }}</td>
+                        <td class="px-4 py-3 text-right">{{ $row['current_qoh_display'] }}</td>
+                        <td class="px-4 py-3 text-right font-bold {{ $row['available_for_sales'] < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400' }}">{{ $row['available_for_sales_display'] }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="px-4 py-10 text-center text-gray-400">Tidak ada pergerakan stok pada periode ini.</td></tr>
+                    <tr><td colspan="9" class="px-4 py-10 text-center text-gray-400">Tidak ada pergerakan stok pada periode ini.</td></tr>
                 @endforelse
             </tbody>
         </table>

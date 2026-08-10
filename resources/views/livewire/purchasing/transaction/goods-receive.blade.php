@@ -183,7 +183,7 @@
                                         <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
                                             @if ($gr->status === 'Draft')
                                                 <li>
-                                                    <button wire:click="confirmReceive({{ $gr->id }})"
+                                                    <button wire:click="confirmReceive({{ $gr->id }})" @disabled(! auth()->user()?->hasPermission('purchases.transaction.good-receive.receive'))
                                                         @click="open = false"
                                                         class="flex items-center gap-2 w-full py-2 px-4 text-green-700 hover:bg-green-700 hover:text-white dark:text-green-300 dark:hover:bg-green-700 dark:hover:text-white cursor-pointer">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -242,8 +242,8 @@
 
                                         <div class="py-1">
                                             <button
-                                                @if (!$locked && auth()->user()?->isSuperAdmin()) wire:click="confirmDelete({{ $gr->id }})" @endif
-                                                @disabled($locked || ! auth()->user()?->isSuperAdmin())
+                                                @if (!$locked && auth()->user()?->hasPermission('purchases.transaction.good-receive.delete')) wire:click="confirmDelete({{ $gr->id }})" @endif
+                                                @disabled($locked || ! auth()->user()?->hasPermission('purchases.transaction.good-receive.delete'))
                                                 @click="open = false" @disabled($locked)
                                                 class="flex items-center gap-2 w-full py-2 px-4 text-base {{ $locked ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer' }}">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -505,7 +505,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="delete" wire:loading.attr="disabled" @disabled(! auth()->user()?->isSuperAdmin())
+                    <button wire:click="delete" wire:loading.attr="disabled" @disabled(! auth()->user()?->hasPermission('purchases.transaction.good-receive.delete'))
                         class="px-4 py-2 text-sm rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-50">
                         <span wire:loading.remove wire:target="delete">Hapus</span>
                         <span wire:loading wire:target="delete">Menghapus...</span>
@@ -695,7 +695,7 @@
                                     <option value="Cancelled">Dibatalkan</option>
                                 </select>
 
-                                <button wire:click="updateStatus" wire:loading.attr="disabled"
+                                <button wire:click="updateStatus" wire:loading.attr="disabled" @disabled(! auth()->user()?->hasPermission('purchases.transaction.good-receive.receive'))
                                     class="px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium disabled:opacity-50 cursor-pointer">
                                     <span wire:loading.remove wire:target="updateStatus">Simpan Status</span>
                                     <span wire:loading wire:target="updateStatus">Menyimpan...</span>
@@ -748,7 +748,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="receive" wire:loading.attr="disabled"
+                    <button wire:click="receive" wire:loading.attr="disabled" @disabled(! auth()->user()?->hasPermission('purchases.transaction.good-receive.receive'))
                         class="px-4 py-2 text-sm rounded-lg bg-green-700 text-white hover:bg-green-800 disabled:opacity-50 cursor-pointer">
                         <span wire:loading.remove wire:target="receive">
                             Ya, Terima
