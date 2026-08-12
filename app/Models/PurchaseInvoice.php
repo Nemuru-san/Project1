@@ -75,6 +75,11 @@ class PurchaseInvoice extends Model
         return $this->hasMany(PurchaseInvoiceItem::class, 'purchase_invoice_id');
     }
 
+    public function purchaseReturnInvoices(): HasMany
+    {
+        return $this->hasMany(PurchaseReturnInvoice::class, 'purchase_invoice_id');
+    }
+
     public function apPaymentDetails(): HasMany
     {
         return $this->hasMany(APPaymentDetail::class, 'purchase_invoice_id');

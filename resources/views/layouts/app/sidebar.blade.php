@@ -45,9 +45,9 @@
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Retur" class="grid"
-                    :expanded="request()->routeIs('purchases.transaction.*')">
-                    <flux:sidebar.item href="#" wire:navigate>Retur Pembelian</flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Faktur Retur Pembelian</flux:sidebar.item>
+                    :expanded="request()->routeIs('purchases.return.*')">
+                    <flux:sidebar.item href="{{ route('purchases.return.purchase-return') }}" :current="request()->routeIs('purchases.return.purchase-return*')" wire:navigate>Retur Pembelian</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('purchases.return.purchase-return-invoice') }}" :current="request()->routeIs('purchases.return.purchase-return-invoice*')" wire:navigate>Faktur Retur Pembelian</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Laporan" class="grid"
@@ -55,7 +55,7 @@
                     <flux:sidebar.item href="{{ route('purchases.report.unfinished-purchase-order') }}"
                         :current="request()->routeIs('purchases.report.unfinished-purchase-order')" wire:navigate>PO Belum Selesai</flux:sidebar.item>
                     <flux:sidebar.item href="{{ route('purchases.report.unfinished-purchase-invoice') }}"
-                        :current="request()->routeIs('purchases.report.unfinished-purchase-invoice')" wire:navigate>Faktur Belum Selesai</flux:sidebar.item>
+                        :current="request()->routeIs('purchases.report.unfinished-purchase-invoice')" wire:navigate>Faktur Pembelian Belum Lunas</flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.group>
 
@@ -116,10 +116,16 @@
                     <flux:sidebar.item href="{{ route('sales.transaction.salesInvoice') }}" wire:navigate>Faktur Penjualan</flux:sidebar.item>
                 </flux:sidebar.group>
 
+                <flux:sidebar.group href="#" expandable heading="Retur" class="grid"
+                    :expanded="request()->routeIs('sales.return.*')">
+                    <flux:sidebar.item href="{{ route('sales.return.sales-return') }}" :current="request()->routeIs('sales.return.sales-return*')" wire:navigate>Retur Penjualan</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('sales.return.sales-return-invoice') }}" :current="request()->routeIs('sales.return.sales-return-invoice*')" wire:navigate>Faktur Retur Penjualan</flux:sidebar.item>
+                </flux:sidebar.group>
+
                 <flux:sidebar.group href="#" expandable heading="Laporan" class="grid"
                     :expanded="request()->routeIs('sales.report.*')">
-                    <flux:sidebar.item href="#" wire:navigate>PO Belum Selesai</flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Faktur Belum Selesai</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('sales.report.po-outstanding') }}" :current="request()->routeIs('sales.report.po-outstanding')" wire:navigate>SO Belum Selesai</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('sales.report.invoice-outstanding') }}" :current="request()->routeIs('sales.report.invoice-outstanding')" wire:navigate>Faktur Penjualan Belum Lunas</flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.group>
 
@@ -146,7 +152,7 @@
                     <flux:sidebar.item href="{{ route('finance.transaction.ar-dp-payment') }}"
                         :current="request()->routeIs('finance.transaction.ar-dp-payment')" wire:navigate>Penerimaan DP Pelanggan
                     </flux:sidebar.item>
-                    <flux:sidebar.item href="#" wire:navigate>Pembayaran Piutang</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('finance.transaction.ar-payment') }}" :current="request()->routeIs('finance.transaction.ar-payment')" wire:navigate>Pembayaran Piutang</flux:sidebar.item>
                 </flux:sidebar.group>
 
                 <flux:sidebar.group href="#" expandable heading="Laporan" class="grid"

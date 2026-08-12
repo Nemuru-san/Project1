@@ -3,6 +3,11 @@
 use App\Models\GoodsReceive;
 use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
+use App\Models\PurchaseReturn;
+use App\Models\PurchaseReturnInvoice;
+use App\Models\SalesInvoice;
+use App\Models\SalesReturn;
+use App\Models\SalesReturnInvoice;
 use App\Models\StockTransfer;
 use Illuminate\Support\Facades\Route;
 
@@ -68,6 +73,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         return view('prints.purchase-invoice', compact('invoice'));
     })->name('purchases.transaction.purchase-invoice.print');
+
+    Route::view('purchases/return/purchase-return', 'pages.purchase.return.purchaseReturn')->name('purchases.return.purchase-return');
+    Route::get('purchases/return/purchase-return/{id}/print', function ($id) {
+        $return = PurchaseReturn::with(['supplier', 'goodsReceive', 'purchaseOrder', 'items.product', 'items.warehouse', 'items.unit'])->findOrFail($id);
+
+        return view('prints.purchase-return', compact('return'));
+    })->name('purchases.return.purchase-return.print');
+
+    Route::view('purchases/return/purchase-return-invoice', 'pages.purchase.return.purchaseReturnInvoice')->name('purchases.return.purchase-return-invoice');
+    Route::get('purchases/return/purchase-return-invoice/{id}/print', function ($id) {
+        $invoice = PurchaseReturnInvoice::with(['supplier', 'purchaseInvoice', 'purchaseReturn.items.product', 'purchaseReturn.items.unit'])->findOrFail($id);
+
+        return view('prints.purchase-return-invoice', compact('invoice'));
+    })->name('purchases.return.purchase-return-invoice.print');
 
     Route::view('purchases/report/unfinished-purchase-order', 'pages.purchase.report.unfinishedPurchaseOrder')
         ->name('purchases.report.unfinished-purchase-order');
@@ -154,7 +173,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('sales/transaction/salesInvoice', function () {
         return view('pages.sales.salesTransaction.salesInvoice');
     })->name('sales.transaction.salesInvoice');
+    Route::get('sales/transaction/salesInvoice/{id}/print', function ($id) {
+        $invoice = SalesInvoice::with(['salesOrder', 'customer', 'items.product', 'items.warehouse', 'items.unit'])->findOrFail($id);
 
+        return view('prints.sales-invoice', compact('invoice'));
+    })->name('sales.transaction.salesInvoice.print');
+
+    Route::view('sales/report/unfinished-sales-order', 'pages.sales.report.unfinishedSalesOrder')
+        ->name('sales.report.po-outstanding');
+
+    Route::view('sales/report/unpaid-sales-invoice', 'pages.sales.report.unpaidSalesInvoice')
+        ->name('sales.report.invoice-outstanding');
     // Finance
     Route::get('finance/master/accounts', function () {
         return view('pages.finance.master.chartOfAccount');
@@ -164,6 +193,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('pages.finance.master.bankAccount');
     })->name('finance.master.bank-accounts');
 
+    Route::view('sales/return/sales-return', 'pages.sales.return.salesReturn')->name('sales.return.sales-return');
+    Route::get('sales/return/sales-return/{id}/print', function ($id) {
+        $return = SalesReturn::with(['customer', 'deliveryOrder', 'salesOrder', 'items.product', 'items.warehouse', 'items.unit'])->findOrFail($id);
+
+        return view('prints.sales-return', compact('return'));
+    })->name('sales.return.sales-return.print');
+    Route::view('sales/return/sales-return-invoice', 'pages.sales.return.salesReturnInvoice')->name('sales.return.sales-return-invoice');
+    Route::get('sales/return/sales-return-invoice/{id}/print', function ($id) {
+        $invoice = SalesReturnInvoice::with(['customer', 'salesInvoice', 'salesReturn.items.product', 'salesReturn.items.unit'])->findOrFail($id);
+
+        return view('prints.sales-return-invoice', compact('invoice'));
+    })->name('sales.return.sales-return-invoice.print');
+
     Route::get('finance/transaction/ap-payment', function () {
         return view('pages.finance.transaction.apPayment');
     })->name('finance.transaction.ap-payment');
@@ -171,6 +213,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('finance/transaction/ar-dp-payment', function () {
         return view('pages.finance.transaction.arDpPayment');
     })->name('finance.transaction.ar-dp-payment');
+
+    Route::view('finance/transaction/ar-payment', 'pages.finance.transaction.arPayment')
+        ->name('finance.transaction.ar-payment');
 
     Route::get('finance/transaction/expense', function () {
         return view('pages.finance.transaction.expense');
@@ -190,4 +235,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('user.action.role');
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

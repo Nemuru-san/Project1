@@ -157,5 +157,5 @@ it('allows authenticated users to open both purchasing report pages', function (
 
     $this->get(route('purchases.report.unfinished-purchase-invoice'))
         ->assertOk()
-        ->assertSee('Faktur Belum Selesai');
+        ->assertSee('Faktur Pembelian Belum Lunas');
 });

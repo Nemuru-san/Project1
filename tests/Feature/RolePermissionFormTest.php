@@ -61,6 +61,7 @@ it('offers every implemented ERP module in the role form with valid route keys',
         || str_ends_with($permission, '.approve')
         || str_ends_with($permission, '.receive')
         || str_ends_with($permission, '.post')
+        || str_ends_with($permission, '.verify')
         || str_ends_with($permission, '.delete'));
 
     foreach ($modulePermissions->diff($permissionsWithoutRoutes) as $permission) {

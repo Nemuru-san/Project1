@@ -57,6 +57,11 @@ class GoodsReceiveItem extends Model
         return $this->belongsTo(ProductUnit::class, 'unit_id');
     }
 
+    public function purchaseReturnItems(): HasMany
+    {
+        return $this->hasMany(PurchaseReturnItem::class, 'goods_receive_item_id');
+    }
+
     public function purchaseInvoiceItems(): HasMany
     {
         return $this->hasMany(PurchaseInvoiceItem::class, 'goods_receive_item_id');

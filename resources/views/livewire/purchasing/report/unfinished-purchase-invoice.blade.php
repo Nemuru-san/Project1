@@ -1,71 +1,15 @@
 <div>
-    <div class="flex flex-col gap-4">
-        <div>
-            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Daftar Faktur Belum Selesai</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Hanya faktur Posted dengan sisa tagihan lebih dari nol.</p>
-        </div>
-        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-6">
-            <input wire:model.live.debounce.300ms="search" type="search" placeholder="Cari faktur / PO / supplier"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white xl:col-span-2">
-            <select wire:model.live="supplierFilter" class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
-                <option value="">Semua supplier</option>
-                @foreach ($suppliers as $supplier)<option value="{{ $supplier->id }}">{{ $supplier->name }}</option>@endforeach
-            </select>
-            <select wire:model.live="paymentStatusFilter" class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
-                <option value="">Semua status bayar</option>
-                @foreach ($paymentStatuses as $status)<option value="{{ $status }}">{{ $status }}</option>@endforeach
-            </select>
-            <select wire:model.live="dueFilter" class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
-                <option value="">Semua jatuh tempo</option><option value="overdue">Sudah lewat tempo</option><option value="not_due">Belum lewat tempo</option>
-            </select>
-            <select wire:model.live="perPage" class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
-                <option value="10">10 / hal</option><option value="25">25 / hal</option><option value="50">50 / hal</option>
-            </select>
-        </div>
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Rentang tanggal</span>
-            <input wire:model.live="dateFrom" type="date" title="Tanggal mulai" aria-label="Tanggal mulai"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
-            <span class="hidden sm:inline text-gray-400">s.d.</span>
-            <input wire:model.live="dateTo" type="date" title="Tanggal akhir" aria-label="Tanggal akhir"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
-            <button wire:click="resetFilters" type="button"
-                class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-zinc-800 cursor-pointer">
-                Bersihkan Filter
-            </button>
-        </div>
+    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        @foreach([['Jumlah Faktur',$summary['count']],['Total Faktur','Rp '.number_format($summary['total'],0,',','.')],['Sudah Dibayar','Rp '.number_format($summary['paid'],0,',','.')],['Sisa Utang','Rp '.number_format($summary['outstanding'],0,',','.')],['Sudah Jatuh Tempo','Rp '.number_format($summary['overdue'],0,',','.')]] as $index => [$label,$value])<div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900"><p class="text-xs font-medium uppercase text-gray-400">{{ $label }}</p><p class="mt-2 text-xl font-bold {{ $index===4?'text-red-600':($index===3?'text-amber-600':'text-gray-900 dark:text-white') }}">{{ $value }}</p></div>@endforeach
     </div>
 
-    <div class="mt-4 overflow-x-auto">
-        <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
-            <thead class="bg-gray-100 text-xs uppercase text-gray-700 dark:bg-zinc-800 dark:text-gray-200">
-                <tr>
-                    <th class="px-4 py-3">No.</th><th wire:click="sortBy('code')" class="cursor-pointer px-4 py-3">Kode Faktur</th>
-                    <th class="px-4 py-3">Faktur Supplier</th><th wire:click="sortBy('date')" class="cursor-pointer px-4 py-3">Tanggal</th>
-                    <th wire:click="sortBy('due_date')" class="cursor-pointer px-4 py-3">Jatuh Tempo</th><th class="px-4 py-3">Supplier</th><th class="px-4 py-3">PO</th>
-                    <th wire:click="sortBy('grand_total')" class="cursor-pointer px-4 py-3 text-right">Total</th><th class="px-4 py-3 text-right">Terbayar</th>
-                    <th wire:click="sortBy('remaining_amount')" class="cursor-pointer px-4 py-3 text-right">Sisa</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
-                @forelse ($invoices as $index => $invoice)
-                    @php($overdue = $invoice->due_date && $invoice->due_date->isPast())
-                    <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800/60">
-                        <td class="px-4 py-3 text-gray-400">{{ $invoices->firstItem() + $index }}</td>
-                        <td class="px-4 py-3 font-mono font-medium text-gray-900 dark:text-white">{{ $invoice->code }}</td>
-                        <td class="px-4 py-3">{{ $invoice->supplier_invoice_number ?: '-' }}</td><td class="px-4 py-3">{{ $invoice->date?->format('d/m/Y') }}</td>
-                        <td class="px-4 py-3 {{ $overdue ? 'font-semibold text-red-600 dark:text-red-400' : '' }}">{{ $invoice->due_date?->format('d/m/Y') ?? '-' }}</td>
-                        <td class="px-4 py-3">{{ $invoice->supplier?->name ?? '-' }}</td><td class="px-4 py-3 font-mono">{{ $invoice->purchaseOrder?->code ?? '-' }}</td>
-                        <td class="px-4 py-3 text-right">Rp {{ number_format($invoice->grand_total, 0, ',', '.') }}</td><td class="px-4 py-3 text-right">Rp {{ number_format($invoice->paid_amount, 0, ',', '.') }}</td>
-                        <td class="px-4 py-3 text-right font-semibold text-amber-600 dark:text-amber-400">Rp {{ number_format($invoice->remaining_amount, 0, ',', '.') }}</td>
-                        <td class="px-4 py-3"><span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">{{ $invoice->payment_status }}</span></td>
-                        <td class="px-4 py-3"><a href="{{ route('purchases.transaction.purchase-invoice.print', $invoice) }}" target="_blank" class="text-blue-600 hover:underline dark:text-blue-400">Cetak</a></td>
-                    </tr>
-                @empty
-                    <tr><td colspan="12" class="px-4 py-10 text-center text-gray-400">Tidak ada faktur yang belum selesai.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+    <div class="mt-5 flex flex-col gap-4"><div><h2 class="text-base font-semibold text-gray-900 dark:text-white">Faktur Pembelian Belum Lunas</h2><p class="text-sm text-gray-500 dark:text-gray-400">Faktur berstatus Posted dengan sisa utang lebih dari nol.</p></div>
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-6"><input wire:model.live.debounce.300ms="search" type="search" placeholder="Cari faktur / PO / supplier" class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white xl:col-span-2"><select wire:model.live="supplierFilter" class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><option value="">Semua supplier</option>@foreach($suppliers as $supplier)<option value="{{ $supplier->id }}">{{ $supplier->name }}</option>@endforeach</select><select wire:model.live="paymentStatusFilter" class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><option value="">Semua status bayar</option><option value="Unpaid">Belum Dibayar</option><option value="Partial Paid">Dibayar Sebagian</option></select><select wire:model.live="dueFilter" class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><option value="">Semua jatuh tempo</option><option value="overdue">Sudah lewat tempo</option><option value="not_due">Belum lewat tempo</option></select><select wire:model.live="perPage" class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><option value="10">10 / hal</option><option value="25">25 / hal</option><option value="50">50 / hal</option></select></div>
+        <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center"><span class="text-sm font-medium text-gray-600 dark:text-gray-300">Rentang tanggal faktur</span><input wire:model.live="dateFrom" type="date" aria-label="Tanggal mulai" class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><span class="hidden text-gray-400 sm:inline">s.d.</span><input wire:model.live="dateTo" type="date" aria-label="Tanggal akhir" class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><button wire:click="resetFilters" type="button" class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2.5 text-sm hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200">Bersihkan Filter</button></div>
     </div>
-    <div class="mt-4">{{ $invoices->links() }}</div>
+
+    <div class="mt-5 overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700"><table class="w-full min-w-[1350px] text-left text-sm text-gray-600 dark:text-gray-300"><thead class="bg-gray-100 text-xs uppercase text-gray-700 dark:bg-zinc-800 dark:text-gray-200"><tr><th class="px-4 py-3">No.</th><th wire:click="sortBy('code')" class="cursor-pointer px-4 py-3">Kode Faktur</th><th class="px-4 py-3">Faktur Supplier</th><th class="px-4 py-3">PO</th><th wire:click="sortBy('date')" class="cursor-pointer px-4 py-3">Tanggal</th><th wire:click="sortBy('due_date')" class="cursor-pointer px-4 py-3">Jatuh Tempo</th><th class="px-4 py-3">Supplier</th><th wire:click="sortBy('grand_total')" class="cursor-pointer px-4 py-3 text-right">Total</th><th class="px-4 py-3 text-right">Dibayar</th><th wire:click="sortBy('remaining_amount')" class="cursor-pointer px-4 py-3 text-right">Sisa</th><th class="px-4 py-3 text-center">Umur</th><th class="px-4 py-3 text-center">Terlambat</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-center">Aksi</th></tr></thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-zinc-700 dark:bg-zinc-900">@forelse($invoices as $index => $invoice)<tr class="hover:bg-gray-50 dark:hover:bg-zinc-800/60"><td class="px-4 py-3 text-gray-400">{{ $invoices->firstItem()+$index }}</td><td class="px-4 py-3 font-mono font-medium text-gray-900 dark:text-white">{{ $invoice->code }}</td><td class="px-4 py-3">{{ $invoice->supplier_invoice_number ?: '-' }}</td><td class="px-4 py-3 font-mono">{{ $invoice->purchaseOrder?->code ?? '-' }}</td><td class="px-4 py-3">{{ $invoice->date?->format('d/m/Y') }}</td><td class="px-4 py-3 {{ $invoice->overdue_days>0?'font-semibold text-red-600':'' }}">{{ $invoice->due_date?->format('d/m/Y') ?? '-' }}</td><td class="px-4 py-3">{{ $invoice->supplier?->name ?? '-' }}</td><td class="px-4 py-3 text-right">Rp {{ number_format($invoice->grand_total,0,',','.') }}</td><td class="px-4 py-3 text-right text-green-600">Rp {{ number_format($invoice->paid_amount,0,',','.') }}</td><td class="px-4 py-3 text-right font-semibold text-amber-600">Rp {{ number_format($invoice->remaining_amount,0,',','.') }}</td><td class="px-4 py-3 text-center">{{ $invoice->age_days }} hari</td><td class="px-4 py-3 text-center">@if($invoice->overdue_days>0)<span class="font-semibold text-red-600">{{ $invoice->overdue_days }} hari</span>@else-@endif</td><td class="px-4 py-3"><span class="rounded-full px-2.5 py-1 text-xs {{ $invoice->paid_amount>0?'bg-blue-100 text-blue-700':'bg-amber-100 text-amber-700' }}">{{ $invoice->payment_label }}</span></td>
+        <td class="px-4 py-3 text-center"><div class="inline-block" x-data="{open:false,top:0,left:0,toggle(el){const r=el.getBoundingClientRect();this.top=r.bottom+6;this.left=Math.max(8,r.right-208);this.open=!this.open}}"><button @click="toggle($el)" @click.outside="open=false" class="cursor-pointer p-0.5 text-gray-500"><svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/></svg></button><div x-cloak x-show="open" :style="`position:fixed;top:${top}px;left:${left}px`" class="z-50 w-52 rounded bg-white py-1 text-left shadow dark:bg-gray-700"><a href="{{ route('purchases.transaction.purchase-invoice',['invoice'=>$invoice->id]) }}" wire:navigate class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.5 12C3.7 8 7.5 5 12 5s8.3 3 9.5 7c-1.2 4-5 7-9.5 7s-8.3-3-9.5-7z"/></svg>Rincian Faktur</a><a href="{{ route('purchases.transaction.purchase-invoice.print',$invoice->id) }}" target="_blank" class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V3h12v6M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v7H6v-7"/></svg>Cetak Faktur</a><a href="{{ route('finance.transaction.ap-payment',['invoice'=>$invoice->id]) }}" wire:navigate class="flex items-center gap-2 px-4 py-2 text-sm text-green-600 hover:bg-green-600 hover:text-white"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"/></svg>Buat Pembayaran</a></div></div></td></tr>
+        @empty<tr><td colspan="14" class="px-4 py-10 text-center text-gray-400">Tidak ada Faktur Pembelian yang belum lunas.</td></tr>@endforelse</tbody></table></div><div class="mt-4">{{ $invoices->links() }}</div>
 </div>

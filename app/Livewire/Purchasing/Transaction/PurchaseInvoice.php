@@ -124,6 +124,10 @@ class PurchaseInvoice extends Component
     public function mount(): void
     {
         $this->date = now()->format('Y-m-d');
+
+        if ($invoiceId = request()->integer('invoice')) {
+            $this->openDetail($invoiceId);
+        }
     }
 
     public function updatingSearch(): void

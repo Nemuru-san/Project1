@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SalesOrder extends Model
@@ -12,23 +13,10 @@ class SalesOrder extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'order_no',
-        'date',
-        'sales_canvas_id',
-        'pre_order_id',
-        'customer_id',
-        'customer_address_id',
-        'is_taxed',
-        'tax_rate',
-        'subtotal',
-        'discount_total',
-        'tax_amount',
-        'grand_total',
-        'dp_amount',
-        'amount_due',
-        'notes',
-        'status',
-        'created_by',
+        'order_no', 'date', 'sales_canvas_id', 'pre_order_id', 'customer_id',
+        'customer_address_id', 'is_taxed', 'tax_rate', 'subtotal',
+        'discount_total', 'tax_amount', 'grand_total', 'dp_amount',
+        'amount_due', 'notes', 'status', 'created_by',
     ];
 
     protected function casts(): array
@@ -74,5 +62,15 @@ class SalesOrder extends Model
     public function items(): HasMany
     {
         return $this->hasMany(SalesOrderItem::class);
+    }
+
+    public function deliveryOrders(): HasMany
+    {
+        return $this->hasMany(DeliveryOrder::class);
+    }
+
+    public function salesInvoice(): HasOne
+    {
+        return $this->hasOne(SalesInvoice::class);
     }
 }

@@ -33,9 +33,17 @@ class JournalEntry extends Model
 
     const SOURCE_PURCHASE_INVOICE = 'PurchaseInvoice';
 
+    const SOURCE_PURCHASE_RETURN_INVOICE = 'PurchaseReturnInvoice';
+
     const SOURCE_AP_PAYMENT = 'APPayment';
 
     const SOURCE_AR_DP_PAYMENT = 'ArDpPayment';
+
+    const SOURCE_SALES_INVOICE = 'SalesInvoice';
+
+    const SOURCE_SALES_RETURN_INVOICE = 'SalesReturnInvoice';
+
+    const SOURCE_AR_PAYMENT = 'ArPayment';
 
     const SOURCE_EXPENSE = 'Expense';
 

@@ -80,6 +80,13 @@ class PurchaseOrder extends Component
 
     public ?int $editId = null;
 
+    public function mount(): void
+    {
+        if ($orderId = request()->integer('order')) {
+            $this->openDetail($orderId);
+        }
+    }
+
     protected function rules(): array
     {
         return [

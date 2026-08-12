@@ -65,12 +65,14 @@ class RoleUser extends Component
 
         'Pembelian - Retur' => [
             'purchases.return.purchase-return' => 'Retur Pembelian',
+            'purchases.return.purchase-return.confirm' => 'Konfirmasi Retur Pembelian',
             'purchases.return.purchase-return-invoice' => 'Faktur Retur Pembelian',
+            'purchases.return.purchase-return-invoice.post' => 'Posting Faktur Retur Pembelian',
         ],
 
         'Pembelian - Laporan' => [
             'purchases.report.unfinished-purchase-order' => 'PO Belum Selesai',
-            'purchases.report.unfinished-purchase-invoice' => 'Faktur Belum Selesai',
+            'purchases.report.unfinished-purchase-invoice' => 'Faktur Pembelian Belum Lunas',
         ],
 
         'Persediaan - Master' => [
@@ -126,15 +128,29 @@ class RoleUser extends Component
             'sales.transaction.salesCanvas.delete' => 'Hapus / Pulihkan',
         ],
 
+        'Pesanan Penjualan - Otorisasi' => [
+            'sales.transaction.salesOrder.verify' => 'Konfirmasi',
+        ],
+        'Faktur Penjualan - Otorisasi' => [
+            'sales.transaction.sales-invoice.confirm' => 'Konfirmasi',
+        ],
+
         'Pesanan Awal - Otorisasi' => [
             'sales.transaction.salesPreOrder.confirm' => 'Konfirmasi',
             'sales.transaction.salesPreOrder.convert' => 'Konversi ke Sales Order',
             'sales.transaction.salesPreOrder.delete' => 'Hapus / Pulihkan',
         ],
 
+        'Penjualan - Retur' => [
+            'sales.return.sales-return' => 'Retur Penjualan',
+            'sales.return.sales-return.confirm' => 'Konfirmasi Retur Penjualan',
+            'sales.return.sales-return-invoice' => 'Faktur Retur Penjualan',
+            'sales.return.sales-return-invoice.post' => 'Posting Faktur Retur Penjualan',
+        ],
+
         'Penjualan - Laporan' => [
-            'sales.report.po-outstanding' => 'PO Belum Selesai',
-            'sales.report.invoice-outstanding' => 'Faktur Belum Selesai',
+            'sales.report.po-outstanding' => 'SO Belum Selesai',
+            'sales.report.invoice-outstanding' => 'Faktur Penjualan Belum Lunas',
         ],
 
         'Keuangan - Master' => [

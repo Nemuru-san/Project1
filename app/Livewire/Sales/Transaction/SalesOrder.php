@@ -47,6 +47,10 @@ class SalesOrder extends Component
 
     public ?int $deleteTargetId = null;
 
+    public ?int $confirmTargetId = null;
+
+    public bool $showConfirmModal = false;
+
     public ?SalesOrderModel $selectedOrder = null;
 
     public string $orderNo = '';
@@ -99,6 +103,10 @@ class SalesOrder extends Component
     public function mount(): void
     {
         $this->date = now()->format('Y-m-d');
+
+        if ($orderId = request()->integer('order')) {
+            $this->openDetail($orderId);
+        }
     }
 
     public function updatingSearch(): void
@@ -353,9 +361,48 @@ class SalesOrder extends Component
         $this->showDetailModal = true;
     }
 
+    public function openConfirmOrder(int $id): void
+    {
+        if (! auth()->user()?->canPerform('sales.transaction.salesOrder', 'verify')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk mengonfirmasi Pesanan Penjualan.', type: 'error');
+
+            return;
+        }
+        $order = SalesOrderModel::findOrFail($id);
+        if ($order->status !== 'draft') {
+            $this->dispatch('toast', message: 'Hanya Pesanan Penjualan berstatus Draf yang dapat dikonfirmasi.', type: 'error');
+
+            return;
+        }
+        $this->confirmTargetId = $id;
+        $this->showConfirmModal = true;
+    }
+
+    public function confirmOrder(): void
+    {
+        if (! auth()->user()?->canPerform('sales.transaction.salesOrder', 'verify')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk mengonfirmasi Pesanan Penjualan.', type: 'error');
+
+            return;
+        }
+        if (! $this->confirmTargetId) {
+            return;
+        }
+        DB::transaction(function () {
+            $order = SalesOrderModel::lockForUpdate()->findOrFail($this->confirmTargetId);
+            if ($order->status !== 'draft') {
+                throw ValidationException::withMessages(['status' => 'Pesanan Penjualan sudah diproses.']);
+            }
+            $order->forceFill(['status' => 'verified', 'verified_at' => now(), 'verified_by' => Auth::id()])->save();
+        });
+        $this->showConfirmModal = false;
+        $this->confirmTargetId = null;
+        $this->dispatch('toast', message: 'Pesanan Penjualan berhasil dikonfirmasi.', type: 'success');
+    }
+
     private function authorizeOrder(SalesOrderModel $order): void
     {
-        if (auth()->user()?->isSuperAdmin()) {
+        if (auth()->user()?->isSuperAdmin() || auth()->user()?->canPerform('sales.transaction.salesOrder', 'verify')) {
             return;
         }
 
@@ -443,7 +490,7 @@ class SalesOrder extends Component
         $currentSalesmanId = auth()->user()?->salesman()->where('is_active', true)->value('id');
         $salesOrders = SalesOrderModel::query()
             ->with(['salesCanvas', 'preOrder', 'customer'])
-            ->when(! auth()->user()->isSuperAdmin(), fn (Builder $query) => $query->where(function (Builder $query) use ($currentSalesmanId) {
+            ->when(! auth()->user()->isSuperAdmin() && ! auth()->user()->canPerform('sales.transaction.salesOrder', 'verify'), fn (Builder $query) => $query->where(function (Builder $query) use ($currentSalesmanId) {
                 $query->where('created_by', Auth::id())
                     ->orWhereHas('salesCanvas', fn (Builder $canvas) => $canvas->where('salesman_id', $currentSalesmanId ?? 0));
             }))

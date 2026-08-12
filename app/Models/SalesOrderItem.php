@@ -4,19 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class SalesOrderItem extends Model
 {
     protected $fillable = [
-        'sales_order_id',
-        'product_id',
-        'warehouse_id',
-        'unit_id',
-        'qty',
-        'conversion',
-        'unit_price',
-        'discount_amount',
-        'line_total',
+        'sales_order_id', 'product_id', 'warehouse_id', 'unit_id', 'qty',
+        'conversion', 'unit_price', 'discount_amount', 'line_total',
     ];
 
     protected function casts(): array
@@ -48,5 +43,15 @@ class SalesOrderItem extends Model
     public function unit(): BelongsTo
     {
         return $this->belongsTo(ProductUnit::class)->withTrashed();
+    }
+
+    public function deliveryOrderItems(): HasMany
+    {
+        return $this->hasMany(DeliveryOrderItem::class);
+    }
+
+    public function salesInvoiceItem(): HasOne
+    {
+        return $this->hasOne(SalesInvoiceItem::class);
     }
 }

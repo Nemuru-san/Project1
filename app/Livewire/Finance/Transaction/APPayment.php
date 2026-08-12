@@ -84,6 +84,31 @@ class APPayment extends Component
     public function mount(): void
     {
         $this->payment_date = now()->format('Y-m-d');
+
+        $invoiceId = request()->integer('invoice');
+        if (! $invoiceId || ! auth()->user()?->hasPermission('finance.transaction.ap-payment')) {
+            return;
+        }
+
+        $invoice = PurchaseInvoice::query()
+            ->where('status', PurchaseInvoice::STATUS_POSTED)
+            ->where('remaining_amount', '>', 0)
+            ->find($invoiceId);
+
+        if ($invoice) {
+            $this->openCreate();
+            $this->supplier_id = $invoice->supplier_id;
+            $this->loadSupplierInvoices();
+
+            foreach ($this->detailRows as $index => $row) {
+                if ((int) $row['purchase_invoice_id'] === $invoice->id) {
+                    $this->detailRows[$index]['amount'] = (int) $invoice->remaining_amount;
+                    break;
+                }
+            }
+
+            $this->recalculateTotal();
+        }
     }
 
     public function updatedSearch(): void

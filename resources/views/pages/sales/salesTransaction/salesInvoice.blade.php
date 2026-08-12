@@ -1,47 +1,8 @@
-      <x-layouts::app :title="__('Sales Invoice')">
-
-      <div class="flex flex-col items-center justify-between min-h-full gap-6 w-full">
-            <div class="flex flex-col gap-6 w-full">
-                  {{-- header --}}
-                  <x-layouts::page-header :title="__('Sales Invoice')"
-                  description="Kelola data pelanggan secara terpusat untuk mendukung proses operasional dan pencatatan yang rapi.">
-                  <x-slot:breadcrumbs>
-                        <li class="inline-flex items-center">
-                              <a href="#" class="inline-flex items-center text-sm font-medium hover:text-fg-brand">
-                              Penjualan
-                              </a>
-                        </li>
-                        <li>
-                              <div class="flex items-center space-x-1.5">
-                              <svg class="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                    width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                          stroke-width="2" d="m9 5 7 7-7 7" />
-                              </svg>
-                              <a href="#"
-                                    class="inline-flex items-center text-sm font-medium hover:text-fg-brand">Transaction</a>
-                              </div>
-                        </li>
-                        <li aria-current="page">
-                              <div class="flex items-center space-x-1.5">
-                              <svg class="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true"
-                                    xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-                                    viewBox="0 0 24 24">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                          stroke-width="2" d="m9 5 7 7-7 7" />
-                              </svg>
-                              <span class="inline-flex items-center text-sm font-medium">Sales Invoice</span>
-                              </div>
-                        </li>
-                  </x-slot:breadcrumbs>
-            </x-layouts::page-header>
-
-                  {{-- content --}}
-                  <div
-                  class="w-full h-full overflow-hidden rounded-md dark:border bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 p-4">
-                  <livewire:sales.transaction.sales-invoice />
-                  </div>
-            </div>
-      </div>
-
+<x-layouts::app :title="__('Faktur Penjualan')">
+    <div class="flex min-h-full w-full flex-col gap-6">
+        <x-layouts::page-header title="Faktur Penjualan" description="Buat faktur dari Pesanan Penjualan dan konfirmasikan sebelum menerima Pembayaran Piutang.">
+            <x-slot:breadcrumbs><li class="inline-flex items-center text-sm">Penjualan</li><li class="inline-flex items-center text-sm">/ Transaksi</li><li class="inline-flex items-center text-sm font-medium">/ Faktur Penjualan</li></x-slot:breadcrumbs>
+        </x-layouts::page-header>
+        <div class="w-full overflow-hidden rounded-md bg-zinc-50 p-4 dark:border dark:border-zinc-700 dark:bg-zinc-900"><livewire:sales.transaction.sales-invoice /></div>
+    </div>
 </x-layouts::app>

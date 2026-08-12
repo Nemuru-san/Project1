@@ -26,6 +26,8 @@ class RoleSeeder extends Seeder
             'sales.transaction.salesOrder',
             'sales.transaction.delivery-order',
             'sales.transaction.sales-invoice',
+            'sales.report.po-outstanding',
+            'sales.report.invoice-outstanding',
         ];
 
         $salesman = Role::withTrashed()->firstOrCreate(
@@ -51,6 +53,8 @@ class RoleSeeder extends Seeder
             'purchases.transaction.purchase-invoice',
             'purchases.transaction.purchase-invoice.post',
             'purchases.transaction.purchase-invoice.delete',
+            'purchases.report.unfinished-purchase-order',
+            'purchases.report.unfinished-purchase-invoice',
             'inventory.transaction.transfer-stock',
             'inventory.transaction.transfer-stock.approve',
             'inventory.transaction.transfer-stock.delete',
@@ -69,6 +73,13 @@ class RoleSeeder extends Seeder
             'sales.transaction.salesPreOrder.convert',
             'sales.transaction.salesPreOrder.delete',
             'sales.transaction.salesOrder',
+            'sales.transaction.salesOrder.verify',
+            'sales.transaction.delivery-order',
+            'sales.transaction.sales-invoice',
+            'sales.transaction.sales-invoice.confirm',
+            'sales.report.po-outstanding',
+            'sales.report.invoice-outstanding',
+            'finance.transaction.ar-payment',
         ];
 
         $owner = Role::withTrashed()->firstOrCreate(

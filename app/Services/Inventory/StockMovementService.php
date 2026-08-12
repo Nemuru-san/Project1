@@ -2,8 +2,14 @@
 
 namespace App\Services\Inventory;
 
+use App\Models\DeliveryOrder;
+use App\Models\DeliveryOrderItem;
 use App\Models\GoodsReceive;
 use App\Models\GoodsReceiveItem;
+use App\Models\PurchaseReturn;
+use App\Models\PurchaseReturnItem;
+use App\Models\SalesReturn;
+use App\Models\SalesReturnItem;
 use App\Models\StockAdjustmentItem;
 use App\Models\StockTransferItem;
 use Carbon\Carbon;
@@ -19,6 +25,9 @@ class StockMovementService
     ): Collection {
         return collect()
             ->concat($this->goodsReceiveMovements($productId, $warehouseId, $dateFrom, $dateTo))
+            ->concat($this->purchaseReturnMovements($productId, $warehouseId, $dateFrom, $dateTo))
+            ->concat($this->deliveryOrderMovements($productId, $warehouseId, $dateFrom, $dateTo))
+            ->concat($this->salesReturnMovements($productId, $warehouseId, $dateFrom, $dateTo))
             ->concat($this->transferMovements($productId, $warehouseId, $dateFrom, $dateTo))
             ->concat($this->adjustmentMovements($productId, $warehouseId, $dateFrom, $dateTo))
             ->sortBy([
@@ -71,6 +80,80 @@ class StockMovementService
                 (int) $item->qty_base,
                 0,
                 $item->note,
+            ));
+    }
+
+    private function purchaseReturnMovements($productId, $warehouseId, ?string $dateFrom, ?string $dateTo): Collection
+    {
+        return PurchaseReturnItem::query()
+            ->with(['purchaseReturn', 'product', 'warehouse'])
+            ->when($productId, fn ($query) => $query->where('product_id', $productId))
+            ->when($warehouseId, fn ($query) => $query->where('warehouse_id', $warehouseId))
+            ->whereHas('purchaseReturn', function ($query) use ($dateFrom, $dateTo) {
+                $query->where('status', PurchaseReturn::STATUS_CONFIRMED)
+                    ->when($dateFrom, fn ($query) => $query->whereDate('return_date', '>=', $dateFrom))
+                    ->when($dateTo, fn ($query) => $query->whereDate('return_date', '<=', $dateTo));
+            })
+            ->get()
+            ->map(fn (PurchaseReturnItem $item) => $this->movementRow(
+                $item->purchaseReturn?->return_date?->toDateString(),
+                $item->purchaseReturn?->created_at,
+                $item->purchaseReturn?->return_no ?? '-',
+                'Retur Pembelian',
+                $item->product_id,
+                $item->product?->sku ?? '-',
+                $item->product?->name ?? '-',
+                $item->warehouse_id,
+                $item->warehouse?->name ?? '-',
+                0,
+                (int) $item->qty_base,
+                $item->reason ?? $item->purchaseReturn?->notes,
+            ));
+    }
+
+    private function deliveryOrderMovements($productId, $warehouseId, ?string $dateFrom, ?string $dateTo): Collection
+    {
+        return DeliveryOrderItem::query()
+            ->with(['deliveryOrder', 'product', 'warehouse'])
+            ->when($productId, fn ($query) => $query->where('product_id', $productId))
+            ->when($warehouseId, fn ($query) => $query->where('warehouse_id', $warehouseId))
+            ->whereHas('deliveryOrder', function ($query) use ($dateFrom, $dateTo) {
+                $query->where('status', DeliveryOrder::STATUS_SHIPPED)
+                    ->when($dateFrom, fn ($query) => $query->whereDate('delivery_date', '>=', $dateFrom))
+                    ->when($dateTo, fn ($query) => $query->whereDate('delivery_date', '<=', $dateTo));
+            })
+            ->get()
+            ->map(fn (DeliveryOrderItem $item) => $this->movementRow(
+                $item->deliveryOrder?->delivery_date?->toDateString(),
+                $item->deliveryOrder?->created_at,
+                $item->deliveryOrder?->delivery_no ?? '-',
+                'Pengiriman Penjualan',
+                $item->product_id,
+                $item->product?->sku ?? '-',
+                $item->product?->name ?? '-',
+                $item->warehouse_id,
+                $item->warehouse?->name ?? '-',
+                0,
+                (int) $item->qty_base,
+                $item->note ?? $item->deliveryOrder?->notes,
+            ));
+    }
+
+    private function salesReturnMovements($productId, $warehouseId, ?string $dateFrom, ?string $dateTo): Collection
+    {
+        return SalesReturnItem::query()->with(['salesReturn', 'product', 'warehouse'])
+            ->when($productId, fn ($query) => $query->where('product_id', $productId))
+            ->when($warehouseId, fn ($query) => $query->where('warehouse_id', $warehouseId))
+            ->whereHas('salesReturn', function ($query) use ($dateFrom, $dateTo) {
+                $query->where('status', SalesReturn::STATUS_CONFIRMED)
+                    ->when($dateFrom, fn ($query) => $query->whereDate('return_date', '>=', $dateFrom))
+                    ->when($dateTo, fn ($query) => $query->whereDate('return_date', '<=', $dateTo));
+            })->get()->map(fn (SalesReturnItem $item) => $this->movementRow(
+                $item->salesReturn?->return_date?->toDateString(), $item->salesReturn?->created_at,
+                $item->salesReturn?->return_no ?? '-', 'Retur Penjualan', $item->product_id,
+                $item->product?->sku ?? '-', $item->product?->name ?? '-', $item->warehouse_id,
+                $item->warehouse?->name ?? '-', (int) $item->qty_base, 0,
+                $item->reason ?? $item->salesReturn?->notes,
             ));
     }
 

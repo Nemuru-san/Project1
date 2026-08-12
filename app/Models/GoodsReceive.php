@@ -62,6 +62,11 @@ class GoodsReceive extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function purchaseReturns(): HasMany
+    {
+        return $this->hasMany(PurchaseReturn::class, 'goods_receive_id');
+    }
+
     public function purchaseInvoices(): HasMany
     {
         return $this->hasMany(PurchaseInvoice::class, 'purchase_order_id', 'purchase_order_id');

@@ -5,6 +5,7 @@ namespace App\Livewire\Purchasing\Transaction;
 use App\Models\GoodsReceive as GoodsReceiveModel;
 use App\Models\GoodsReceiveItem;
 use App\Models\PurchaseOrder;
+use App\Models\PurchaseReturn;
 use App\Models\StockBalance;
 use App\Models\Warehouse;
 use Illuminate\Support\Facades\Auth;
@@ -69,6 +70,24 @@ class GoodsReceive extends Component
     public string $note = '';
 
     public array $items = [];
+
+    public function mount(): void
+    {
+        $orderId = request()->integer('order');
+        if (! $orderId || ! auth()->user()?->hasPermission('purchases.transaction.good-receive')) {
+            return;
+        }
+
+        $purchaseOrder = PurchaseOrder::query()
+            ->whereIn('status', [PurchaseOrder::STATUS_APPROVED, PurchaseOrder::STATUS_PARTIALLY_RECEIVED])
+            ->find($orderId);
+
+        if ($purchaseOrder) {
+            $this->openCreate();
+            $this->purchase_order_id = $purchaseOrder->id;
+            $this->loadPurchaseOrderItems();
+        }
+    }
 
     protected function rules(): array
     {
@@ -507,6 +526,12 @@ class GoodsReceive extends Component
         }
 
         if ($this->selectedStatus === GoodsReceiveModel::STATUS_CANCELLED) {
+            if ($goodsReceive->purchaseReturns()->whereIn('status', [PurchaseReturn::STATUS_DRAFT, PurchaseReturn::STATUS_CONFIRMED])->exists()) {
+                $this->addError('selectedStatus', 'Penerimaan Barang tidak dapat dibatalkan karena sudah memiliki Retur Pembelian aktif.');
+
+                return;
+            }
+
             if ($goodsReceive->purchaseInvoices()->exists()) {
                 $this->addError('selectedStatus', 'Penerimaan Barang tidak dapat dibatalkan karena sudah memiliki Faktur Pembelian.');
 
@@ -518,6 +543,12 @@ class GoodsReceive extends Component
             $goodsReceive->status === GoodsReceiveModel::STATUS_RECEIVED &&
             $this->selectedStatus === GoodsReceiveModel::STATUS_DRAFT
         ) {
+            if ($goodsReceive->purchaseReturns()->whereIn('status', [PurchaseReturn::STATUS_DRAFT, PurchaseReturn::STATUS_CONFIRMED])->exists()) {
+                $this->addError('selectedStatus', 'Penerimaan Barang tidak dapat dikembalikan ke Draf karena sudah memiliki Retur Pembelian aktif.');
+
+                return;
+            }
+
             if ($goodsReceive->purchaseInvoices()->exists()) {
                 $this->addError('selectedStatus', 'Penerimaan Barang tidak dapat dikembalikan ke Draf karena sudah memiliki Faktur Pembelian.');
 
