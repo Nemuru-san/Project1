@@ -5,6 +5,7 @@ namespace App\Livewire\Inventory\MasterProduct;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductUnit;
+use App\Support\Ean13;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -261,7 +262,7 @@ class ProductMaster extends Component
             $data = [
                 'sku' => $this->sku ?: null,
                 'name' => $this->name,
-                'barcode' => $this->barcode ?: null,
+                'barcode' => trim($this->barcode) ?: $this->generateBarcode(),
                 'desc' => $this->desc,
                 'category_id' => $this->category_id,
                 'base_unit_id' => $this->base_unit_id,
@@ -345,6 +346,28 @@ class ProductMaster extends Component
     }
 
     // ── Helper ─────────────────────────────────────────────────────────────────
+
+    /**
+     * Barcode internal EAN-13 berurutan, dipakai saat kolom barcode dikosongkan.
+     */
+    private function generateBarcode(): string
+    {
+        $prefix = Ean13::INTERNAL_PREFIX;
+        $last = Product::withTrashed()
+            ->where('barcode', 'like', $prefix.'%')
+            ->orderByDesc('barcode')
+            ->value('barcode');
+
+        $sequence = $last ? (int) substr($last, strlen($prefix), 12 - strlen($prefix)) + 1 : 1;
+
+        // Lewati nomor yang sudah dipakai (mis. barcode manual yang kebetulan sama).
+        do {
+            $barcode = Ean13::fromSequence($sequence, $prefix);
+            $sequence++;
+        } while (Product::withTrashed()->where('barcode', $barcode)->exists());
+
+        return $barcode;
+    }
 
     private function defaultPriceRowsJson(): string
     {

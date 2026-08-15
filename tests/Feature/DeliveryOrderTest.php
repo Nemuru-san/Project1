@@ -207,6 +207,9 @@ it('renders the Indonesian delivery order page and printable pre order reference
     $this->get(route('sales.transaction.deliveryOrder'))
         ->assertOk()->assertSee('Tambah Surat Jalan')->assertSee('Pesanan Penjualan');
 
-    $this->get(route('sales.transaction.deliveryOrder', ['print' => $deliveryOrder->id]))
-        ->assertOk()->assertSee('Surat Jalan')->assertSee('PA-SJ-001')->assertSee('Produk Surat Jalan');
+    $this->get(route('sales.transaction.deliveryOrder.view', $deliveryOrder->id))
+        ->assertOk()->assertSee('SURAT JALAN')->assertSee('PA-SJ-001')->assertSee('PRODUK SURAT JALAN');
+
+    $this->get(route('sales.transaction.deliveryOrder.print', $deliveryOrder->id))
+        ->assertOk()->assertSee('SJ-TEST-001');
 });

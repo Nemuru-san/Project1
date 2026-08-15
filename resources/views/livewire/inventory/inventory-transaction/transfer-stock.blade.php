@@ -176,6 +176,19 @@
                                             @endif
 
                                             <li>
+                                                <a href="{{ route('inventory.transaction.transfer-stock.view', $transfer->id) }}"
+                                                    target="_blank" @click="open = false"
+                                                    class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" />
+                                                    </svg>Lihat Nota
+                                                </a>
+                                            </li>
+
+                                            <li>
                                                 <a href="{{ route('inventory.transaction.transfer-stock.print', $transfer->id) }}"
                                                     target="_blank" @click="open = false"
                                                     class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
@@ -184,7 +197,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M6 9V4h12v5M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v6H6v-6z" />
-                                                    </svg>Cetak
+                                                    </svg>Cetak Nota
                                                 </a>
                                             </li>
 

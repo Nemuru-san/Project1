@@ -415,9 +415,13 @@
                                 </label>
                                 <input wire:model="barcode" type="text"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-zinc-700 dark:border-zinc-600 dark:text-white @error('barcode') border-red-500 @enderror"
-                                    placeholder="Masukkan barcode produk" />
+                                    placeholder="Kosongkan untuk dibuat otomatis" />
                                 @error('barcode')
                                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                @else
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                        Isi jika produk sudah punya barcode pabrikan. Jika dikosongkan, sistem membuat barcode internal EAN-13 otomatis.
+                                    </p>
                                 @enderror
                             </div>
 

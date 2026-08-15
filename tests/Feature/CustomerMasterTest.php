@@ -112,7 +112,7 @@ it('creates a customer with multiple pics and addresses in one form', function (
         ->and($customer->pics)->toHaveCount(2)
         ->and($customer->addresses)->toHaveCount(2)
         ->and($customer->primaryPic->name)->toBe('Budi')
-        ->and($customer->addresses->pluck('code')->sort()->values()->all())->toBe(['ADDR-001', 'ADDR-002']);
+        ->and($customer->addresses->pluck('code')->sort()->values()->all())->toBe(['hq', 'wh-jkt']);
 });
 
 it('updates nested rows and soft deletes rows removed from the form', function () {
@@ -154,17 +154,17 @@ it('updates nested rows and soft deletes rows removed from the form', function (
 
     expect($customer->fresh()->name)->toBe('Customer Diperbarui')
         ->and($primaryPic->fresh()->name)->toBe('PIC Baru')
-        ->and($primaryAddress->fresh()->code)->toBe('OLD')
+        ->and($primaryAddress->fresh()->code)->toBe('MAIN')
         ->and($removedPic->fresh()->trashed())->toBeTrue()
         ->and($removedAddress->fresh()->trashed())->toBeTrue();
 });
 
-it('ignores manually submitted codes and allows an empty address label', function () {
+it('generates an address code only for rows left empty and allows an empty address label', function () {
     $this->actingAs(User::factory()->create());
     $form = validCustomerForm([
         'addresses' => [
-            ['code' => 'SAME', 'label' => ''],
-            ['code' => 'same'],
+            ['code' => 'GUDANG-A', 'label' => ''],
+            ['code' => ''],
         ],
     ]);
 
@@ -179,8 +179,28 @@ it('ignores manually submitted codes and allows an empty address label', functio
     $customer = Customer::with('addresses')->sole();
 
     expect($customer->code)->toBe('CUST-00001')
-        ->and($customer->addresses->pluck('code')->sort()->values()->all())->toBe(['ADDR-001', 'ADDR-002'])
+        ->and($customer->addresses->pluck('code')->sort()->values()->all())->toBe(['ADDR-002', 'GUDANG-A'])
         ->and($customer->addresses->pluck('label'))->toContain('');
+});
+
+it('rejects duplicate address codes within the same customer', function () {
+    $this->actingAs(User::factory()->create());
+    $form = validCustomerForm([
+        'addresses' => [
+            ['code' => 'SAME'],
+            ['code' => 'same'],
+        ],
+    ]);
+
+    Livewire::test(CustomerMaster::class)
+        ->set('code', $form['code'])
+        ->set('name', $form['name'])
+        ->set('pics', $form['pics'])
+        ->set('addresses', $form['addresses'])
+        ->call('save')
+        ->assertHasErrors('addresses.1.code');
+
+    expect(Customer::count())->toBe(0);
 });
 
 it('automatically assigns a primary pic and address when none is selected', function () {

@@ -25,6 +25,16 @@ class StockTransfer extends Model
         'date' => 'date',
     ];
 
+    /**
+     * Transfer Stok beserta relasi yang dibutuhkan halaman cetak.
+     */
+    public static function forPrint(int|string $id): self
+    {
+        return static::with([
+            'warehouseFrom', 'warehouseTo', 'creator', 'items.product', 'items.unit',
+        ])->findOrFail($id);
+    }
+
     public function warehouseFrom(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class, 'warehouse_from_id');

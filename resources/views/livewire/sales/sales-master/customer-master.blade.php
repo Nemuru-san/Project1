@@ -274,9 +274,10 @@
                                     </div>
                                     <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
                                         <div>
-                                            <label class="mb-1 block text-xs dark:text-gray-300">Kode</label>
-                                            <input type="text" value="{{ $address['id'] ? $address['code'] : 'Otomatis saat disimpan' }}" readonly
-                                                class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm text-gray-500 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-400">
+                                            <label class="mb-1 block text-xs dark:text-gray-300">Kode <span class="text-gray-400">(opsional)</span></label>
+                                            <input wire:model="addresses.{{ $index }}.code" type="text" placeholder="Kosongkan untuk otomatis"
+                                                class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                                            @error("addresses.$index.code") <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                                         </div>
                                         <div>
                                             <label class="mb-1 block text-xs dark:text-gray-300">Label <span class="text-gray-400">(opsional)</span></label>

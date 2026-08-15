@@ -84,6 +84,7 @@ class CustomerMaster extends Component
 
             'addresses' => ['required', 'array', 'min:1'],
             'addresses.*.id' => ['nullable', 'integer'],
+            'addresses.*.code' => ['nullable', 'string', 'max:50'],
             'addresses.*.label' => ['nullable', 'string', 'max:255'],
             'addresses.*.address_type' => ['required', Rule::in(['billing', 'shipping', 'both'])],
             'addresses.*.address' => ['required', 'string', 'max:1000'],
@@ -247,6 +248,7 @@ class CustomerMaster extends Component
     {
         $this->ensurePrimaryRows();
         $validated = $this->validate();
+        $this->ensureUniqueAddressCodes();
 
         DB::transaction(function () use ($validated): void {
             $customerData = collect($validated)->only([
@@ -373,16 +375,19 @@ class CustomerMaster extends Component
 
         foreach ($rows as $row) {
             $id = $row['id'] ?? null;
+            $code = trim((string) ($row['code'] ?? ''));
             unset($row['id'], $row['code']);
 
             if ($id) {
                 $address = $customer->addresses()->whereKey($id)->firstOrFail();
-                $address->update($row);
+                // Kode dikosongkan saat edit berarti kembali ke kode otomatis.
+                $address->update($row + ['code' => $code ?: $this->addressCode($address->id)]);
                 $keptIds[] = $address->id;
             } else {
-                $row['code'] = 'AUTO';
-                $address = $customer->addresses()->create($row);
-                $address->update(['code' => $this->addressCode($address->id)]);
+                $address = $customer->addresses()->create($row + ['code' => $code ?: 'AUTO']);
+                if ($code === '') {
+                    $address->update(['code' => $this->addressCode($address->id)]);
+                }
                 $keptIds[] = $address->id;
             }
         }
@@ -406,6 +411,44 @@ class CustomerMaster extends Component
 
         if (collect($this->addresses)->where('is_primary', true)->count() > 1) {
             throw ValidationException::withMessages(['addresses' => 'Hanya satu alamat yang dapat dijadikan utama.']);
+        }
+    }
+
+    /**
+     * Kode alamat boleh diisi manual, tapi tidak boleh kembar dalam satu pelanggan.
+     */
+    private function ensureUniqueAddressCodes(): void
+    {
+        $seen = [];
+
+        foreach ($this->addresses as $index => $address) {
+            $code = trim((string) ($address['code'] ?? ''));
+
+            if ($code === '') {
+                continue;
+            }
+
+            $key = mb_strtoupper($code);
+
+            if (isset($seen[$key])) {
+                throw ValidationException::withMessages([
+                    "addresses.{$index}.code" => 'Kode alamat tidak boleh sama dengan baris lain.',
+                ]);
+            }
+
+            $seen[$key] = true;
+
+            $usedByOther = CustomerAddress::query()
+                ->where('customer_id', $this->editingId ?? 0)
+                ->where('code', $code)
+                ->when($address['id'] ?? null, fn ($query, $id) => $query->whereKeyNot($id))
+                ->exists();
+
+            if ($usedByOther) {
+                throw ValidationException::withMessages([
+                    "addresses.{$index}.code" => 'Kode alamat sudah dipakai alamat lain pada pelanggan ini.',
+                ]);
+            }
         }
     }
 

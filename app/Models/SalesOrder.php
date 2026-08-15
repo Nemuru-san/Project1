@@ -44,6 +44,11 @@ class SalesOrder extends Model
         return $this->belongsTo(PreOrder::class);
     }
 
+    public function salesman(): BelongsTo
+    {
+        return $this->belongsTo(Salesman::class)->withTrashed();
+    }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class)->withTrashed();

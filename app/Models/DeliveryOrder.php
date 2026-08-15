@@ -30,6 +30,36 @@ class DeliveryOrder extends Model
         return ['delivery_date' => 'date'];
     }
 
+    /**
+     * Surat Jalan beserta relasi yang dibutuhkan halaman cetak.
+     */
+    public static function forPrint(int|string $id): self
+    {
+        return static::with([
+            'salesOrder.salesman', 'salesOrder.preOrder', 'salesOrder.salesCanvas',
+            'customer.primaryAddress', 'customerAddress', 'creator',
+            'items.product', 'items.warehouse', 'items.unit',
+        ])->findOrFail($id);
+    }
+
+    /**
+     * Super admin, pembuat dokumen, dan salesman pemilik kanvas asal boleh melihat/mencetak.
+     */
+    public function isAccessibleBy(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+        if ($user->isSuperAdmin() || $this->created_by === $user->id) {
+            return true;
+        }
+
+        $salesmanId = $user->salesman()->where('is_active', true)->value('id');
+
+        return (bool) $this->salesOrder?->salesCanvas
+            && $this->salesOrder->salesCanvas->salesman_id === $salesmanId;
+    }
+
     public function salesOrder(): BelongsTo
     {
         return $this->belongsTo(SalesOrder::class);

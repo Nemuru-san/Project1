@@ -1,224 +1,110 @@
-{{-- resources/views/prints/transfer-stock.blade.php --}}
+@php
+    $autoPrint = $autoPrint ?? false;
+
+    $company = config('company');
+
+    // Baris kosong agar tinggi form tetap sama saat item sedikit (mengikuti form continuous).
+    $minRows = 8;
+    $fillerRows = max(0, $minRows - $transfer->items->count());
+@endphp
 <!DOCTYPE html>
-<html>
-
+<html lang="id">
 <head>
-    <title>{{ $transfer->trf_no }}</title>
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet" />
-    <style>
-        @page {
-            size: 210mm 140mm;
-            margin: 7mm;
-        }
-
-        * {
-            box-sizing: border-box;
-            font-weight: normal !important;
-        }
-
-        html,
-        body {
-            height: 100%;
-        }
-
-        body {
-            font-family: "Inter", Arial, sans-serif;
-            font-size: 11px;
-            color: #111;
-            margin: 0;
-            padding: 0;
-        }
-
-        .page {
-            min-height: calc(140mm - 14mm);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .title {
-            text-align: center;
-            font-size: 17px;
-            letter-spacing: 8px;
-            margin-bottom: 1px;
-        }
-
-        .doc-no {
-            text-align: center;
-            font-size: 12px;
-            border-top: 1px solid #111;
-            border-bottom: 1px solid #111;
-            width: 260px;
-            margin: 0 auto 10px;
-            padding: 2px 0;
-        }
-
-        .header {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 6px;
-            line-height: 1.2;
-        }
-
-        .divider {
-            border-bottom: 1px solid #111;
-            margin: 0;
-            height: 0;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            border-bottom: 1px solid #111;
-            font-weight: normal !important;
-            padding: 3px 2px;
-            line-height: 1.1;
-        }
-
-        td {
-            padding: 2px 2px;
-            vertical-align: top;
-            line-height: 1.15;
-        }
-
-        .content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .items-area {
-            flex: 1;
-        }
-
-        .items-table tbody td {
-            padding-top: 2px;
-            padding-bottom: 2px;
-        }
-
-        .product-name {
-            white-space: normal;
-        }
-
-        .right {
-            text-align: right;
-        }
-
-        .center {
-            text-align: center;
-        }
-
-        .footer {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            text-align: center;
-            margin-top: auto;
-            padding-bottom: 4mm;
-        }
-
-        .sign {
-            margin-top: 38px;
-            border-top: 1px solid #111;
-            width: 140px;
-            display: inline-block;
-        }
-
-        .no-print {
-            margin-bottom: 8px;
-        }
-
-        @media print {
-            .no-print {
-                display: none;
-            }
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Transfer Stok {{ $transfer->trf_no }}</title>
+    @include('prints.partials.nota-style')
 </head>
+<body>
+<div class="toolbar">
+    <button class="primary" onclick="window.print()">Cetak Transfer Stok</button>
+    <button onclick="window.close()">Tutup</button>
+</div>
 
-<body onload="window.print()">
+<div class="sheet">
+    <div class="tearline">@for($i = 0; $i < 22; $i++)<span></span>@endfor</div>
 
-    <button class="no-print" onclick="window.print()">Cetak</button>
-
-    <div class="page">
-        <div class="content">
-            <div class="title">TRANSFER STOK</div>
-            <div class="doc-no">No: {{ $transfer->trf_no }}</div>
-
-            <div class="header">
-                <div>
-                    Tanggal&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : {{ $transfer->date?->format('d-m-Y') }}<br>
-                    Gudang Asal&nbsp;&nbsp; : {{ $transfer->warehouseFrom?->name ?? '-' }}<br>
-                    Gudang Tujuan : {{ $transfer->warehouseTo?->name ?? '-' }}
-                </div>
-
-                <div>
-                    Status : {{ ucfirst($transfer->status) }}<br>
-                    Notes&nbsp; : {{ $transfer->notes ?: '-' }}
-                </div>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="items-area">
-                <table class="items-table">
-                    <thead>
-                        <tr>
-                            <th width="35">NO</th>
-                            <th>NAMA BARANG</th>
-                            <th width="120">QTY</th>
-                            <th width="90">SATUAN</th>
-                            <th width="120">KONVERSI</th>
-                            <th width="120">JUMLAH DASAR</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($transfer->items as $i => $item)
-                            <tr>
-                                <td class="center">{{ $i + 1 }}</td>
-                                <td class="product-name">
-                                    {{ $item->product?->name ?? '-' }}
-                                </td>
-                                <td class="right">
-                                    {{ number_format($item->qty ?? 0, 0, ',', '.') }}
-                                </td>
-                                <td class="center">
-                                    {{ $item->unit?->name ?? '-' }}
-                                </td>
-                                <td class="right">
-                                    {{ number_format($item->conversion ?? 0, 0, ',', '.') }}
-                                </td>
-                                <td class="right">
-                                    {{ number_format($item->qty_base ?? 0, 0, ',', '.') }}
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="divider" style="margin-top: 4px;"></div>
+    <div class="head">
+        <div class="company">
+            <div class="nm">{{ $company['name'] }}</div>
+            @if($company['address'])<div>{{ $company['address'] }}</div>@endif
+            @if($company['city'])<div>{{ $company['city'] }}</div>@endif
+            @if($company['phone'])<div>Telp. {{ $company['phone'] }}</div>@endif
         </div>
+        <div class="to">
+            <div>{{ strtoupper($company['city'] ?: '-') }}, {{ $transfer->date?->format('d-m-y') }}</div>
+            <div class="nm">{{ $transfer->warehouseTo?->name ?? '-' }}</div>
+            @if($transfer->warehouseTo?->address)<div>{{ $transfer->warehouseTo->address }}</div>@endif
+        </div>
+    </div>
 
-        <div class="footer">
-            <div>
-                Dibuat Oleh
-                <div class="sign"></div>
-            </div>
-            <div>
-                Diterima Oleh
-                <div class="sign"></div>
-            </div>
-            <div>
-                Gudang
-                <div class="sign"></div>
+    <div class="title">
+        <h1>TRANSFER STOK</h1>
+        <div class="nota">Nota : {{ $transfer->trf_no }}</div>
+    </div>
+
+    <div class="meta">
+        <div class="cell">GUDANG ASAL : <span class="u">{{ strtoupper($transfer->warehouseFrom?->name ?? '-') }}</span></div>
+        <div class="cell">GUDANG TUJUAN : <span class="u">{{ strtoupper($transfer->warehouseTo?->name ?? '-') }}</span></div>
+        <div class="cell">Tgl {{ $transfer->date?->format('d-m-y') }}</div>
+        <div class="cell">Hal 1 / 1</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:26px">NO</th>
+                <th style="width:110px">KODE BARANG</th>
+                <th class="l">N A M A &nbsp; B A R A N G</th>
+                <th style="width:110px">BANYAKNYA</th>
+                <th style="width:80px">KONVERSI</th>
+                <th style="width:110px">JML DASAR</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($transfer->items as $index => $item)
+                <tr>
+                    <td class="c">{{ $index + 1 }}.</td>
+                    <td>{{ $item->product?->sku ?? '-' }}</td>
+                    <td>{{ strtoupper($item->product?->name ?? '-') }}</td>
+                    <td class="r">{{ number_format((float) $item->qty, 0, ',', '.') }} {{ strtoupper($item->unit?->name ?? '') }}</td>
+                    <td class="c">{{ number_format((float) $item->conversion, 0, ',', '.') }}</td>
+                    <td class="r">{{ number_format((float) $item->qty * (float) $item->conversion, 0, ',', '.') }}</td>
+                </tr>
+            @endforeach
+            @for($i = 0; $i < $fillerRows; $i++)
+                <tr class="filler"><td colspan="6">&nbsp;</td></tr>
+            @endfor
+            <tr class="sep"><td colspan="6"></td></tr>
+        </tbody>
+    </table>
+
+    <div class="lower">
+        <div class="left">
+            @if($transfer->notes)<div class="bank">Catatan : {{ $transfer->notes }}</div>@endif
+            <div class="signs">
+                <div>Dibuat oleh,<div class="line"></div></div>
+                <div>Disetujui oleh,<div class="line"></div></div>
+                <div>Gudang asal,<div class="line"></div></div>
+                <div>Diterima oleh,<div class="line"></div></div>
             </div>
         </div>
     </div>
 
-</body>
+    <div class="foot">
+        <div>ID : {{ strtoupper($transfer->creator?->name ?? '-') }} &nbsp;|&nbsp; {{ $transfer->trf_no }}</div>
+        <div>Prt. {{ now()->format('d-M-Y H:i') }}</div>
+    </div>
 
+    @if(strtolower((string) $transfer->status) === 'draft')
+        <div class="status-draft">** DRAF - BELUM DISETUJUI **</div>
+    @endif
+
+    <div class="tearline" style="padding-top:8px">@for($i = 0; $i < 22; $i++)<span></span>@endfor</div>
+</div>
+
+@if($autoPrint)
+    <script>window.addEventListener('load', () => window.print());</script>
+@endif
+</body>
 </html>

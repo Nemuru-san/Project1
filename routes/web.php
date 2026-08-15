@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\DeliveryOrder;
 use App\Models\GoodsReceive;
 use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
@@ -126,15 +127,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('pages.inventory.inventoryTransaction.transferStock');
     })->name('inventory.transaction.transfer-stock');
 
-    Route::get('inventory/transaction/transfer-stock/{id}/print', function ($id) {
-        $transfer = StockTransfer::with([
-            'warehouseFrom',
-            'warehouseTo',
-            'items.product',
-            'items.unit',
-        ])->findOrFail($id);
+    Route::get('inventory/transaction/transfer-stock/{id}/nota', function ($id) {
+        return view('prints.transfer-stock', [
+            'transfer' => StockTransfer::forPrint($id),
+            'autoPrint' => false,
+        ]);
+    })->name('inventory.transaction.transfer-stock.view');
 
-        return view('prints.transfer-stock', compact('transfer'));
+    Route::get('inventory/transaction/transfer-stock/{id}/print', function ($id) {
+        return view('prints.transfer-stock', [
+            'transfer' => StockTransfer::forPrint($id),
+            'autoPrint' => true,
+        ]);
     })->name('inventory.transaction.transfer-stock.print');
 
     Route::get('inventory/transaction/adjustment-in', function () {
@@ -170,13 +174,35 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('pages.sales.salesTransaction.deliveryOrder');
     })->name('sales.transaction.deliveryOrder');
 
+    Route::get('sales/transaction/deliveryOrder/{id}/surat-jalan', function ($id) {
+        $deliveryOrder = DeliveryOrder::forPrint($id);
+        abort_unless($deliveryOrder->isAccessibleBy(auth()->user()), 403);
+
+        return view('prints.delivery-order', compact('deliveryOrder') + ['autoPrint' => false]);
+    })->name('sales.transaction.deliveryOrder.view');
+
+    Route::get('sales/transaction/deliveryOrder/{id}/print', function ($id) {
+        $deliveryOrder = DeliveryOrder::forPrint($id);
+        abort_unless($deliveryOrder->isAccessibleBy(auth()->user()), 403);
+
+        return view('prints.delivery-order', compact('deliveryOrder') + ['autoPrint' => true]);
+    })->name('sales.transaction.deliveryOrder.print');
+
     Route::get('sales/transaction/salesInvoice', function () {
         return view('pages.sales.salesTransaction.salesInvoice');
     })->name('sales.transaction.salesInvoice');
-    Route::get('sales/transaction/salesInvoice/{id}/print', function ($id) {
-        $invoice = SalesInvoice::with(['salesOrder', 'customer', 'items.product', 'items.warehouse', 'items.unit'])->findOrFail($id);
+    Route::get('sales/transaction/salesInvoice/{id}/invoice', function ($id) {
+        return view('prints.sales-invoice', [
+            'invoice' => SalesInvoice::forPrint($id),
+            'autoPrint' => false,
+        ]);
+    })->name('sales.transaction.salesInvoice.view');
 
-        return view('prints.sales-invoice', compact('invoice'));
+    Route::get('sales/transaction/salesInvoice/{id}/print', function ($id) {
+        return view('prints.sales-invoice', [
+            'invoice' => SalesInvoice::forPrint($id),
+            'autoPrint' => true,
+        ]);
     })->name('sales.transaction.salesInvoice.print');
 
     Route::view('sales/report/unfinished-sales-order', 'pages.sales.report.unfinishedSalesOrder')

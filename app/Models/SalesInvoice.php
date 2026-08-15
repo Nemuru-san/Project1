@@ -38,6 +38,18 @@ class SalesInvoice extends Model
         ];
     }
 
+    /**
+     * Faktur beserta relasi yang dibutuhkan halaman cetak.
+     */
+    public static function forPrint(int|string $id): self
+    {
+        return static::with([
+            'salesOrder.salesman', 'salesOrder.customerAddress', 'salesOrder.preOrder', 'salesOrder.salesCanvas',
+            'customer.primaryAddress', 'creator',
+            'items.product', 'items.warehouse', 'items.unit',
+        ])->findOrFail($id);
+    }
+
     public function salesOrder(): BelongsTo
     {
         return $this->belongsTo(SalesOrder::class);
