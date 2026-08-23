@@ -50,7 +50,7 @@
             <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
                 <thead class="bg-gray-100 text-xs uppercase text-gray-700 dark:bg-zinc-800 dark:text-gray-200">
                     <tr>
-                        <th class="px-4 py-3">Tanggal</th><th class="px-4 py-3">Referensi</th><th class="px-4 py-3">Jenis Mutasi</th>
+                        <th class="px-4 py-3">Tanggal</th><th class="px-4 py-3">Referensi</th><th class="px-4 py-3">Jenis Transaksi</th>
                         <th class="px-4 py-3">Gudang</th><th class="px-4 py-3 text-right">Masuk</th><th class="px-4 py-3 text-right">Keluar</th>
                         <th class="px-4 py-3 text-right">Saldo</th><th class="px-4 py-3">Catatan</th>
                     </tr>
