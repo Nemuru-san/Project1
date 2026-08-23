@@ -241,9 +241,9 @@ class PurchaseInvoice extends Component
                 'total' => (int) $item->total,
 
                 'po_code' => $invoice->purchaseOrder?->code ?? '-',
-                'product_code' => $item->product?->sku ?? $item->product?->code ?? '-',
-                'product_name' => $item->product?->name ?? '-',
-                'category_name' => $item->product?->category?->name ?? '-',
+                'product_code' => $item->product?->name ?? $item->product?->code ?? '-',
+                'product_name' => $item->product?->sku ?? '-',
+                'category_name' => $item->product?->category?->desc ?? '-',
                 'unit_name' => $item->unit?->name ?? '-',
             ];
         })->toArray();
@@ -371,9 +371,9 @@ class PurchaseInvoice extends Component
                 'total' => $total,
 
                 'po_code' => $po->code,
-                'product_code' => $item->product?->sku ?? $item->product?->code ?? '-',
-                'product_name' => $item->product?->name ?? '-',
-                'category_name' => $item->product?->category?->name ?? '-',
+                'product_code' => $item->product?->name ?? $item->product?->code ?? '-',
+                'product_name' => $item->product?->sku ?? '-',
+                'category_name' => $item->product?->category?->desc ?? '-',
                 'unit_name' => $item->unit?->name ?? '-',
             ];
         })->toArray();

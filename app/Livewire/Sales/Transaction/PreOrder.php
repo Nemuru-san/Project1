@@ -480,7 +480,7 @@ class PreOrder extends Component
         $stock = $warehouseId ? app(AvailableForSalesService::class)->available($product->id, $warehouseId) : 0;
 
         return [
-            'product_id' => $product->id, 'sku' => $product->sku, 'name' => $product->name,
+            'product_id' => $product->id, 'sku' => $product->name, 'name' => $product->sku,
             'warehouse_id' => $warehouseId, 'unit_id' => $price?->unit_id, 'conversion' => (int) ($price?->conversion ?? 1),
             'qty' => $qty, 'unit_price' => $unitPrice ?? (int) ($price?->price ?? 0), 'discount_amount' => $discountAmount,
             'stock_available' => $stock, 'stock_available_display' => app(StockQuantityFormatter::class)->format($product, $stock), 'base_unit_name' => $product->baseUnit?->name ?? '-',

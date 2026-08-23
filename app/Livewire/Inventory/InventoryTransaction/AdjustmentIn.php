@@ -135,8 +135,8 @@ class AdjustmentIn extends Component
 
         $this->items = $adjustment->items->map(fn ($item) => [
             'product_id' => $item->product_id,
-            'sku' => $item->product?->sku,
-            'name' => $item->product?->name,
+            'sku' => $item->product?->name,
+            'name' => $item->product?->sku,
             'qty' => $item->qty,
             'unit_id' => $item->unit_id,
             'conversion' => $item->conversion,
@@ -173,8 +173,8 @@ class AdjustmentIn extends Component
 
         $this->items[] = [
             'product_id' => $product->id,
-            'sku' => $product->sku,
-            'name' => $product->name,
+            'sku' => $product->name,
+            'name' => $product->sku,
             'qty' => 1,
             'unit_id' => $defaultPrice?->unit_id,
             'conversion' => $defaultPrice?->conversion ?? 1,

@@ -38,7 +38,7 @@
                   {{-- content --}}
                   <div
                   class="w-full h-full overflow-hidden rounded-md dark:border bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 p-4">
-                  <livewire:inventory.inventory-transaction.transfer--stock />
+                  <livewire:inventory.inventory-transaction.transfer-stock />
                   </div>
             </div>
       </div>

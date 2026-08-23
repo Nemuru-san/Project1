@@ -131,8 +131,8 @@ class TransferStock extends Component
 
         $this->items = $transfer->items->map(fn ($item) => [
             'product_id' => $item->product_id,
-            'sku' => $item->product?->sku,
-            'name' => $item->product?->name,
+            'sku' => $item->product?->name,
+            'name' => $item->product?->sku,
             'stock_available' => $item->stock_available,
             'qty' => $item->qty,
             'unit_id' => $item->unit_id,
@@ -182,8 +182,8 @@ class TransferStock extends Component
 
         $this->items[] = [
             'product_id' => $product->id,
-            'sku' => $product->sku,
-            'name' => $product->name,
+            'sku' => $product->name,
+            'name' => $product->sku,
             'stock_available' => $stockAvailable,
             'qty' => $stockAvailable > 0 ? 1 : 0,
             'unit_id' => $defaultPrice?->unit_id,

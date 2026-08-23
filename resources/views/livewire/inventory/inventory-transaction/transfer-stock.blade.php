@@ -98,11 +98,11 @@
                         </td>
 
                         <td class="px-4 py-4">
-                            {{ $transfer->warehouseFrom?->name ?? '-' }}
+                            {{ $transfer->warehouseFrom?->desc ?? '-' }}
                         </td>
 
                         <td class="px-4 py-4">
-                            {{ $transfer->warehouseTo?->name ?? '-' }}
+                            {{ $transfer->warehouseTo?->desc ?? '-' }}
                         </td>
 
                         <td class="px-4 py-4">
@@ -329,7 +329,7 @@
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white border-gray-300">
                                 <option value="">Pilih Gudang</option>
                                 @foreach ($warehouses as $warehouse)
-                                    <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+                                    <option value="{{ $warehouse->id }}">{{ $warehouse->desc }}</option>
                                 @endforeach
                             </select>
                             @error('warehouse_from_id')
@@ -343,7 +343,7 @@
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white border-gray-300">
                                 <option value="">Pilih Gudang</option>
                                 @foreach ($warehouses as $warehouse)
-                                    <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+                                    <option value="{{ $warehouse->id }}">{{ $warehouse->desc }}</option>
                                 @endforeach
                             </select>
                             @error('warehouse_to_id')
@@ -498,7 +498,7 @@
                                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                             <option value="">Semua Kategori</option>
                                             @foreach ($categories as $category)
-                                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                                <option value="{{ $category->id }}">{{ $category->desc }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -533,13 +533,13 @@
                                                             class="h-4 w-4 rounded border-gray-300 text-blue-600" />
                                                     </td>
                                                     <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                        {{ $product->sku ?? '-' }}
+                                                        {{ $product->name ?? '-' }}
                                                     </td>
                                                     <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                        {{ $product->name }}
+                                                        {{ $product->sku }}
                                                     </td>
                                                     <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                        {{ $product->category?->name ?? '-' }}
+                                                        {{ $product->category?->desc ?? '-' }}
                                                     </td>
                                                 </tr>
                                             @empty

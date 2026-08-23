@@ -389,7 +389,7 @@
                                                 <span class="text-xl font-semibold">+</span>
                                             </button>
                                         </th>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Tidak
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">No
                                         </th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Kode
                                             Produk</th>
@@ -414,12 +414,12 @@
                                         <tr x-data="{
                                             item: @js($item),
                                             syncTimer: null,
-                                            syncToWire() {
-                                                $wire.set('items.{{ $i }}', this.item);
+                                            syncField(field) {
+                                                $wire.set('items.{{ $i }}.' + field, this.item[field]);
                                             },
-                                            scheduleSync() {
+                                            scheduleSync(field) {
                                                 clearTimeout(this.syncTimer);
-                                                this.syncTimer = setTimeout(() => this.syncToWire(), 300);
+                                                this.syncTimer = setTimeout(() => this.syncField(field), 300);
                                             }
                                         }"
                                             class="hover:bg-gray-100 dark:hover:bg-zinc-800 text-sm">
@@ -465,9 +465,9 @@
                                                          let raw = item.qty_display.replace(/\./g, '').replace(/\D/g, '');
                                                          item.qty = raw === '' ? null : Number(raw);
                                                          item.qty_display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
-                                                         scheduleSync();
+                                                         scheduleSync('qty');
                                                      "
-                                                    @blur="syncToWire()"
+                                                    @blur="syncField('qty')"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-24 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                             </td>
 
@@ -479,9 +479,9 @@
                                                          let raw = item.price_display.replace(/\./g, '').replace(/\D/g, '');
                                                          item.price = raw === '' ? null : Number(raw);
                                                          item.price_display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
-                                                         scheduleSync();
+                                                         scheduleSync('price');
                                                      "
-                                                    @blur="syncToWire()"
+                                                    @blur="syncField('price')"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-28 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                             </td>
 
@@ -493,9 +493,9 @@
                                                          let raw = item.disc_display.replace(/\./g, '').replace(/\D/g, '');
                                                          item.disc = raw === '' ? null : Number(raw);
                                                          item.disc_display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
-                                                         scheduleSync();
+                                                         scheduleSync('disc');
                                                      "
-                                                    @blur="syncToWire()"
+                                                    @blur="syncField('disc')"
                                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-28 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                             </td>
                                             <td
@@ -644,11 +644,11 @@
                                                     </td>
 
                                                     <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
-                                                        {{ $product->sku }}
+                                                        {{ $product->name }}
                                                     </td>
 
                                                     <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
-                                                        {{ $product->name }}
+                                                        {{ $product->sku }}
                                                     </td>
 
                                                     <td class="border border-gray-300 dark:border-zinc-700 px-4 py-3">
@@ -819,7 +819,7 @@
                                         <td class="px-4 py-3 text-right text-gray-800 dark:text-white">
                                             {{ $item->qty }}</td>
                                         <td class="px-4 py-3 text-right text-gray-800 dark:text-white">
-                                            {{ $item->unit->code }}</td>
+                                            {{ $item->unit->name }}</td>
                                         <td class="px-4 py-3 text-right text-gray-800 dark:text-white">
                                             Rp {{ number_format($item->disc, 0, ',', '.') }}
                                         </td>

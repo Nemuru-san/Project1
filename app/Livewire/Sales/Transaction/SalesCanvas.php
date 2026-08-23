@@ -626,8 +626,8 @@ class SalesCanvas extends Component
 
         return [
             'product_id' => $product->id,
-            'sku' => $product->sku,
-            'name' => $product->name,
+            'sku' => $product->name,
+            'name' => $product->sku,
             'warehouse_id' => $warehouseId,
             'unit_id' => $selectedPrice?->unit_id,
             'conversion' => (int) ($selectedPrice?->conversion ?? 1),

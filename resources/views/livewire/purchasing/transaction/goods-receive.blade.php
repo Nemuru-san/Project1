@@ -370,7 +370,7 @@
                                 <thead
                                     class="text-sm font-bold text-gray-900 uppercase bg-gray-200 dark:bg-zinc-700 dark:text-white">
                                     <tr>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Tidak
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">No
                                         </th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
                                             Kode Produk</th>
@@ -619,7 +619,7 @@
                                     <th class="px-4 py-3">Satuan</th>
                                     <th class="px-4 py-3">Gudang</th>
                                     <th class="px-4 py-3 text-right">Jumlah Pesanan</th>
-                                    <th class="px-4 py-3 text-right">Jumlah Diterimad</th>
+                                    <th class="px-4 py-3 text-right">Jumlah Diterima</th>
                                     {{-- <th class="px-4 py-3 text-right">Qty Outstanding</th> --}}
                                     <th class="px-4 py-3 text-right">Jumlah Dasar</th>
                                 </tr>
@@ -642,7 +642,7 @@
                                         </td>
 
                                         <td class="px-4 py-3 text-gray-800 dark:text-white">
-                                            {{ $item->product?->category?->name ?? '-' }}
+                                            {{ $item->product?->category?->desc ?? '-' }}
                                         </td>
 
                                         <td class="px-4 py-3 text-gray-800 dark:text-white">
@@ -650,7 +650,7 @@
                                         </td>
 
                                         <td class="px-4 py-3 text-gray-800 dark:text-white">
-                                            {{ $item->warehouse?->name ?? '-' }}
+                                            {{ $item->warehouse?->desc ?? '-' }}
                                         </td>
 
                                         <td class="px-4 py-3 text-right text-gray-800 dark:text-white">

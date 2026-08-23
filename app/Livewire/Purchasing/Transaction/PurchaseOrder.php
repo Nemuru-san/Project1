@@ -245,9 +245,9 @@ class PurchaseOrder extends Component
 
         $this->items[] = [
             'product_id' => $product->id,
-            'product_code' => $product->sku,
-            'product_name' => $product->name,
-            'category' => $product->category?->name ?? '-',
+            'product_code' => $product->name,
+            'product_name' => $product->sku,
+            'category' => $product->category?->desc ?? '-',
             'prices' => $prices,
             'price_id' => $defaultPrice->id,
             'unit_id' => $defaultPrice->unit_id,

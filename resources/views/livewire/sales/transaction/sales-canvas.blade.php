@@ -271,7 +271,7 @@
                                                     <select wire:model.live="items.{{ $index }}.warehouse_id" class="block w-48 rounded-lg border border-gray-300 bg-gray-50 p-2 text-xs text-gray-900 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
                                                         <option value="">Pilih gudang</option>
                                                         @foreach ($warehouses as $warehouse)
-                                                            <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+                                                            <option value="{{ $warehouse->id }}">{{ $warehouse->desc }}</option>
                                                         @endforeach
                                                     </select>
                                                     @error("items.$index.warehouse_id") <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
@@ -393,7 +393,7 @@
                         </div>
                         <select wire:model.live="categoryFilter" class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 sm:w-60 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
                             <option value="">Semua Kategori</option>
-                            @foreach ($categories as $category)<option value="{{ $category->id }}">{{ $category->name }}</option>@endforeach
+                            @foreach ($categories as $category)<option value="{{ $category->id }}">{{ $category->desc }}</option>@endforeach
                         </select>
                     </div>
                     <div class="overflow-x-auto rounded-xl border border-gray-300 dark:border-zinc-600">
@@ -411,9 +411,9 @@
                                     @php $alreadyAdded = collect($items)->contains('product_id', $product->id); @endphp
                                     <tr wire:key="product-picker-{{ $product->id }}" @click="$event.currentTarget.querySelector('input[type=checkbox]:not(:disabled)')?.click()" class="hover:bg-gray-50 dark:hover:bg-zinc-800 {{ $alreadyAdded ? 'cursor-not-allowed opacity-50' : 'cursor-pointer' }}">
                                         <td class="border border-gray-300 px-4 py-3 text-center dark:border-zinc-700"><input wire:model="selectedProductIds" type="checkbox" value="{{ $product->id }}" @click.stop @disabled($alreadyAdded) class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-zinc-800"></td>
-                                        <td class="border border-gray-300 px-4 py-3 dark:border-zinc-700">{{ $product->sku }}</td>
                                         <td class="border border-gray-300 px-4 py-3 dark:border-zinc-700">{{ $product->name }}</td>
-                                        <td class="border border-gray-300 px-4 py-3 dark:border-zinc-700">{{ $product->category?->name ?? '-' }}</td>
+                                        <td class="border border-gray-300 px-4 py-3 dark:border-zinc-700">{{ $product->sku }}</td>
+                                        <td class="border border-gray-300 px-4 py-3 dark:border-zinc-700">{{ $product->category?->desc ?? '-' }}</td>
                                     </tr>
                                 @empty
                                     <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">Produk dengan harga jual tidak ditemukan.</td></tr>
@@ -472,7 +472,7 @@
     @if ($showDetailModal && $selectedCanvas)
         <div class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 p-4 backdrop-blur-sm">
             <div class="flex max-h-[min(80vh,calc(100dvh-2rem))] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-900">
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-zinc-700"><h3 class="font-semibold dark:text-white">Rincian {{ $selectedCanvas->canvas_no }}</h3><button wire:click="$set('showDetailModal', false)" class="cursor-pointer text-2xl text-gray-500">&times;</button></div>
+                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-zinc-700"><h3 class="font-semibold dark:text-white">Rincian Transaksi {{ $selectedCanvas->canvas_no }}</h3><button wire:click="$set('showDetailModal', false)" class="cursor-pointer text-2xl text-gray-500">&times;</button></div>
                 <div class="min-h-0 flex-1 overflow-y-auto p-6">
                     <dl class="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
                         <div><dt class="text-gray-400">Tanggal</dt><dd class="font-medium dark:text-white">{{ $selectedCanvas->date->format('d/m/Y') }}</dd></div>
@@ -480,7 +480,7 @@
                         <div><dt class="text-gray-400">Customer</dt><dd class="font-medium dark:text-white">{{ $selectedCanvas->customer?->name }}</dd></div>
                         <div><dt class="text-gray-400">Status</dt><dd class="font-medium uppercase dark:text-white">{{ $selectedCanvas->status }}</dd></div>
                     </dl>
-                    <div class="mt-5 overflow-x-auto rounded-lg border border-gray-200 dark:border-zinc-700"><table class="w-full text-sm"><thead class="bg-gray-50 dark:bg-zinc-900"><tr><th class="px-3 py-2 text-left">Produk</th><th class="px-3 py-2 text-left">Gudang</th><th class="px-3 py-2 text-left">Satuan</th><th class="px-3 py-2 text-right">Qty</th><th class="px-3 py-2 text-right">Harga</th><th class="px-3 py-2 text-right">Diskon</th><th class="px-3 py-2 text-right">Total</th></tr></thead><tbody class="divide-y divide-gray-200 dark:divide-zinc-700">@foreach ($selectedCanvas->items as $item)<tr><td class="px-3 py-2 dark:text-white">{{ $item->product?->name }}</td><td class="px-3 py-2">{{ $item->warehouse?->name }}</td><td class="px-3 py-2">{{ $item->unit?->name }}</td><td class="px-3 py-2 text-right">{{ $item->qty }}</td><td class="px-3 py-2 text-right">Rp {{ number_format($item->unit_price, 0, ',', '.') }}</td><td class="px-3 py-2 text-right">Rp {{ number_format($item->discount_amount, 0, ',', '.') }}</td><td class="px-3 py-2 text-right">Rp {{ number_format($item->line_total, 0, ',', '.') }}</td></tr>@endforeach</tbody></table></div>
+                    <div class="mt-5 overflow-x-auto rounded-lg border border-gray-200 dark:border-zinc-700"><table class="w-full text-sm"><thead class="bg-gray-50 dark:bg-zinc-900"><tr><th class="px-3 py-2 text-left">Produk</th><th class="px-3 py-2 text-left">Gudang</th><th class="px-3 py-2 text-left">Satuan</th><th class="px-3 py-2 text-right">Qty</th><th class="px-3 py-2 text-right">Harga</th><th class="px-3 py-2 text-right">Diskon</th><th class="px-3 py-2 text-right">Total</th></tr></thead><tbody class="divide-y divide-gray-200 dark:divide-zinc-700">@foreach ($selectedCanvas->items as $item)<tr><td class="px-3 py-2 dark:text-white">{{ $item->product?->sku }}</td><td class="px-3 py-2">{{ $item->warehouse?->desc }}</td><td class="px-3 py-2">{{ $item->unit?->name }}</td><td class="px-3 py-2 text-right">{{ $item->qty }}</td><td class="px-3 py-2 text-right">Rp {{ number_format($item->unit_price, 0, ',', '.') }}</td><td class="px-3 py-2 text-right">Rp {{ number_format($item->discount_amount, 0, ',', '.') }}</td><td class="px-3 py-2 text-right">Rp {{ number_format($item->line_total, 0, ',', '.') }}</td></tr>@endforeach</tbody></table></div>
                     <div class="ml-auto mt-5 w-full max-w-sm space-y-2 text-sm"><div class="flex justify-between"><span>Subtotal</span><span>Rp {{ number_format($selectedCanvas->subtotal, 0, ',', '.') }}</span></div><div class="flex justify-between"><span>Diskon</span><span>- Rp {{ number_format($selectedCanvas->discount_total, 0, ',', '.') }}</span></div><div class="flex justify-between"><span>PPN</span><span>Rp {{ number_format($selectedCanvas->tax_amount, 0, ',', '.') }}</span></div><div class="flex justify-between border-t pt-2 text-base font-bold dark:text-white"><span>Grand Total</span><span>Rp {{ number_format($selectedCanvas->grand_total, 0, ',', '.') }}</span></div></div>
                 </div>
                 <div class="flex justify-end border-t border-gray-200 px-6 py-4 dark:border-zinc-700"><button wire:click="$set('showDetailModal', false)" class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2 text-sm dark:text-white">Tutup</button></div>
