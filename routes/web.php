@@ -68,6 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $invoice = PurchaseInvoice::with([
             'supplier',
             'purchaseOrder',
+            'goodsReceives',
             'items.product',
             'items.unit',
         ])->findOrFail($id);

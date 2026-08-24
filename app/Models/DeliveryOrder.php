@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -88,5 +89,11 @@ class DeliveryOrder extends Model
     public function items(): HasMany
     {
         return $this->hasMany(DeliveryOrderItem::class);
+    }
+
+    public function salesInvoices(): BelongsToMany
+    {
+        return $this->belongsToMany(SalesInvoice::class, 'delivery_order_sales_invoice')
+            ->withTimestamps();
     }
 }

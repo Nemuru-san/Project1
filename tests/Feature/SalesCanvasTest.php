@@ -4,6 +4,7 @@ use App\Livewire\Sales\Transaction\SalesCanvas;
 use App\Livewire\Sales\Transaction\SalesOrder;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
+use App\Models\PreOrder;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductPrice;
@@ -388,6 +389,7 @@ it('creates a sales order manually without a sales canvas reference', function (
     $order = SalesOrderModel::with('items')->sole();
 
     expect($order->sales_canvas_id)->toBeNull()
+        ->and($order->pre_order_id)->toBeNull()
         ->and($order->customer_id)->toBe($data['customer']->id)
         ->and($order->status)->toBe('draft')
         ->and($order->items)->toHaveCount(1)
@@ -405,6 +407,113 @@ it('creates a sales order manually without a sales canvas reference', function (
 
     expect($order->fresh()->notes)->toBe('Sales Order diperbarui')
         ->and(SalesOrderModel::count())->toBe(1);
+});
+
+it('allows only one confirmed source reference when creating a sales order', function () {
+    $data = salesCanvasFixture();
+    $this->actingAs($data['user']);
+
+    $confirmedCanvas = SalesCanvasModel::create([
+        'canvas_no' => 'SC-REF-CONFIRMED',
+        'date' => '2026-07-22',
+        'salesman_id' => $data['salesman']->id,
+        'customer_id' => $data['customer']->id,
+        'customer_address_id' => $data['address']->id,
+        'is_taxed' => true,
+        'notes' => 'Catatan Sales Kanvas',
+        'status' => SalesCanvasModel::STATUS_CONFIRMED,
+        'created_by' => $data['user']->id,
+    ]);
+    $confirmedCanvas->items()->create([
+        'product_id' => $data['product']->id,
+        'warehouse_id' => $data['warehouse']->id,
+        'unit_id' => $data['unit']->id,
+        'qty' => 2,
+        'conversion' => 2,
+        'unit_price' => 10000,
+        'discount_amount' => 1000,
+        'line_total' => 19000,
+    ]);
+    SalesCanvasModel::create([
+        'canvas_no' => 'SC-REF-DRAFT',
+        'date' => '2026-07-22',
+        'salesman_id' => $data['salesman']->id,
+        'customer_id' => $data['customer']->id,
+        'status' => SalesCanvasModel::STATUS_DRAFT,
+        'created_by' => $data['user']->id,
+    ]);
+    $confirmedPreOrder = PreOrder::create([
+        'pre_order_no' => 'PO-REF-CONFIRMED',
+        'date' => '2026-07-22',
+        'customer_id' => $data['customer']->id,
+        'customer_address_id' => $data['address']->id,
+        'is_taxed' => false,
+        'notes' => 'Catatan Pre Order',
+        'status' => PreOrder::STATUS_CONFIRMED,
+        'created_by' => $data['user']->id,
+    ]);
+    $confirmedPreOrder->items()->create([
+        'product_id' => $data['product']->id,
+        'warehouse_id' => $data['warehouse']->id,
+        'unit_id' => $data['unit']->id,
+        'qty' => 3,
+        'conversion' => 2,
+        'unit_price' => 10000,
+        'discount_amount' => 2000,
+        'line_total' => 28000,
+    ]);
+    PreOrder::create([
+        'pre_order_no' => 'PO-REF-DRAFT',
+        'date' => '2026-07-22',
+        'customer_id' => $data['customer']->id,
+        'status' => PreOrder::STATUS_DRAFT,
+        'created_by' => $data['user']->id,
+    ]);
+
+    Livewire::test(SalesOrder::class)
+        ->call('openCreate')
+        ->assertSee('Sumber Sales Order')
+        ->assertDontSee($confirmedCanvas->canvas_no)
+        ->assertDontSee($confirmedPreOrder->pre_order_no)
+        ->set('sourceType', 'sales_canvas')
+        ->assertSee($confirmedCanvas->canvas_no)
+        ->assertDontSee('SC-REF-DRAFT')
+        ->assertSeeHtml('wire:model.live="salesCanvasId"')
+        ->assertDontSee($confirmedPreOrder->pre_order_no)
+        ->set('salesCanvasId', $confirmedCanvas->id)
+        ->assertSet('customerId', $data['customer']->id)
+        ->assertSet('customerAddressId', $data['address']->id)
+        ->assertSet('tax', true)
+        ->assertSet('notes', 'Catatan Sales Kanvas')
+        ->assertSet('items.0.product_id', $data['product']->id)
+        ->assertSet('items.0.qty', 2)
+        ->set('sourceType', 'pre_order')
+        ->assertSet('salesCanvasId', null)
+        ->assertSet('items', [])
+        ->assertDontSee($confirmedCanvas->canvas_no)
+        ->assertSee($confirmedPreOrder->pre_order_no)
+        ->assertDontSee('PO-REF-DRAFT')
+        ->set('preOrderId', $confirmedPreOrder->id)
+        ->assertSet('items.0.product_id', $data['product']->id)
+        ->assertSet('items.0.qty', 3)
+        ->assertSet('customerId', $data['customer']->id)
+        ->assertSet('customerAddressId', $data['address']->id)
+        ->assertSet('tax', false)
+        ->assertSet('notes', 'Catatan Pre Order')
+        ->assertSet('items.0.discount_amount', 2000)
+        ->set('date', '2026-07-22')
+        ->assertSeeHtml('wire:model.live="preOrderId"')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertDispatched('toast', message: 'Sales Order berhasil dibuat.', type: 'success');
+
+    $order = SalesOrderModel::sole();
+
+    expect($order->sales_canvas_id)->toBeNull()
+        ->and($order->pre_order_id)->toBe($confirmedPreOrder->id)
+        ->and($confirmedCanvas->fresh()->status)->toBe(SalesCanvasModel::STATUS_CONFIRMED)
+        ->and($confirmedPreOrder->fresh()->status)->toBe(PreOrder::STATUS_SALES_ORDER)
+        ->and($order->items()->sole()->qty)->toBe(3);
 });
 
 it('allows only a super admin to delete and restore a sales order', function () {

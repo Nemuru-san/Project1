@@ -4,9 +4,11 @@ namespace App\Livewire\Sales\Transaction;
 
 use App\Models\Customer;
 use App\Models\CustomerAddress;
+use App\Models\PreOrder;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductPrice;
+use App\Models\SalesCanvas;
 use App\Models\SalesOrder as SalesOrderModel;
 use App\Models\Warehouse;
 use App\Services\Inventory\AvailableForSalesService;
@@ -53,9 +55,15 @@ class SalesOrder extends Component
 
     public ?SalesOrderModel $selectedOrder = null;
 
+    public string $sourceType = 'manual';
+
     public string $orderNo = '';
 
     public string $date = '';
+
+    public ?int $salesCanvasId = null;
+
+    public ?int $preOrderId = null;
 
     public ?int $customerId = null;
 
@@ -75,8 +83,31 @@ class SalesOrder extends Component
 
     protected function rules(): array
     {
+        $currentOrder = $this->editingId
+            ? SalesOrderModel::query()->find($this->editingId)
+            : null;
+
         return [
             'date' => ['required', 'date'],
+            'sourceType' => ['required', Rule::in(['manual', 'sales_canvas', 'pre_order'])],
+            'salesCanvasId' => ['nullable', 'required_if:sourceType,sales_canvas', 'integer', Rule::exists('sales_canvases', 'id')->where(function ($query) use ($currentOrder) {
+                $query->whereNull('deleted_at')->where(function ($query) use ($currentOrder) {
+                    $query->where('status', SalesCanvas::STATUS_CONFIRMED);
+
+                    if ($currentOrder?->sales_canvas_id) {
+                        $query->orWhere('id', $currentOrder->sales_canvas_id);
+                    }
+                });
+            })],
+            'preOrderId' => ['nullable', 'required_if:sourceType,pre_order', 'integer', Rule::exists('pre_orders', 'id')->where(function ($query) use ($currentOrder) {
+                $query->whereNull('deleted_at')->where(function ($query) use ($currentOrder) {
+                    $query->where('status', PreOrder::STATUS_CONFIRMED);
+
+                    if ($currentOrder?->pre_order_id) {
+                        $query->orWhere('id', $currentOrder->pre_order_id);
+                    }
+                });
+            })],
             'customerId' => ['required', 'integer', 'exists:customers,id'],
             'customerAddressId' => ['nullable', 'integer', Rule::exists('customer_addresses', 'id')->where(fn ($query) => $query->where('customer_id', $this->customerId)->whereNull('deleted_at'))],
             'tax' => ['boolean'],
@@ -94,6 +125,10 @@ class SalesOrder extends Component
 
     protected $messages = [
         'customerId.required' => 'Customer wajib dipilih.',
+        'salesCanvasId.required_if' => 'Nomor Sales Kanvas wajib dipilih.',
+        'salesCanvasId.exists' => 'Sales Kanvas harus berstatus dikonfirmasi dan belum digunakan pada Sales Order lain.',
+        'preOrderId.required_if' => 'Nomor Pre Order wajib dipilih.',
+        'preOrderId.exists' => 'Pre Order harus berstatus dikonfirmasi dan belum digunakan pada Sales Order lain.',
         'items.required' => 'Tambahkan minimal satu produk.',
         'items.min' => 'Tambahkan minimal satu produk.',
         'items.*.warehouse_id.required' => 'Gudang wajib dipilih.',
@@ -167,6 +202,9 @@ class SalesOrder extends Component
         $this->editingId = $order->id;
         $this->orderNo = $order->order_no;
         $this->date = $order->date->format('Y-m-d');
+        $this->sourceType = $order->sales_canvas_id ? 'sales_canvas' : ($order->pre_order_id ? 'pre_order' : 'manual');
+        $this->salesCanvasId = $order->sales_canvas_id;
+        $this->preOrderId = $order->pre_order_id;
         $this->customerId = $order->customer_id;
         $this->customerAddressId = $order->customer_address_id;
         $this->tax = $order->is_taxed;
@@ -185,6 +223,62 @@ class SalesOrder extends Component
     public function updatedCustomerId(): void
     {
         $this->customerAddressId = null;
+    }
+
+    public function updatedSourceType(): void
+    {
+        if ($this->sourceType !== 'sales_canvas') {
+            $this->salesCanvasId = null;
+        }
+
+        if ($this->sourceType !== 'pre_order') {
+            $this->preOrderId = null;
+        }
+
+        if (! $this->editingId) {
+            $this->items = [];
+        }
+    }
+
+    public function updatedSalesCanvasId(): void
+    {
+        if ($this->sourceType !== 'sales_canvas' || ! $this->salesCanvasId) {
+            $this->items = [];
+
+            return;
+        }
+
+        $canvas = SalesCanvas::with(['items.product.prices.unit', 'items.product.baseUnit'])
+            ->where('status', SalesCanvas::STATUS_CONFIRMED)
+            ->whereDoesntHave('salesOrder')
+            ->findOrFail($this->salesCanvasId);
+
+        if (! auth()->user()?->isSuperAdmin() && ! auth()->user()?->canPerform('sales.transaction.salesOrder', 'verify')) {
+            $salesmanId = auth()->user()?->salesman()->where('is_active', true)->value('id');
+            abort_unless($salesmanId && $canvas->salesman_id === $salesmanId, 403);
+        }
+
+        $this->loadSource($canvas);
+    }
+
+    public function updatedPreOrderId(): void
+    {
+        if ($this->sourceType !== 'pre_order' || ! $this->preOrderId) {
+            $this->items = [];
+
+            return;
+        }
+
+        $preOrder = PreOrder::with(['items.product.prices.unit', 'items.product.baseUnit'])
+            ->where('status', PreOrder::STATUS_CONFIRMED)
+            ->whereDoesntHave('salesOrder')
+            ->findOrFail($this->preOrderId);
+
+        if (! auth()->user()?->isSuperAdmin() && ! $this->canManagePreOrders()) {
+            abort_unless($preOrder->created_by === Auth::id(), 403);
+        }
+
+        $this->loadSource($preOrder);
     }
 
     public function openProductPicker(): void
@@ -248,6 +342,16 @@ class SalesOrder extends Component
     {
         $wasEditing = (bool) $this->editingId;
 
+        if (! $wasEditing) {
+            if ($this->sourceType !== 'sales_canvas') {
+                $this->salesCanvasId = null;
+            }
+
+            if ($this->sourceType !== 'pre_order') {
+                $this->preOrderId = null;
+            }
+        }
+
         $this->validate();
 
         foreach ($this->items as $index => $item) {
@@ -264,11 +368,45 @@ class SalesOrder extends Component
 
             if ($order->exists) {
                 $this->authorizeOrder($order);
+                $this->salesCanvasId = $order->sales_canvas_id;
+                $this->preOrderId = $order->pre_order_id;
+            }
+
+            $salesCanvas = $this->salesCanvasId
+                ? SalesCanvas::query()->lockForUpdate()->findOrFail($this->salesCanvasId)
+                : null;
+            $preOrder = $this->preOrderId
+                ? PreOrder::query()->lockForUpdate()->findOrFail($this->preOrderId)
+                : null;
+
+            if ($salesCanvas && ! auth()->user()?->isSuperAdmin() && ! auth()->user()?->canPerform('sales.transaction.salesOrder', 'verify')) {
+                $salesmanId = auth()->user()?->salesman()->where('is_active', true)->value('id');
+                abort_unless($salesmanId && $salesCanvas->salesman_id === $salesmanId, 403);
+            }
+
+            if ($preOrder && ! auth()->user()?->isSuperAdmin() && ! $this->canManagePreOrders()) {
+                abort_unless($preOrder->created_by === Auth::id(), 403);
+            }
+
+            if ($salesCanvas && $salesCanvas->id !== $order->sales_canvas_id
+                && ($salesCanvas->status !== SalesCanvas::STATUS_CONFIRMED || $salesCanvas->salesOrder()->exists())) {
+                throw ValidationException::withMessages([
+                    'salesCanvasId' => 'Sales Kanvas harus berstatus dikonfirmasi dan belum digunakan pada Sales Order lain.',
+                ]);
+            }
+
+            if ($preOrder && $preOrder->id !== $order->pre_order_id
+                && ($preOrder->status !== PreOrder::STATUS_CONFIRMED || $preOrder->salesOrder()->exists())) {
+                throw ValidationException::withMessages([
+                    'preOrderId' => 'Pre Order harus berstatus dikonfirmasi dan belum digunakan pada Sales Order lain.',
+                ]);
             }
 
             $order->fill([
                 'order_no' => $order->exists ? $order->order_no : $this->generateCode(),
                 'date' => $this->date,
+                'sales_canvas_id' => $this->salesCanvasId,
+                'pre_order_id' => $this->preOrderId,
                 'customer_id' => $this->customerId,
                 'customer_address_id' => $this->customerAddressId,
                 'is_taxed' => $this->tax,
@@ -284,6 +422,14 @@ class SalesOrder extends Component
                 'created_by' => $order->exists ? $order->created_by : Auth::id(),
             ]);
             $order->save();
+
+            if ($salesCanvas && $salesCanvas->status === SalesCanvas::STATUS_CONFIRMED) {
+                $salesCanvas->update(['status' => SalesCanvas::STATUS_SALES_ORDER]);
+            }
+
+            if ($preOrder && $preOrder->status === PreOrder::STATUS_CONFIRMED) {
+                $preOrder->update(['status' => PreOrder::STATUS_SALES_ORDER]);
+            }
             $order->items()->delete();
 
             foreach ($this->items as $item) {
@@ -400,6 +546,15 @@ class SalesOrder extends Component
         $this->dispatch('toast', message: 'Pesanan Penjualan berhasil dikonfirmasi.', type: 'success');
     }
 
+    private function canManagePreOrders(): bool
+    {
+        $user = auth()->user();
+
+        return $user?->canPerform('sales.transaction.salesPreOrder', 'confirm')
+            || $user?->canPerform('sales.transaction.salesPreOrder', 'convert')
+            || $user?->canPerform('sales.transaction.salesPreOrder', 'delete');
+    }
+
     private function authorizeOrder(SalesOrderModel $order): void
     {
         if (auth()->user()?->isSuperAdmin() || auth()->user()?->canPerform('sales.transaction.salesOrder', 'verify')) {
@@ -449,6 +604,22 @@ class SalesOrder extends Component
         ];
     }
 
+    private function loadSource(SalesCanvas|PreOrder $source): void
+    {
+        $this->customerId = $source->customer_id;
+        $this->customerAddressId = $source->customer_address_id;
+        $this->tax = $source->is_taxed;
+        $this->notes = $source->notes ?? '';
+        $this->items = $source->items->map(fn ($item) => $this->makeItem(
+            $item->product,
+            $item->warehouse_id,
+            $item->unit_id,
+            $item->qty,
+            $item->unit_price,
+            $item->discount_amount,
+        ))->values()->all();
+    }
+
     private function refreshItemStock(int $index): void
     {
         $item = $this->items[$index];
@@ -472,8 +643,9 @@ class SalesOrder extends Component
 
     private function resetForm(): void
     {
-        $this->reset(['showModal', 'showProductModal', 'showDeleteModal', 'editingId', 'deleteTargetId', 'orderNo', 'customerId', 'customerAddressId', 'tax', 'notes', 'items', 'productSearch', 'categoryFilter', 'selectedProductIds']);
+        $this->reset(['showModal', 'showProductModal', 'showDeleteModal', 'editingId', 'deleteTargetId', 'orderNo', 'salesCanvasId', 'preOrderId', 'customerId', 'customerAddressId', 'tax', 'notes', 'items', 'productSearch', 'categoryFilter', 'selectedProductIds']);
         $this->date = now()->format('Y-m-d');
+        $this->sourceType = 'manual';
         $this->resetErrorBag();
     }
 
@@ -510,6 +682,36 @@ class SalesOrder extends Component
 
         return view('livewire.sales.transaction.sales-order', [
             'salesOrders' => $salesOrders,
+            'salesCanvases' => SalesCanvas::query()
+                ->when(! auth()->user()->isSuperAdmin() && ! auth()->user()->canPerform('sales.transaction.salesOrder', 'verify'), fn (Builder $query) => $query->where('salesman_id', $currentSalesmanId ?? 0))
+                ->where(function (Builder $query) {
+                    $query->where(function (Builder $query) {
+                        $query->where('status', SalesCanvas::STATUS_CONFIRMED)
+                            ->whereDoesntHave('salesOrder');
+                    });
+
+                    if ($this->salesCanvasId) {
+                        $query->orWhere('id', $this->salesCanvasId);
+                    }
+                })
+                ->latest('date')
+                ->latest('id')
+                ->get(),
+            'preOrders' => PreOrder::query()
+                ->when(! auth()->user()->isSuperAdmin() && ! $this->canManagePreOrders(), fn (Builder $query) => $query->where('created_by', Auth::id()))
+                ->where(function (Builder $query) {
+                    $query->where(function (Builder $query) {
+                        $query->where('status', PreOrder::STATUS_CONFIRMED)
+                            ->whereDoesntHave('salesOrder');
+                    });
+
+                    if ($this->preOrderId) {
+                        $query->orWhere('id', $this->preOrderId);
+                    }
+                })
+                ->latest('date')
+                ->latest('id')
+                ->get(),
             'customers' => Customer::where('is_active', true)->orderBy('name')->get(),
             'customerAddresses' => CustomerAddress::where('customer_id', $this->customerId)->orderByDesc('is_primary')->orderBy('label')->get(),
             'warehouses' => Warehouse::orderBy('name')->get(),

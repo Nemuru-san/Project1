@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -46,13 +47,19 @@ class SalesInvoice extends Model
         return static::with([
             'salesOrder.salesman', 'salesOrder.customerAddress', 'salesOrder.preOrder', 'salesOrder.salesCanvas',
             'customer.primaryAddress', 'creator',
-            'items.product', 'items.warehouse', 'items.unit',
+            'items.product', 'items.warehouse', 'items.unit', 'deliveryOrders',
         ])->findOrFail($id);
     }
 
     public function salesOrder(): BelongsTo
     {
         return $this->belongsTo(SalesOrder::class);
+    }
+
+    public function deliveryOrders(): BelongsToMany
+    {
+        return $this->belongsToMany(DeliveryOrder::class, 'delivery_order_sales_invoice')
+            ->withTimestamps();
     }
 
     public function customer(): BelongsTo

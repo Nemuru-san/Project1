@@ -8,6 +8,7 @@ use App\Models\ArPayment;
 use App\Models\BankAccount;
 use App\Models\ChartOfAccount;
 use App\Models\Customer;
+use App\Models\DeliveryOrder;
 use App\Models\JournalEntry;
 use App\Models\Product;
 use App\Models\ProductCategory;
@@ -140,4 +141,103 @@ it('posts ar payment only for a confirmed sales invoice and updates invoice bala
         ->and($data['order']->fresh()->amount_due)->toBe(60000)
         ->and($journal->lines->sum('debit'))->toBe(40000)
         ->and($journal->lines->sum('credit'))->toBe(40000);
+});
+it('allows a confirmed sales invoice to be edited and deleted with its journal', function () {
+    $data = verifiedSalesOrderFixture();
+    $this->actingAs($data['user']);
+    $data['order']->forceFill(['status' => 'verified', 'verified_at' => now(), 'verified_by' => $data['user']->id])->save();
+    createSalesInvoiceAccounts();
+
+    Livewire::test(SalesInvoiceComponent::class)
+        ->call('openCreate')
+        ->set('salesOrderId', $data['order']->id)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $invoice = SalesInvoice::sole();
+    Livewire::test(SalesInvoiceComponent::class)
+        ->call('openConfirmInvoice', $invoice->id)
+        ->call('confirmInvoice');
+
+    Livewire::test(SalesInvoiceComponent::class)
+        ->call('openEdit', $invoice->id)
+        ->assertSet('editingId', $invoice->id)
+        ->set('invoiceDate', '2026-08-20')
+        ->set('dueDate', '2026-09-20')
+        ->set('notes', 'Diubah setelah konfirmasi')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $invoice->refresh();
+    $journal = JournalEntry::where('source_type', JournalEntry::SOURCE_SALES_INVOICE)
+        ->where('source_id', $invoice->id)
+        ->sole();
+    expect($invoice->status)->toBe(SalesInvoice::STATUS_CONFIRMED)
+        ->and($invoice->invoice_date->toDateString())->toBe('2026-08-20')
+        ->and($invoice->notes)->toBe('Diubah setelah konfirmasi')
+        ->and($journal->date->toDateString())->toBe('2026-08-20');
+
+    $superAdminRole = Role::create(['name' => 'Super Admin', 'permissions' => ['*']]);
+    $superAdmin = User::factory()->for($superAdminRole)->create();
+    $this->actingAs($superAdmin);
+
+    Livewire::test(SalesInvoiceComponent::class)
+        ->call('confirmDelete', $invoice->id)
+        ->assertSet('showDeleteModal', true)
+        ->call('delete');
+
+    expect($invoice->fresh()->trashed())->toBeTrue()
+        ->and(JournalEntry::withTrashed()->findOrFail($journal->id)->trashed())->toBeTrue();
+});
+
+it('creates one sales invoice from multiple shipped delivery orders', function () {
+    $data = verifiedSalesOrderFixture();
+    $this->actingAs($data['user']);
+    $data['order']->forceFill(['status' => 'verified', 'verified_at' => now(), 'verified_by' => $data['user']->id])->save();
+    $orderItem = $data['order']->items()->firstOrFail();
+
+    $deliveries = collect([
+        ['SJ-MULTI-001', 4],
+        ['SJ-MULTI-002', 3],
+    ])->map(function (array $source) use ($data, $orderItem) {
+        [$number, $qty] = $source;
+        $delivery = DeliveryOrder::create([
+            'delivery_no' => $number,
+            'delivery_date' => '2026-08-20',
+            'sales_order_id' => $data['order']->id,
+            'customer_id' => $data['customer']->id,
+            'status' => DeliveryOrder::STATUS_SHIPPED,
+            'created_by' => $data['user']->id,
+        ]);
+        $delivery->items()->create([
+            'sales_order_item_id' => $orderItem->id,
+            'product_id' => $orderItem->product_id,
+            'warehouse_id' => $orderItem->warehouse_id,
+            'unit_id' => $orderItem->unit_id,
+            'conversion' => $orderItem->conversion,
+            'qty_order' => $orderItem->qty,
+            'qty_delivered' => $qty,
+            'qty_outstanding' => $orderItem->qty - $qty,
+            'qty_base' => $qty * $orderItem->conversion,
+        ]);
+
+        return $delivery;
+    });
+
+    Livewire::test(SalesInvoiceComponent::class)
+        ->call('openCreate')
+        ->set('salesOrderId', $data['order']->id)
+        ->assertSee('SJ-MULTI-001')
+        ->assertSee('SJ-MULTI-002')
+        ->set('selectedDeliveryOrderIds', $deliveries->pluck('id')->all())
+        ->assertSet('items.0.qty', 7)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $invoice = SalesInvoice::with(['deliveryOrders', 'items'])->sole();
+    expect($invoice->deliveryOrders)->toHaveCount(2)
+        ->and($invoice->items)->toHaveCount(1)
+        ->and($invoice->items->first()->qty)->toBe(7)
+        ->and($invoice->grand_total)->toBe(70000)
+        ->and($invoice->amount_due)->toBe(70000);
 });

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -93,6 +94,12 @@ class PurchaseInvoice extends Model
     public function purchaseOrder(): BelongsTo
     {
         return $this->belongsTo(PurchaseOrder::class, 'purchase_order_id');
+    }
+
+    public function goodsReceives(): BelongsToMany
+    {
+        return $this->belongsToMany(GoodsReceive::class, 'goods_receive_purchase_invoice')
+            ->withTimestamps();
     }
 
     public function creator(): BelongsTo

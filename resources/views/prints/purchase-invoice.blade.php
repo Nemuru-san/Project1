@@ -168,7 +168,8 @@
                 <div>
                     Supplier : {{ $invoice->supplier?->name ?? '-' }}<br>
                     Tanggal&nbsp; : {{ $invoice->date?->format('d-m-Y') }}<br>
-                    PO No&nbsp;&nbsp;&nbsp; : {{ $invoice->purchaseOrder?->code ?? '-' }}
+                    PO No&nbsp;&nbsp;&nbsp; : {{ $invoice->purchaseOrder?->code ?? '-' }}<br>
+                    GR No&nbsp;&nbsp;&nbsp; : {{ $invoice->goodsReceives->pluck('code')->implode(', ') ?: '-' }}
                 </div>
 
                 <div>

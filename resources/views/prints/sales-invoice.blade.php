@@ -63,7 +63,7 @@
     </div>
 
     <div class="meta">
-        <div class="cell">NO REF : <span class="u">{{ $invoice->salesOrder?->order_no }}</span></div>
+        <div class="cell">NO REF : <span class="u">{{ $invoice->salesOrder?->order_no }} / {{ $invoice->deliveryOrders->pluck('delivery_no')->implode(', ') ?: '-' }}</span></div>
         <div class="cell">SALES : {{ $invoice->salesOrder?->salesman?->code ?? $invoice->salesOrder?->salesman?->name ?? '-' }}</div>
         <div class="cell">J.Tempo {{ $invoice->due_date?->format('d-m-y') ?? '-' }}</div>
         <div class="cell">Nota {{ $isKontan ? 'KONTAN' : 'KREDIT' }}</div>
@@ -73,42 +73,29 @@
     <table>
         <thead>
             <tr>
-                <th rowspan="2" style="width:26px">NO</th>
-                <th rowspan="2" class="l">N A M A &nbsp; B A R A N G</th>
-                <th rowspan="2" style="width:90px">BANYAKNYA</th>
-                <th rowspan="2" style="width:90px">HARGA</th>
-                <th colspan="3" style="width:180px">D I S C O U N T</th>
-                <th rowspan="2" style="width:110px">JUMLAH</th>
-            </tr>
-            <tr>
-                <th style="width:46px">% I</th>
-                <th style="width:46px">% II</th>
-                <th style="width:88px">NOMINAL</th>
+                <th style="width:26px">NO</th>
+                <th class="l">N A M A &nbsp; B A R A N G</th>
+                <th style="width:90px">BANYAKNYA</th>
+                <th style="width:90px">HARGA</th>
+                <th style="width:88px">D I S C O U N T</th>
+                <th style="width:110px">JUMLAH</th>
             </tr>
         </thead>
         <tbody>
             @foreach($invoice->items as $index => $item)
-                @php
-                    $gross = $item->qty * $item->unit_price;
-                    $discPercent = $gross > 0 && $item->discount_amount > 0
-                        ? rtrim(rtrim(number_format($item->discount_amount / $gross * 100, 2, ',', ''), '0'), ',')
-                        : null;
-                @endphp
                 <tr>
                     <td class="c">{{ $index + 1 }}.</td>
                     <td>{{ strtoupper($item->product?->name ?? '-') }}</td>
                     <td class="r">{{ number_format($item->qty, 0, ',', '.') }} {{ strtoupper($item->unit?->name ?? '') }}</td>
                     <td class="r">{{ number_format($item->unit_price, 0, ',', '.') }}</td>
-                    <td class="c">{{ $discPercent ?? '....' }}</td>
-                    <td class="c">....</td>
                     <td class="r">{{ number_format($item->discount_amount, 0, ',', '.') }}</td>
                     <td class="r">{{ number_format($item->line_total, 0, ',', '.') }}</td>
                 </tr>
             @endforeach
             @for($i = 0; $i < $fillerRows; $i++)
-                <tr class="filler"><td colspan="8">&nbsp;</td></tr>
+                <tr class="filler"><td colspan="6">&nbsp;</td></tr>
             @endfor
-            <tr class="sep"><td colspan="8"></td></tr>
+            <tr class="sep"><td colspan="6"></td></tr>
         </tbody>
     </table>
 

@@ -3,10 +3,12 @@
 namespace App\Livewire\Sales\Transaction;
 
 use App\Models\ChartOfAccount;
+use App\Models\DeliveryOrder;
 use App\Models\JournalEntry;
 use App\Models\SalesInvoice as SalesInvoiceModel;
 use App\Models\SalesOrder;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -38,6 +40,8 @@ class SalesInvoice extends Component
 
     public ?int $deleteTargetId = null;
 
+    public ?int $editingId = null;
+
     public ?SalesInvoiceModel $selectedInvoice = null;
 
     public string $invoiceNo = '';
@@ -47,6 +51,8 @@ class SalesInvoice extends Component
     public string $dueDate = '';
 
     public ?int $salesOrderId = null;
+
+    public array $selectedDeliveryOrderIds = [];
 
     public string $notes = '';
 
@@ -62,8 +68,10 @@ class SalesInvoice extends Component
             'salesOrderId' => [
                 'required', 'integer',
                 Rule::exists('sales_orders', 'id')->whereNotNull('verified_at')->whereNull('deleted_at'),
-                Rule::unique('sales_invoices', 'sales_order_id')->whereNull('deleted_at'),
+                Rule::unique('sales_invoices', 'sales_order_id')->whereNull('deleted_at')->ignore($this->editingId),
             ],
+            'selectedDeliveryOrderIds' => ['array'],
+            'selectedDeliveryOrderIds.*' => ['integer', 'distinct', 'exists:delivery_orders,id'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }
@@ -73,6 +81,7 @@ class SalesInvoice extends Component
         'salesOrderId.exists' => 'Pesanan Penjualan harus dikonfirmasi terlebih dahulu.',
         'salesOrderId.unique' => 'Pesanan Penjualan ini sudah memiliki Faktur Penjualan.',
         'dueDate.after_or_equal' => 'Tanggal jatuh tempo tidak boleh sebelum tanggal faktur.',
+        'selectedDeliveryOrderIds.required' => 'Pilih minimal satu Surat Jalan.',
     ];
 
     public function mount(): void
@@ -115,8 +124,46 @@ class SalesInvoice extends Component
         $this->showModal = true;
     }
 
+    public function openEdit(int $id): void
+    {
+        $this->authorizeModule();
+        $invoice = SalesInvoiceModel::with([
+            'salesOrder', 'items.product', 'items.warehouse', 'items.unit', 'deliveryOrders',
+        ])->findOrFail($id);
+        $this->authorizeInvoice($invoice);
+
+        $this->resetForm();
+        $this->editingId = $invoice->id;
+        $this->invoiceNo = $invoice->invoice_no;
+        $this->invoiceDate = $invoice->invoice_date->toDateString();
+        $this->dueDate = $invoice->due_date?->toDateString() ?? '';
+        $this->salesOrderId = $invoice->sales_order_id;
+        $this->notes = $invoice->notes ?? '';
+        $this->selectedDeliveryOrderIds = $invoice->deliveryOrders->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $this->items = $invoice->items->map(fn ($item) => [
+            'product_name' => $item->product?->name ?? '-',
+            'sku' => $item->product?->sku ?? '-',
+            'warehouse_name' => $item->warehouse?->name ?? '-',
+            'unit_name' => $item->unit?->name ?? '-',
+            'qty' => (int) $item->qty,
+            'unit_price' => (int) $item->unit_price,
+            'discount_amount' => (int) $item->discount_amount,
+            'line_total' => (int) $item->line_total,
+        ])->all();
+        $this->totals = [
+            'subtotal' => (int) $invoice->subtotal,
+            'discount_total' => (int) $invoice->discount_total,
+            'tax_amount' => (int) $invoice->tax_amount,
+            'grand_total' => (int) $invoice->grand_total,
+            'dp_amount' => (int) $invoice->dp_amount,
+            'amount_due' => (int) $invoice->amount_due,
+        ];
+        $this->showModal = true;
+    }
+
     public function updatedSalesOrderId(mixed $value): void
     {
+        $this->selectedDeliveryOrderIds = [];
         $this->items = [];
         $this->totals = [];
         if (! $value) {
@@ -146,12 +193,131 @@ class SalesInvoice extends Component
         $this->totals = $this->totalsFromOrder($order);
     }
 
+    public function updatedSelectedDeliveryOrderIds(): void
+    {
+        $ids = array_values(array_unique(array_map('intval', $this->selectedDeliveryOrderIds)));
+
+        if ($ids === []) {
+            $this->items = [];
+            $this->totals = [];
+
+            return;
+        }
+
+        $deliveryOrders = DeliveryOrder::with([
+            'items.deliveryOrder',
+            'items.salesOrderItem',
+            'items.product',
+            'items.warehouse',
+            'items.unit',
+        ])
+            ->whereIn('id', $ids)
+            ->where('sales_order_id', $this->salesOrderId)
+            ->where('status', DeliveryOrder::STATUS_SHIPPED)
+            ->get();
+
+        if ($deliveryOrders->count() !== count($ids)) {
+            $this->addError('selectedDeliveryOrderIds', 'Semua Surat Jalan harus berstatus Dikirim dan berasal dari SO yang dipilih.');
+            $this->items = [];
+            $this->totals = [];
+
+            return;
+        }
+
+        $order = SalesOrder::findOrFail($this->salesOrderId);
+        $this->items = $this->rowsFromDeliveryOrders($deliveryOrders);
+        $this->totals = $this->totalsFromItems($order, $this->items);
+    }
+
+    private function rowsFromDeliveryOrders(Collection $deliveryOrders): array
+    {
+        return $deliveryOrders->flatMap->items
+            ->groupBy('sales_order_item_id')
+            ->map(function ($items) {
+                $first = $items->first();
+                $orderItem = $first->salesOrderItem;
+                $qty = (int) $items->sum('qty_delivered');
+                $orderedQty = max(1, (int) ($orderItem?->qty ?? $qty));
+                $unitPrice = (int) ($orderItem?->unit_price ?? 0);
+                $discount = (int) round(((int) ($orderItem?->discount_amount ?? 0)) * $qty / $orderedQty);
+
+                return [
+                    'sales_order_item_id' => $first->sales_order_item_id,
+                    'product_id' => $first->product_id,
+                    'warehouse_id' => $first->warehouse_id,
+                    'unit_id' => $first->unit_id,
+                    'conversion' => (int) ($first->conversion ?? 1),
+                    'product_name' => $first->product?->name ?? '-',
+                    'sku' => $first->product?->sku ?? '-',
+                    'warehouse_name' => $first->warehouse?->name ?? '-',
+                    'unit_name' => $first->unit?->name ?? '-',
+                    'do_codes' => $items->pluck('deliveryOrder.delivery_no')->filter()->unique()->implode(', '),
+                    'qty' => $qty,
+                    'unit_price' => $unitPrice,
+                    'discount_amount' => $discount,
+                    'line_total' => max(0, ($qty * $unitPrice) - $discount),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    private function totalsFromItems(SalesOrder $order, array $items): array
+    {
+        $subtotal = collect($items)->sum(fn (array $item) => (int) $item['qty'] * (int) $item['unit_price']);
+        $discount = collect($items)->sum(fn (array $item) => (int) $item['discount_amount']);
+        $taxable = max(0, $subtotal - $discount);
+        $tax = $order->is_taxed ? (int) round($taxable * 0.11) : 0;
+        $grandTotal = $taxable + $tax;
+        $dpAmount = min((int) $order->dp_amount, $grandTotal);
+
+        return [
+            'subtotal' => $subtotal,
+            'discount_total' => $discount,
+            'tax_amount' => $tax,
+            'grand_total' => $grandTotal,
+            'dp_amount' => $dpAmount,
+            'amount_due' => max(0, $grandTotal - $dpAmount),
+        ];
+    }
+
     public function save(): void
     {
         $this->authorizeModule();
         $this->validate();
 
-        $invoice = DB::transaction(function () {
+        if ($this->editingId) {
+            $invoice = DB::transaction(function () {
+                $invoice = SalesInvoiceModel::lockForUpdate()->findOrFail($this->editingId);
+                $this->authorizeInvoice($invoice);
+                abort_unless($invoice->sales_order_id === $this->salesOrderId, 422);
+
+                $invoice->update([
+                    'invoice_date' => $this->invoiceDate,
+                    'due_date' => $this->dueDate ?: null,
+                    'notes' => trim($this->notes) ?: null,
+                ]);
+
+                if ($invoice->status === SalesInvoiceModel::STATUS_CONFIRMED) {
+                    JournalEntry::where('source_type', JournalEntry::SOURCE_SALES_INVOICE)
+                        ->where('source_id', $invoice->id)
+                        ->update([
+                            'date' => $invoice->invoice_date,
+                            'description' => 'Faktur Penjualan '.$invoice->invoice_no,
+                        ]);
+                }
+
+                return $invoice;
+            });
+
+            $this->resetForm();
+            $this->dispatch('toast', message: "Faktur Penjualan {$invoice->invoice_no} berhasil diubah.", type: 'success');
+
+            return;
+        }
+
+        $deliveryOrderIds = array_values(array_unique(array_map('intval', $this->selectedDeliveryOrderIds)));
+        $invoice = DB::transaction(function () use ($deliveryOrderIds) {
             $order = SalesOrder::with('items')->lockForUpdate()->findOrFail($this->salesOrderId);
             $this->authorizeSalesOrder($order);
             if (! $order->verified_at) {
@@ -161,32 +327,69 @@ class SalesInvoice extends Component
                 throw ValidationException::withMessages(['salesOrderId' => 'Pesanan Penjualan ini sudah memiliki Faktur Penjualan.']);
             }
 
+            $deliveryOrders = DeliveryOrder::with([
+                'items.deliveryOrder', 'items.salesOrderItem', 'items.product', 'items.warehouse', 'items.unit',
+            ])->whereIn('id', $deliveryOrderIds)->lockForUpdate()->get();
+            $alreadyUsed = DeliveryOrder::query()
+                ->whereIn('id', $deliveryOrderIds)
+                ->whereHas('salesInvoices')
+                ->exists();
+
+            if ($deliveryOrders->count() !== count($deliveryOrderIds)
+                || $deliveryOrders->contains(fn (DeliveryOrder $deliveryOrder) => $deliveryOrder->status !== DeliveryOrder::STATUS_SHIPPED
+                    || $deliveryOrder->sales_order_id !== $order->id
+                    || $deliveryOrder->customer_id !== $order->customer_id)
+                || $alreadyUsed) {
+                throw ValidationException::withMessages([
+                    'selectedDeliveryOrderIds' => 'Surat Jalan harus berstatus Dikirim, berasal dari SO yang dipilih, dan belum digunakan pada invoice lain.',
+                ]);
+            }
+
+            if ($deliveryOrderIds !== []) {
+                $invoiceItems = $this->rowsFromDeliveryOrders($deliveryOrders);
+                $totals = $this->totalsFromItems($order, $invoiceItems);
+            } else {
+                $invoiceItems = $order->items->map(fn ($item) => [
+                    'sales_order_item_id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'warehouse_id' => $item->warehouse_id,
+                    'unit_id' => $item->unit_id,
+                    'qty' => (int) $item->qty,
+                    'conversion' => (int) $item->conversion,
+                    'unit_price' => (int) $item->unit_price,
+                    'discount_amount' => (int) $item->discount_amount,
+                    'line_total' => (int) $item->line_total,
+                ])->all();
+                $totals = $this->totalsFromOrder($order);
+            }
             $invoice = SalesInvoiceModel::create([
                 'invoice_no' => $this->generateCode(),
                 'invoice_date' => $this->invoiceDate,
                 'due_date' => $this->dueDate ?: null,
                 'sales_order_id' => $order->id,
                 'customer_id' => $order->customer_id,
-                ...$this->totalsFromOrder($order),
+                ...$totals,
                 'paid_amount' => 0,
                 'status' => SalesInvoiceModel::STATUS_DRAFT,
                 'notes' => trim($this->notes) ?: null,
                 'created_by' => Auth::id(),
             ]);
 
-            foreach ($order->items as $item) {
+            foreach ($invoiceItems as $item) {
                 $invoice->items()->create([
-                    'sales_order_item_id' => $item->id,
-                    'product_id' => $item->product_id,
-                    'warehouse_id' => $item->warehouse_id,
-                    'unit_id' => $item->unit_id,
-                    'qty' => $item->qty,
-                    'conversion' => $item->conversion,
-                    'unit_price' => $item->unit_price,
-                    'discount_amount' => $item->discount_amount,
-                    'line_total' => $item->line_total,
+                    'sales_order_item_id' => $item['sales_order_item_id'],
+                    'product_id' => $item['product_id'],
+                    'warehouse_id' => $item['warehouse_id'],
+                    'unit_id' => $item['unit_id'],
+                    'qty' => $item['qty'],
+                    'conversion' => $item['conversion'],
+                    'unit_price' => $item['unit_price'],
+                    'discount_amount' => $item['discount_amount'],
+                    'line_total' => $item['line_total'],
                 ]);
             }
+
+            $invoice->deliveryOrders()->sync($deliveryOrderIds);
 
             return $invoice;
         });
@@ -199,7 +402,7 @@ class SalesInvoice extends Component
     {
         $invoice = SalesInvoiceModel::with([
             'salesOrder.preOrder', 'salesOrder.salesCanvas', 'customer', 'creator', 'confirmer',
-            'items.product', 'items.warehouse', 'items.unit',
+            'items.product', 'items.warehouse', 'items.unit', 'deliveryOrders',
         ])->findOrFail($id);
         $this->authorizeInvoice($invoice);
         $this->selectedInvoice = $invoice;
@@ -278,7 +481,8 @@ class SalesInvoice extends Component
     public function confirmDelete(int $id): void
     {
         abort_unless(auth()->user()?->isSuperAdmin(), 403);
-        abort_unless(SalesInvoiceModel::findOrFail($id)->status === SalesInvoiceModel::STATUS_DRAFT, 422);
+        $invoice = SalesInvoiceModel::findOrFail($id);
+        $this->authorizeInvoice($invoice);
         $this->deleteTargetId = $id;
         $this->showDeleteModal = true;
     }
@@ -289,12 +493,24 @@ class SalesInvoice extends Component
         if (! $this->deleteTargetId) {
             return;
         }
-        $invoice = SalesInvoiceModel::findOrFail($this->deleteTargetId);
-        abort_unless($invoice->status === SalesInvoiceModel::STATUS_DRAFT, 422);
-        $invoice->forceDelete();
+        $invoice = SalesInvoiceModel::withCount(['payments', 'salesReturnInvoices'])->findOrFail($this->deleteTargetId);
+        $this->authorizeInvoice($invoice);
+        if ($invoice->payments_count > 0 || $invoice->sales_return_invoices_count > 0) {
+            $this->dispatch('toast', message: 'Faktur tidak dapat dihapus karena sudah memiliki pembayaran atau retur.', type: 'error');
+
+            return;
+        }
+
+        DB::transaction(function () use ($invoice) {
+            JournalEntry::where('source_type', JournalEntry::SOURCE_SALES_INVOICE)
+                ->where('source_id', $invoice->id)
+                ->get()
+                ->each->delete();
+            $invoice->delete();
+        });
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
-        $this->dispatch('toast', message: 'Draf Faktur Penjualan berhasil dihapus.', type: 'success');
+        $this->dispatch('toast', message: 'Faktur Penjualan berhasil dihapus.', type: 'success');
     }
 
     private function totalsFromOrder(SalesOrder $order): array
@@ -352,8 +568,8 @@ class SalesInvoice extends Component
     {
         $this->reset([
             'showModal', 'showDetailModal', 'showConfirmModal', 'showDeleteModal',
-            'confirmTargetId', 'deleteTargetId', 'selectedInvoice', 'invoiceNo',
-            'salesOrderId', 'notes', 'items', 'totals',
+            'confirmTargetId', 'deleteTargetId', 'editingId', 'selectedInvoice', 'invoiceNo',
+            'salesOrderId', 'selectedDeliveryOrderIds', 'notes', 'items', 'totals',
         ]);
         $this->invoiceDate = now()->toDateString();
         $this->dueDate = now()->addDays(30)->toDateString();
@@ -408,9 +624,32 @@ class SalesInvoice extends Component
             }))
             ->latest('invoice_date')->latest('id')->paginate($this->perPage);
 
+        $salesOrders = $this->accessibleSalesOrders()->latest('date')->get();
+        if ($this->editingId && $this->salesOrderId) {
+            $currentOrder = SalesOrder::with('customer')->find($this->salesOrderId);
+            if ($currentOrder && ! $salesOrders->contains('id', $currentOrder->id)) {
+                $salesOrders->prepend($currentOrder);
+            }
+        }
+
+        $deliveryOrders = DeliveryOrder::query()
+            ->where('sales_order_id', $this->salesOrderId)
+            ->where('status', DeliveryOrder::STATUS_SHIPPED)
+            ->where(function (Builder $query) {
+                $query->whereDoesntHave('salesInvoices');
+
+                if ($this->selectedDeliveryOrderIds !== []) {
+                    $query->orWhereIn('id', array_map('intval', $this->selectedDeliveryOrderIds));
+                }
+            })
+            ->latest('delivery_date')
+            ->latest('id')
+            ->get();
+
         return view('livewire.sales.transaction.sales-invoice', [
             'invoices' => $invoices,
-            'salesOrders' => $this->accessibleSalesOrders()->latest('date')->get(),
+            'salesOrders' => $salesOrders,
+            'deliveryOrders' => $deliveryOrders,
         ]);
     }
 }

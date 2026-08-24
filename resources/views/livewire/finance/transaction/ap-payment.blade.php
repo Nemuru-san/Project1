@@ -225,8 +225,8 @@
                                         <div class="py-1">
                                             <button
                                                 @if (!$locked && auth()->user()->isSuperAdmin()) wire:click="confirmDelete({{ $payment->id }})" @endif
-                                                @disabled($locked || ! auth()->user()->isSuperAdmin())
-                                                @click="open = false" @disabled($locked)
+                                                @disabled($locked || !auth()->user()->isSuperAdmin()) @click="open = false"
+                                                @disabled($locked)
                                                 class="flex items-center gap-2 w-full py-2 px-4 text-base {{ $locked ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer' }}">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -258,7 +258,8 @@
 
     {{-- CREATE / EDIT MODAL --}}
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
+        <div
+            class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
             <div
                 class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-full mx-auto h-[80vh] max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden">
                 <div
@@ -330,7 +331,8 @@
                         </div>
 
                         <div class="w-full">
-                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Metode Pembayaran
+                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Metode
+                                Pembayaran
                             </label>
                             <select wire:model.live="payment_method"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
@@ -390,8 +392,10 @@
                                         </th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">PIV
                                             No</th>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Faktur Pemasok</th>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Tanggal
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
+                                            Faktur Pemasok</th>
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
+                                            Tanggal
                                         </th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Due
                                             Tanggal</th>
@@ -399,14 +403,16 @@
                                             class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm text-right">
                                             Total Keseluruhan</th>
                                         <th
-                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm text-right">Lunas</th>
+                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm text-right">
+                                            Lunas</th>
                                         <th
                                             class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm text-right">
                                             Remaining</th>
                                         <th
                                             class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm text-right">
                                             Amount</th>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Aksi</th>
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Aksi
+                                        </th>
                                     </tr>
                                 </thead>
 
@@ -536,7 +542,8 @@
 
     {{-- DETAIL MODAL --}}
     @if ($showDetail && $selectedPayment)
-        <div class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 backdrop-blur-sm p-4">
+        <div
+            class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 backdrop-blur-sm p-4">
             <div
                 class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[min(80vh,calc(100dvh-2rem))] overflow-y-auto">
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
@@ -772,7 +779,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="delete" @disabled(! auth()->user()->isSuperAdmin())
+                    <button wire:click="delete" @disabled(!auth()->user()->isSuperAdmin())
                         class="px-4 py-2 text-sm rounded-lg bg-red-700 text-white hover:bg-red-800 cursor-pointer">
                         Ya, Hapus
                     </button>

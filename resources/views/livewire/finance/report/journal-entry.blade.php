@@ -227,7 +227,8 @@
 
     {{-- DETAIL MODAL --}}
     @if ($showDetail && $selectedJournal)
-        <div class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 backdrop-blur-sm p-4">
+        <div
+            class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 backdrop-blur-sm p-4">
             <div
                 class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[min(80vh,calc(100dvh-2rem))] overflow-y-auto">
 
@@ -428,7 +429,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="delete" @disabled(! auth()->user()->isSuperAdmin())
+                    <button wire:click="delete" @disabled(!auth()->user()->isSuperAdmin())
                         class="px-4 py-2 text-sm rounded-lg bg-red-700 text-white hover:bg-red-800 cursor-pointer">
                         Ya, Hapus
                     </button>

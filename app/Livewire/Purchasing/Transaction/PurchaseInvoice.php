@@ -3,12 +3,14 @@
 namespace App\Livewire\Purchasing\Transaction;
 
 use App\Models\ChartOfAccount;
+use App\Models\GoodsReceive;
 use App\Models\JournalEntry;
 use App\Models\PurchaseInvoice as ModelsPurchaseInvoice;
 use App\Models\PurchaseOrder;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -69,6 +71,8 @@ class PurchaseInvoice extends Component
 
     public ?int $purchase_order_id = null;
 
+    public array $selectedGoodsReceiveIds = [];
+
     public bool $tax = false;
 
     public string $note = '';
@@ -106,6 +110,8 @@ class PurchaseInvoice extends Component
             'date' => 'required|date',
             'due_date' => 'nullable|date',
             'purchase_order_id' => 'required|exists:purchase_orders,id',
+            'selectedGoodsReceiveIds' => ['array'],
+            'selectedGoodsReceiveIds.*' => ['integer', 'distinct', 'exists:goods_receives,id'],
             'supplier_id' => 'required|exists:suppliers,id',
             'tax' => 'boolean',
             'note' => 'nullable|string|max:1000',
@@ -116,6 +122,7 @@ class PurchaseInvoice extends Component
     protected $messages = [
         'date.required' => 'Tanggal invoice wajib diisi.',
         'purchase_order_id.required' => 'Pesanan Pembelian wajib dipilih.',
+        'selectedGoodsReceiveIds.required' => 'Pilih minimal satu Goods Receive.',
         'supplier_id.required' => 'Supplier wajib dipilih.',
         'itemRows.required' => 'Detail produk wajib ada.',
         'itemRows.min' => 'Minimal harus ada 1 detail produk.',
@@ -202,13 +209,8 @@ class PurchaseInvoice extends Component
             'items.unit',
             'purchaseOrder',
             'supplier',
+            'goodsReceives',
         ])->findOrFail($id);
-
-        if ($invoice->status !== ModelsPurchaseInvoice::STATUS_DRAFT) {
-            $this->dispatch('toast', message: 'Invoice yang sudah posted tidak bisa diedit.', type: 'error');
-
-            return;
-        }
 
         $this->invoiceId = $invoice->id;
         $this->code = $invoice->code;
@@ -219,6 +221,7 @@ class PurchaseInvoice extends Component
         $this->purchase_order_id = $invoice->purchase_order_id;
         $this->tax = (bool) $invoice->tax;
         $this->note = $invoice->note ?? '';
+        $this->selectedGoodsReceiveIds = $invoice->goodsReceives->pluck('id')->map(fn ($id) => (int) $id)->all();
 
         $this->sub_total = (int) $invoice->sub_total;
         $this->discount_total = (int) $invoice->discount_total;
@@ -238,6 +241,7 @@ class PurchaseInvoice extends Component
                 'price' => (int) $item->price,
                 'discount' => (int) $item->discount,
                 'tax_amount' => (int) $item->tax_amount,
+                'gr_codes' => $invoice->goodsReceives->pluck('code')->implode(', ') ?: '-',
                 'total' => (int) $item->total,
 
                 'po_code' => $invoice->purchaseOrder?->code ?? '-',
@@ -253,6 +257,8 @@ class PurchaseInvoice extends Component
 
     public function updatedPurchaseOrderId($value): void
     {
+        $this->selectedGoodsReceiveIds = [];
+        $this->itemRows = [];
         if (! $value) {
             $this->supplier_id = null;
             $this->tax = false;
@@ -383,6 +389,77 @@ class PurchaseInvoice extends Component
         $this->recalculateTotals();
     }
 
+    public function updatedSelectedGoodsReceiveIds(): void
+    {
+        $this->loadSelectedGoodsReceives();
+    }
+
+    private function loadSelectedGoodsReceives(): void
+    {
+        $ids = array_values(array_unique(array_map('intval', $this->selectedGoodsReceiveIds)));
+
+        if ($ids === []) {
+            $this->itemRows = [];
+            $this->recalculateTotals();
+
+            return;
+        }
+
+        $receives = GoodsReceive::with([
+            'items.goodsReceive',
+            'items.purchaseOrderItem',
+            'items.product.category',
+            'items.unit',
+        ])
+            ->whereIn('id', $ids)
+            ->where('purchase_order_id', $this->purchase_order_id)
+            ->where('status', GoodsReceive::STATUS_RECEIVED)
+            ->get();
+
+        if ($receives->count() !== count($ids)) {
+            $this->addError('selectedGoodsReceiveIds', 'Semua Goods Receive harus berstatus Received dan berasal dari PO yang dipilih.');
+            $this->itemRows = [];
+            $this->recalculateTotals();
+
+            return;
+        }
+
+        $this->itemRows = $receives->flatMap->items
+            ->groupBy('purchase_order_item_id')
+            ->map(function ($items) {
+                $first = $items->first();
+                $purchaseOrderItem = $first->purchaseOrderItem;
+                $qty = (int) $items->sum('qty_received');
+                $orderedQty = max(1, (int) ($purchaseOrderItem?->qty ?? $qty));
+                $price = (int) ($purchaseOrderItem?->price ?? 0);
+                $discount = (int) round(((int) ($purchaseOrderItem?->disc ?? 0)) * $qty / $orderedQty);
+
+                return [
+                    'purchase_order_item_id' => $first->purchase_order_item_id,
+                    'product_id' => $first->product_id,
+                    'unit_id' => $first->unit_id,
+                    'conversion' => (int) ($first->conversion ?? 1),
+                    'qty' => $qty,
+                    'qty_base' => (int) $items->sum('qty_base'),
+                    'price' => $price,
+                    'discount' => $discount,
+                    'tax_amount' => 0,
+                    'total' => max(0, ($qty * $price) - $discount),
+                    'po_code' => $first->goodsReceive?->purchaseOrder?->code ?? PurchaseOrder::find($this->purchase_order_id)?->code ?? '-',
+                    'gr_codes' => $items->pluck('goodsReceive.code')->filter()->unique()->implode(', '),
+                    'product_code' => $first->product?->sku ?? '-',
+                    'product_name' => $first->product?->name ?? '-',
+                    'category_name' => $first->product?->category?->desc ?? $first->product?->category?->name ?? '-',
+                    'unit_name' => $first->unit?->name ?? '-',
+                ];
+            })
+            ->values()
+            ->all();
+
+        $this->itemPage = 1;
+        $this->recalculateTotals();
+    }
+
     private function recalculateTotals(): void
     {
         foreach (array_keys($this->itemRows) as $index) {
@@ -424,19 +501,37 @@ class PurchaseInvoice extends Component
             }
         }
 
-        if ($this->invoiceId) {
-            $invoice = ModelsPurchaseInvoice::findOrFail($this->invoiceId);
+        $this->recalculateTotals();
+        $goodsReceiveIds = array_values(array_unique(array_map('intval', $this->selectedGoodsReceiveIds)));
+        if ($this->invoiceId && $goodsReceiveIds === []
+            && ModelsPurchaseInvoice::findOrFail($this->invoiceId)->goodsReceives()->exists()) {
+            $this->addError('selectedGoodsReceiveIds', 'Pilih minimal satu Goods Receive.');
 
-            if ($invoice->status !== ModelsPurchaseInvoice::STATUS_DRAFT) {
-                $this->dispatch('toast', message: 'Invoice yang sudah posted tidak bisa diedit.', type: 'error');
-
-                return;
-            }
+            return;
         }
 
-        $this->recalculateTotals();
+        DB::transaction(function () use ($goodsReceiveIds) {
+            if ($goodsReceiveIds !== []) {
+                $goodsReceives = GoodsReceive::query()
+                    ->whereIn('id', $goodsReceiveIds)
+                    ->lockForUpdate()
+                    ->get();
 
-        DB::transaction(function () {
+                $alreadyUsed = GoodsReceive::query()
+                    ->whereIn('id', $goodsReceiveIds)
+                    ->whereHas('purchaseInvoices', fn ($query) => $query->where('purchase_invoices.id', '<>', $this->invoiceId ?? 0))
+                    ->exists();
+
+                if ($goodsReceives->count() !== count($goodsReceiveIds)
+                    || $goodsReceives->contains(fn (GoodsReceive $receive) => $receive->status !== GoodsReceive::STATUS_RECEIVED
+                        || $receive->purchase_order_id !== $this->purchase_order_id
+                        || $receive->supplier_id !== $this->supplier_id)
+                    || $alreadyUsed) {
+                    throw ValidationException::withMessages([
+                        'selectedGoodsReceiveIds' => 'Goods Receive harus Received, berasal dari PO yang dipilih, dan belum digunakan pada invoice lain.',
+                    ]);
+                }
+            }
             $data = [
                 'code' => $this->code ?: $this->generateCode(),
                 'supplier_invoice_number' => $this->supplier_invoice_number ?: null,
@@ -482,6 +577,16 @@ class PurchaseInvoice extends Component
                     'note' => null,
                 ]);
             }
+
+            if ($goodsReceiveIds !== []) {
+                $invoice->goodsReceives()->sync($goodsReceiveIds);
+            }
+
+            if ($invoice->status === ModelsPurchaseInvoice::STATUS_POSTED) {
+                $invoice->load('supplier');
+                $this->createPurchaseInvoiceJournal($invoice);
+                $this->updatePurchaseOrderPaymentStatus($invoice);
+            }
         });
 
         $this->showModal = false;
@@ -495,6 +600,7 @@ class PurchaseInvoice extends Component
         $this->selectedInvoice = ModelsPurchaseInvoice::with([
             'supplier',
             'purchaseOrder',
+            'goodsReceives',
             'items.product.category',
             'items.unit',
         ])->withTrashed()->findOrFail($id);
@@ -604,23 +710,28 @@ class PurchaseInvoice extends Component
             ->where('source_id', $invoice->id)
             ->first();
 
-        if ($existingJournal) {
-            return;
-        }
-
         $inventoryAccountId = $this->getChartOfAccountId('1200');
         $taxInAccountId = $this->getChartOfAccountId('1400');
         $accountPayableAccountId = $this->getChartOfAccountId('2100');
 
-        $journal = JournalEntry::create([
-            'code' => $this->generateJournalCode(),
+        $journalData = [
             'date' => $invoice->date,
-            'source_type' => JournalEntry::SOURCE_PURCHASE_INVOICE,
-            'source_id' => $invoice->id,
             'description' => 'Faktur Pembelian '.$invoice->code,
             'status' => JournalEntry::STATUS_POSTED,
-            'created_by' => Auth::id(),
-        ]);
+        ];
+
+        if ($existingJournal) {
+            $existingJournal->update($journalData);
+            $existingJournal->lines()->delete();
+            $journal = $existingJournal;
+        } else {
+            $journal = JournalEntry::create($journalData + [
+                'code' => $this->generateJournalCode(),
+                'source_type' => JournalEntry::SOURCE_PURCHASE_INVOICE,
+                'source_id' => $invoice->id,
+                'created_by' => Auth::id(),
+            ]);
+        }
 
         if ((int) $invoice->sub_total > 0) {
             $journal->lines()->create([
@@ -721,12 +832,6 @@ class PurchaseInvoice extends Component
             return;
         }
 
-        if ($invoice->status !== ModelsPurchaseInvoice::STATUS_DRAFT) {
-            $this->dispatch('toast', message: 'Invoice yang sudah posted tidak bisa dihapus.', type: 'error');
-
-            return;
-        }
-
         $this->deleteTargetId = $id;
         $this->showDeleteModal = true;
     }
@@ -743,18 +848,23 @@ class PurchaseInvoice extends Component
             return;
         }
 
-        $invoice = ModelsPurchaseInvoice::findOrFail($this->deleteTargetId);
+        $invoice = ModelsPurchaseInvoice::withCount(['apPaymentDetails', 'purchaseReturnInvoices'])
+            ->findOrFail($this->deleteTargetId);
 
-        if ($invoice->status !== ModelsPurchaseInvoice::STATUS_DRAFT) {
-            $this->showDeleteModal = false;
-            $this->deleteTargetId = null;
-
-            $this->dispatch('toast', message: 'Invoice yang sudah posted tidak bisa dihapus.', type: 'error');
+        if ($invoice->ap_payment_details_count > 0 || $invoice->purchase_return_invoices_count > 0) {
+            $this->dispatch('toast', message: 'Faktur tidak dapat dihapus karena sudah memiliki pembayaran atau retur.', type: 'error');
 
             return;
         }
 
-        $invoice->delete();
+        DB::transaction(function () use ($invoice) {
+            JournalEntry::where('source_type', JournalEntry::SOURCE_PURCHASE_INVOICE)
+                ->where('source_id', $invoice->id)
+                ->get()
+                ->each->delete();
+            $invoice->delete();
+            $invoice->purchaseOrder?->update(['payment_status' => ModelsPurchaseInvoice::PAYMENT_UNPAID]);
+        });
 
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
@@ -786,6 +896,7 @@ class PurchaseInvoice extends Component
         $this->due_date = '';
         $this->supplier_id = null;
         $this->purchase_order_id = null;
+        $this->selectedGoodsReceiveIds = [];
         $this->tax = false;
         $this->note = '';
         $this->top_term = '';
@@ -918,9 +1029,24 @@ class PurchaseInvoice extends Component
 
         $itemRowsTo = min($this->itemPage * $this->itemPerPage, $itemRowsTotal);
 
+        $goodsReceives = GoodsReceive::query()
+            ->where('purchase_order_id', $this->purchase_order_id)
+            ->where('status', GoodsReceive::STATUS_RECEIVED)
+            ->where(function ($query) {
+                $query->whereDoesntHave('purchaseInvoices');
+
+                if ($this->selectedGoodsReceiveIds !== []) {
+                    $query->orWhereIn('id', array_map('intval', $this->selectedGoodsReceiveIds));
+                }
+            })
+            ->latest('date')
+            ->latest('id')
+            ->get();
+
         return view('livewire.purchasing.transaction.purchase-invoice', [
             'invoices' => $invoices,
             'purchaseOrders' => $purchaseOrders,
+            'goodsReceives' => $goodsReceives,
             'visibleItemRows' => $visibleItemRows,
             'itemRowsTotal' => $itemRowsTotal,
             'itemRowsFrom' => $itemRowsFrom,

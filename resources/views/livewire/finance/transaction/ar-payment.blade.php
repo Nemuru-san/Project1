@@ -1,33 +1,192 @@
-<div x-data="{ toastMsg:'', toastType:'' }" @toast.window="toastMsg=$event.detail.message;toastType=$event.detail.type;setTimeout(()=>toastMsg='',3500)">
-    <div x-cloak x-show="toastMsg" :class="toastType==='success'?'bg-green-600':'bg-red-600'" class="fixed right-5 top-5 z-[80] rounded-lg px-4 py-2 text-sm text-white"><span x-text="toastMsg"></span></div>
-    <div class="my-4 flex flex-col gap-3 sm:flex-row"><input wire:model.live.debounce.300ms="search" placeholder="Cari nomor pembayaran atau faktur..." class="w-full rounded-lg border p-2.5 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white sm:w-80"><select wire:model.live="perPage" class="rounded-lg border p-2.5 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"><option>10</option><option>25</option><option>50</option></select><button wire:click="openCreate" class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm text-white sm:ml-auto">+ Tambah Pembayaran Piutang</button></div>
-    <div class="overflow-x-auto rounded-xl border dark:border-zinc-700"><table class="w-full text-left text-sm"><thead class="bg-gray-50 text-xs uppercase dark:bg-zinc-800"><tr><th class="p-3">Nomor</th><th class="p-3">Tanggal</th><th class="p-3">Faktur Penjualan</th><th class="p-3">Pelanggan</th><th class="p-3 text-right">Nominal</th><th class="p-3">Status</th><th class="p-3 text-center">Aksi</th></tr></thead><tbody class="divide-y dark:divide-zinc-700">@forelse($payments as $payment)<tr><td class="p-3 font-medium">{{ $payment->code }}</td><td class="p-3">{{ $payment->payment_date->format('d/m/Y') }}</td><td class="p-3">{{ $payment->salesInvoice?->invoice_no }}</td><td class="p-3">{{ $payment->customer?->name }}</td><td class="p-3 text-right">Rp {{ number_format($payment->amount,0,',','.') }}</td><td class="p-3">{{ $payment->status === 'Posted' ? 'Diposting' : 'Draf' }}</td><td class="p-3 text-center"><div class="inline-block" x-data="{ open: false, top: 0, left: 0, toggle(el) { const r = el.getBoundingClientRect(); this.top = r.bottom + 6; this.left = Math.max(8, r.right - 176); this.open = !this.open } }"><button type="button" @click="toggle($el)" @click.outside="open = false" aria-label="Buka aksi pembayaran piutang" class="inline-flex cursor-pointer items-center rounded-lg p-0.5 text-center text-gray-500 hover:text-gray-800 focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"><svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" /></svg></button><div x-cloak x-show="open" :style="`position: fixed; top: ${top}px; left: ${left}px;`" class="z-50 w-44 divide-y divide-gray-100 rounded bg-white text-left shadow dark:divide-gray-600 dark:bg-gray-700">@if($payment->status === 'Draft')<ul class="py-1 text-base text-gray-700 dark:text-gray-200"><li><button type="button" wire:click="confirmPost({{ $payment->id }})" @click="open = false" class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-blue-700 hover:bg-blue-600 hover:text-white dark:text-blue-300"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0Z" /></svg>Posting Pembayaran</button></li></ul>@else<div class="flex items-center gap-2 px-4 py-2 text-sm text-gray-400"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0Z" /></svg>Sudah Diposting</div>@endif</div></div></td></tr>@empty<tr><td colspan="7" class="p-10 text-center text-gray-400">Belum ada Pembayaran Piutang.</td></tr>@endforelse</tbody></table></div><div class="mt-4">{{ $payments->links() }}</div>
+<div x-data="{ toastMsg: '', toastType: '' }"
+    @toast.window="toastMsg=$event.detail.message;toastType=$event.detail.type;setTimeout(()=>toastMsg='',3500)">
+    <div x-cloak x-show="toastMsg" :class="toastType === 'success' ? 'bg-green-600' : 'bg-red-600'"
+        class="fixed right-5 top-5 z-[80] rounded-lg px-4 py-2 text-sm text-white"><span x-text="toastMsg"></span></div>
+    <div class="my-4 flex flex-col gap-3 sm:flex-row"><input wire:model.live.debounce.300ms="search"
+            placeholder="Cari nomor pembayaran atau faktur..."
+            class="w-full rounded-lg border p-2.5 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white sm:w-80"><select
+            wire:model.live="perPage"
+            class="rounded-lg border p-2.5 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
+            <option>10</option>
+            <option>25</option>
+            <option>50</option>
+        </select><button wire:click="openCreate"
+            class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm text-white sm:ml-auto">+ Tambah Pembayaran
+            Piutang</button></div>
+    <div class="overflow-x-auto rounded-xl border dark:border-zinc-700">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-gray-50 text-xs uppercase dark:bg-zinc-800">
+                <tr>
+                    <th class="p-3">Nomor</th>
+                    <th class="p-3">Tanggal</th>
+                    <th class="p-3">Faktur Penjualan</th>
+                    <th class="p-3">Pelanggan</th>
+                    <th class="p-3 text-right">Nominal</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3 text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y dark:divide-zinc-700">
+                @forelse($payments as $payment)
+                    <tr>
+                        <td class="p-3 font-medium">{{ $payment->code }}</td>
+                        <td class="p-3">{{ $payment->payment_date->format('d/m/Y') }}</td>
+                        <td class="p-3">{{ $payment->salesInvoice?->invoice_no }}</td>
+                        <td class="p-3">{{ $payment->customer?->name }}</td>
+                        <td class="p-3 text-right">Rp {{ number_format($payment->amount, 0, ',', '.') }}</td>
+                        <td class="p-3">{{ $payment->status === 'Posted' ? 'Diposting' : 'Draf' }}</td>
+                        <td class="p-3 text-center">
+                            <div class="inline-block" x-data="{ open: false, top: 0, left: 0, toggle(el) { const r = el.getBoundingClientRect();
+                                    this.top = r.bottom + 6;
+                                    this.left = Math.max(8, r.right - 176);
+                                    this.open = !this.open } }"><button type="button"
+                                    @click="toggle($el)" @click.outside="open = false"
+                                    aria-label="Buka aksi pembayaran piutang"
+                                    class="inline-flex cursor-pointer items-center rounded-lg p-0.5 text-center text-gray-500 hover:text-gray-800 focus:outline-none dark:text-gray-400 dark:hover:text-gray-100"><svg
+                                        class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path
+                                            d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                                    </svg></button>
+                                <div x-cloak x-show="open" :style="`position: fixed; top: ${top}px; left: ${left}px;`"
+                                    class="z-50 w-44 divide-y divide-gray-100 rounded bg-white text-left shadow dark:divide-gray-600 dark:bg-gray-700">
+                                    @if ($payment->status === 'Draft')
+                                        <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
+                                            <li><button type="button" wire:click="confirmPost({{ $payment->id }})"
+                                                    @click="open = false"
+                                                    class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-blue-700 hover:bg-blue-600 hover:text-white dark:text-blue-300"><svg
+                                                        class="h-5 w-5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0Z" />
+                                                    </svg>Posting Pembayaran</button></li>
+                                    </ul>@else<div class="flex items-center gap-2 px-4 py-2 text-sm text-gray-400">
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0Z" />
+                                            </svg>Sudah Diposting</div>
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
+                </tr>@empty<tr>
+                        <td colspan="7" class="p-10 text-center text-gray-400">Belum ada Pembayaran Piutang.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-4">{{ $payments->links() }}</div>
 
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm">
-            <div class="mx-auto flex h-[80vh] max-h-[calc(100dvh-2rem)] w-full max-w-full flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-800">
-                <div class="flex shrink-0 items-center justify-between border-b border-gray-200 bg-zinc-50 px-8 py-6 dark:border-zinc-700 dark:bg-zinc-900">
+        <div
+            class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm">
+            <div
+                class="mx-auto flex h-[80vh] max-h-[calc(100dvh-2rem)] w-full max-w-full flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-800">
+                <div
+                    class="flex shrink-0 items-center justify-between border-b border-gray-200 bg-zinc-50 px-8 py-6 dark:border-zinc-700 dark:bg-zinc-900">
                     <h3 class="text-lg font-semibold dark:text-white">Tambah Pembayaran Piutang</h3>
-                    <button wire:click="$set('showModal', false)" type="button" class="cursor-pointer text-gray-400 hover:text-white"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                    <button wire:click="$set('showModal', false)" type="button"
+                        class="cursor-pointer text-gray-400 hover:text-white"><svg class="h-5 w-5" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg></button>
                 </div>
 
-                <form wire:submit="save" x-on:keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()" class="flex min-h-0 flex-1 flex-col">
+                <form wire:submit="save"
+                    x-on:keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()"
+                    class="flex min-h-0 flex-1 flex-col">
                     <div class="min-h-0 flex-1 overflow-y-auto px-8 py-6">
                         <div class="grid gap-5 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-6">
-                            <div><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Nomor Pembayaran</label><input value="{{ $code }}" readonly class="block w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm text-gray-900 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-400"></div>
-                            <div><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Tanggal Pembayaran</label><input wire:model="paymentDate" type="date" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">@error('paymentDate')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror</div>
-                            <div class="sm:col-span-2"><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Faktur Penjualan Dikonfirmasi</label><select wire:model.live="salesInvoiceId" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><option value="">-- Pilih Faktur Penjualan --</option>@foreach($salesInvoices as $invoice)<option value="{{ $invoice->id }}">{{ $invoice->invoice_no }} - {{ $invoice->salesOrder?->order_no }} - {{ $invoice->customer?->name }} - Sisa Rp {{ number_format($invoice->amount_due,0,',','.') }}</option>@endforeach</select>@error('salesInvoiceId')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror</div>
-                            <div><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Rekening Penerimaan</label><select wire:model="bankAccountId" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><option value="">-- Pilih Rekening --</option>@foreach($bankAccounts as $bank)<option value="{{ $bank->id }}">{{ $bank->name }} - {{ $bank->account_number }}</option>@endforeach</select>@error('bankAccountId')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror</div>
-                            <div><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Metode Pembayaran</label><select wire:model="paymentMethod" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><option>Transfer</option><option>Tunai</option><option>Giro</option></select></div>
-                            <div><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Nominal Pembayaran</label><input wire:model="amount" type="number" min="1" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">@error('amount')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror</div>
-                            <div><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Catatan</label><textarea wire:model="notes" rows="3" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white" placeholder="Masukkan catatan pembayaran..."></textarea>@error('notes')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror</div>
+                            <div><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Nomor
+                                    Pembayaran</label><input value="{{ $code }}" readonly
+                                    class="block w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm text-gray-900 dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-400">
+                            </div>
+                            <div><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Tanggal
+                                    Pembayaran</label><input wire:model="paymentDate" type="date"
+                                    class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                @error('paymentDate')
+                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div class="sm:col-span-2"><label
+                                    class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Faktur
+                                    Penjualan Dikonfirmasi</label><select wire:model.live="salesInvoiceId"
+                                    class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                    <option value="">-- Pilih Faktur Penjualan --</option>
+                                    @foreach ($salesInvoices as $invoice)
+                                        <option value="{{ $invoice->id }}">{{ $invoice->invoice_no }} -
+                                            {{ $invoice->salesOrder?->order_no }} - {{ $invoice->customer?->name }} -
+                                            Sisa Rp {{ number_format($invoice->amount_due, 0, ',', '.') }}</option>
+                                    @endforeach
+                                </select>
+                                @error('salesInvoiceId')
+                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Rekening
+                                    Penerimaan</label><select wire:model="bankAccountId"
+                                    class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                    <option value="">-- Pilih Rekening --</option>
+                                    @foreach ($bankAccounts as $bank)
+                                        <option value="{{ $bank->id }}">{{ $bank->name }} -
+                                            {{ $bank->account_number }}</option>
+                                    @endforeach
+                                </select>
+                                @error('bankAccountId')
+                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Metode
+                                    Pembayaran</label><select wire:model="paymentMethod"
+                                    class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                    <option>Transfer</option>
+                                    <option>Tunai</option>
+                                    <option>Giro</option>
+                                </select></div>
+                            <div><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Nominal
+                                    Pembayaran</label><input wire:model="amount" type="number" min="1"
+                                    class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                @error('amount')
+                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div><label
+                                    class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Catatan</label>
+                                <textarea wire:model="notes" rows="3"
+                                    class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
+                                    placeholder="Masukkan catatan pembayaran..."></textarea>
+                                @error('notes')
+                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
                     </div>
 
-                    <div class="flex shrink-0 justify-end gap-2 border-t border-gray-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900"><button wire:click="$set('showModal', false)" type="button" class="cursor-pointer rounded-lg border border-gray-600 px-4 py-2 text-sm dark:text-gray-300">Batal</button><button type="submit" wire:loading.attr="disabled" class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"><span wire:loading.remove wire:target="save">Simpan Draf</span><span wire:loading wire:target="save">Menyimpan...</span></button></div>
+                    <div
+                        class="flex shrink-0 justify-end gap-2 border-t border-gray-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                        <button wire:click="$set('showModal', false)" type="button"
+                            class="cursor-pointer rounded-lg border border-gray-600 px-4 py-2 text-sm dark:text-gray-300">Batal</button><button
+                            type="submit" wire:loading.attr="disabled"
+                            class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"><span
+                                wire:loading.remove wire:target="save">Simpan Draf</span><span wire:loading
+                                wire:target="save">Menyimpan...</span></button></div>
                 </form>
             </div>
         </div>
     @endif
-    @if($showPostModal)<div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4"><div class="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-zinc-800"><h3 class="mb-2 text-lg font-semibold">Posting Pembayaran Piutang?</h3><p class="mb-6 text-sm text-gray-400">Posting akan mengurangi sisa tagihan dan membuat jurnal penerimaan.</p><div class="flex justify-end gap-3"><button wire:click="$set('showPostModal',false)" class="rounded-lg border px-4 py-2">Batal</button><button wire:click="post" class="rounded-lg bg-green-600 px-4 py-2 text-white">Posting</button></div></div></div>@endif
+    @if ($showPostModal)
+        <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4">
+            <div class="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-zinc-800">
+                <h3 class="mb-2 text-lg font-semibold">Posting Pembayaran Piutang?</h3>
+                <p class="mb-6 text-sm text-gray-400">Posting akan mengurangi sisa tagihan dan membuat jurnal
+                    penerimaan.</p>
+                <div class="flex justify-end gap-3"><button wire:click="$set('showPostModal',false)"
+                        class="rounded-lg border px-4 py-2">Batal</button><button wire:click="post"
+                        class="rounded-lg bg-green-600 px-4 py-2 text-white">Posting</button></div>
+            </div>
+        </div>
+    @endif
 </div>

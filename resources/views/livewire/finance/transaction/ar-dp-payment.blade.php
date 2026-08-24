@@ -1,59 +1,438 @@
-<div x-data="{toastMsg:'',toastType:''}" @toast.window="toastMsg=$event.detail.message;toastType=$event.detail.type;setTimeout(()=>toastMsg='',3500)">
-    <div x-cloak x-show="toastMsg" :class="toastType==='success'?'bg-green-600':'bg-red-600'" class="fixed right-5 top-5 z-[80] rounded-lg px-4 py-2 text-sm text-white shadow"><span x-text="toastMsg"></span></div>
+<div x-data="{ toastMsg: '', toastType: '' }"
+    @toast.window="toastMsg=$event.detail.message;toastType=$event.detail.type;setTimeout(()=>toastMsg='',3500)">
+    <div x-cloak x-show="toastMsg" :class="toastType === 'success' ? 'bg-green-600' : 'bg-red-600'"
+        class="fixed right-5 top-5 z-[80] rounded-lg px-4 py-2 text-sm text-white shadow"><span x-text="toastMsg"></span>
+    </div>
     <div class="my-4 flex flex-col gap-3">
         <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <div class="relative w-full sm:w-80"><div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg></div><input wire:model.live.debounce.300ms="search" type="search" placeholder="Cari nomor DP, pre order, customer..." class="w-full rounded-lg border border-gray-600 p-2.5 pl-10 text-sm dark:bg-zinc-800 dark:text-white"></div>
-            <select wire:model.live="statusFilter" class="rounded-lg border border-gray-600 px-8 py-2.5 text-sm dark:bg-zinc-800 dark:text-white"><option value="">Semua Status</option><option value="Draft">Draf</option><option value="Posted">Posted</option></select>
-            <select wire:model.live="perPage" class="rounded-lg border border-gray-600 px-8 py-2.5 text-sm dark:bg-zinc-800 dark:text-white"><option value="10">10 / hal</option><option value="25">25 / hal</option><option value="50">50 / hal</option></select>
-            <label class="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg border border-gray-600 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300"><input wire:model.live="showTrashed" type="checkbox" class="h-4 w-4 rounded border-gray-600 text-blue-600 dark:bg-zinc-800"> Tampilkan Terhapus</label>
-            <button wire:click="openCreate" class="inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 sm:ml-auto"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>Tambah Transaksi</button>
+            <div class="relative w-full sm:w-80">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><svg
+                        class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                            clip-rule="evenodd" />
+                    </svg></div><input wire:model.live.debounce.300ms="search" type="search"
+                    placeholder="Cari nomor DP, pre order, customer..."
+                    class="w-full rounded-lg border border-gray-600 p-2.5 pl-10 text-sm dark:bg-zinc-800 dark:text-white">
+            </div>
+            <select wire:model.live="statusFilter"
+                class="rounded-lg border border-gray-600 px-8 py-2.5 text-sm dark:bg-zinc-800 dark:text-white">
+                <option value="">Semua Status</option>
+                <option value="Draft">Draf</option>
+                <option value="Posted">Posted</option>
+            </select>
+            <select wire:model.live="perPage"
+                class="rounded-lg border border-gray-600 px-8 py-2.5 text-sm dark:bg-zinc-800 dark:text-white">
+                <option value="10">10 / hal</option>
+                <option value="25">25 / hal</option>
+                <option value="50">50 / hal</option>
+            </select>
+            <label
+                class="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg border border-gray-600 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300"><input
+                    wire:model.live="showTrashed" type="checkbox"
+                    class="h-4 w-4 rounded border-gray-600 text-blue-600 dark:bg-zinc-800"> Tampilkan Terhapus</label>
+            <button wire:click="openCreate"
+                class="inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 sm:ml-auto"><svg
+                    class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>Tambah Transaksi</button>
         </div>
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center"><span class="text-sm font-medium dark:text-gray-300">Rentang tanggal</span><input wire:model.live="dateFrom" type="date" class="rounded-lg border border-gray-600 px-3 py-2.5 text-sm dark:bg-zinc-800 dark:text-white"><span class="hidden sm:inline">s.d.</span><input wire:model.live="dateTo" type="date" class="rounded-lg border border-gray-600 px-3 py-2.5 text-sm dark:bg-zinc-800 dark:text-white"><button wire:click="resetFilters" class="rounded-lg border border-gray-600 px-4 py-2.5 text-sm dark:text-white">Bersihkan Filter</button></div>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center"><span
+                class="text-sm font-medium dark:text-gray-300">Rentang tanggal</span><input wire:model.live="dateFrom"
+                type="date"
+                class="rounded-lg border border-gray-600 px-3 py-2.5 text-sm dark:bg-zinc-800 dark:text-white"><span
+                class="hidden sm:inline">s.d.</span><input wire:model.live="dateTo" type="date"
+                class="rounded-lg border border-gray-600 px-3 py-2.5 text-sm dark:bg-zinc-800 dark:text-white"><button
+                wire:click="resetFilters"
+                class="rounded-lg border border-gray-600 px-4 py-2.5 text-sm dark:text-white">Bersihkan Filter</button>
+        </div>
     </div>
 
-    <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700"><table class="w-full text-left text-sm text-gray-600 dark:text-gray-300"><thead class="bg-gray-50 text-xs uppercase dark:bg-zinc-800"><tr><th class="px-4 py-3">Nomor DP</th><th class="px-4 py-3">Tanggal</th><th class="px-4 py-3">Pre Order</th><th class="px-4 py-3">Customer</th><th class="px-4 py-3">Rekening</th><th class="px-4 py-3">Nilai DP</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Aksi</th></tr></thead><tbody class="divide-y bg-white dark:divide-zinc-700 dark:bg-zinc-900">
-        @forelse($payments as $payment)<tr class="hover:bg-gray-50 dark:hover:bg-zinc-800 {{ $payment->trashed()?'opacity-60':'' }}"><td class="whitespace-nowrap px-4 py-3 font-medium dark:text-white">{{ $payment->code }}</td><td class="px-4 py-3">{{ $payment->payment_date->format('d/m/Y') }}</td><td class="px-4 py-3"><div class="flex flex-wrap gap-1">@foreach($payment->allocations as $allocation)<span class="rounded bg-blue-50 px-2 py-1 text-xs text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">{{ $allocation->preOrder?->pre_order_no }}</span>@endforeach</div></td><td class="px-4 py-3">{{ $payment->customer?->name }}</td><td class="px-4 py-3">{{ $payment->bankAccount?->name }}</td><td class="px-4 py-3 font-medium">Rp {{ number_format($payment->amount,0,',','.') }}</td><td class="px-4 py-3">@if($payment->trashed())<span class="rounded-full bg-red-100 px-2.5 py-1 text-xs text-red-700">Terhapus</span>@elseif($payment->status==='Posted')<span class="rounded-full bg-green-100 px-2.5 py-1 text-xs text-green-700">Posted</span>@else<span class="rounded-full bg-yellow-100 px-2.5 py-1 text-xs text-yellow-700">Draf</span>@endif</td><td class="px-4 py-3">
-            @if($payment->trashed())<button wire:click="restore({{ $payment->id }})" @disabled(!auth()->user()?->isSuperAdmin()) class="text-green-600 disabled:opacity-40">Pulihkan</button>@else
-                <div class="inline-block" x-data="{open:false,top:0,left:0,toggle(el){const r=el.getBoundingClientRect();this.top=r.bottom+6;this.left=Math.max(8,r.right-192);this.open=!this.open}}">
-                    <button @click="toggle($el)" @click.outside="open=false" type="button" class="cursor-pointer p-0.5 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white"><svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" /></svg></button>
-                    <div x-cloak x-show="open" :style="`position:fixed;top:${top}px;left:${left}px`" class="z-50 w-48 divide-y divide-gray-100 rounded bg-white shadow dark:divide-gray-600 dark:bg-gray-700">
-                        <ul class="whitespace-nowrap py-1 text-sm dark:text-gray-200">
-                            <li><button wire:click="openDetail({{ $payment->id }})" @click="open=false" class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>Rincian</button></li>
-                            <li><button wire:click="openEdit({{ $payment->id }})" @click="open=false" @disabled($payment->status!=='Draft') class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-600"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>Ubah</button></li>
-                            <li><button wire:click="confirmPost({{ $payment->id }})" @click="open=false" @disabled($payment->status!=='Draft') class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-green-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-600"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>Posting</button></li>
-                        </ul>
-                        <div class="py-1"><button wire:click="confirmDelete({{ $payment->id }})" @click="open=false" @disabled(!auth()->user()?->isSuperAdmin()||$payment->status!=='Draft') class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>Hapus</button></div>
+    <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700">
+        <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
+            <thead class="bg-gray-50 text-xs uppercase dark:bg-zinc-800">
+                <tr>
+                    <th class="px-4 py-3">Nomor DP</th>
+                    <th class="px-4 py-3">Tanggal</th>
+                    <th class="px-4 py-3">Pre Order</th>
+                    <th class="px-4 py-3">Customer</th>
+                    <th class="px-4 py-3">Rekening</th>
+                    <th class="px-4 py-3">Nilai DP</th>
+                    <th class="px-4 py-3">Status</th>
+                    <th class="px-4 py-3">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y bg-white dark:divide-zinc-700 dark:bg-zinc-900">
+                @forelse($payments as $payment)
+                    <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800 {{ $payment->trashed() ? 'opacity-60' : '' }}">
+                        <td class="whitespace-nowrap px-4 py-3 font-medium dark:text-white">{{ $payment->code }}</td>
+                        <td class="px-4 py-3">{{ $payment->payment_date->format('d/m/Y') }}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex flex-wrap gap-1">
+                                @foreach ($payment->allocations as $allocation)
+                                    <span
+                                        class="rounded bg-blue-50 px-2 py-1 text-xs text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">{{ $allocation->preOrder?->pre_order_no }}</span>
+                                @endforeach
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">{{ $payment->customer?->name }}</td>
+                        <td class="px-4 py-3">{{ $payment->bankAccount?->name }}</td>
+                        <td class="px-4 py-3 font-medium">Rp {{ number_format($payment->amount, 0, ',', '.') }}</td>
+                        <td class="px-4 py-3">
+                            @if ($payment->trashed())
+                                <span class="rounded-full bg-red-100 px-2.5 py-1 text-xs text-red-700">Terhapus</span>
+                            @elseif($payment->status === 'Posted')
+                                <span
+                                class="rounded-full bg-green-100 px-2.5 py-1 text-xs text-green-700">Posted</span>@else<span
+                                    class="rounded-full bg-yellow-100 px-2.5 py-1 text-xs text-yellow-700">Draf</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3">
+                            @if ($payment->trashed())
+                                <button wire:click="restore({{ $payment->id }})" @disabled(!auth()->user()?->isSuperAdmin())
+                                    class="text-green-600 disabled:opacity-40">Pulihkan</button>
+                            @else
+                                <div class="inline-block" x-data="{ open: false, top: 0, left: 0, toggle(el) { const r = el.getBoundingClientRect();
+                                        this.top = r.bottom + 6;
+                                        this.left = Math.max(8, r.right - 192);
+                                        this.open = !this.open } }">
+                                    <button @click="toggle($el)" @click.outside="open=false" type="button"
+                                        class="cursor-pointer p-0.5 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white"><svg
+                                            class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path
+                                                d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                                        </svg></button>
+                                    <div x-cloak x-show="open" :style="`position:fixed;top:${top}px;left:${left}px`"
+                                        class="z-50 w-48 divide-y divide-gray-100 rounded bg-white shadow dark:divide-gray-600 dark:bg-gray-700">
+                                        <ul class="whitespace-nowrap py-1 text-sm dark:text-gray-200">
+                                            <li><button wire:click="openDetail({{ $payment->id }})" @click="open=false"
+                                                    class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600"><svg
+                                                        class="h-5 w-5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>Rincian</button></li>
+                                            <li><button wire:click="openEdit({{ $payment->id }})" @click="open=false"
+                                                    @disabled($payment->status !== 'Draft')
+                                                    class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-600"><svg
+                                                        class="h-5 w-5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>Ubah</button></li>
+                                            <li><button wire:click="confirmPost({{ $payment->id }})"
+                                                    @click="open=false" @disabled($payment->status !== 'Draft')
+                                                    class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-green-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-gray-600"><svg
+                                                        class="h-5 w-5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M5 13l4 4L19 7" />
+                                                    </svg>Posting</button></li>
+                                        </ul>
+                                        <div class="py-1"><button wire:click="confirmDelete({{ $payment->id }})"
+                                                @click="open=false" @disabled(!auth()->user()?->isSuperAdmin() || $payment->status !== 'Draft')
+                                                class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"><svg
+                                                    class="h-5 w-5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>Hapus</button></div>
+                                    </div>
+                                </div>
+                            @endif
+                        </td>
+                </tr>@empty<tr>
+                        <td colspan="8" class="px-4 py-10 text-center text-gray-400">Belum ada penerimaan DP
+                            pelanggan.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+    <div class="mt-4">{{ $payments->links() }}</div>
+
+    @if ($showModal)
+        <div
+            class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm">
+            <div
+                class="flex h-[80vh] max-h-[calc(100dvh-2rem)] w-full max-w-full flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-800">
+                <div
+                    class="flex shrink-0 items-center justify-between border-b border-gray-200 bg-zinc-50 px-8 py-6 dark:border-zinc-700 dark:bg-zinc-900">
+                    <h3 class="text-lg font-semibold dark:text-white">{{ $editingId ? 'Ubah' : 'Tambah' }} Penerimaan DP
+                    </h3><button wire:click="$set('showModal',false)" type="button"
+                        class="cursor-pointer text-gray-400 hover:text-white"><svg class="h-5 w-5" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg></button>
+                </div>
+                <form wire:submit="save"
+                    x-on:keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()"
+                    class="flex min-h-0 flex-1 flex-col">
+                    <div class="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+                        <div class="grid gap-5 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-6">
+                            <div><label class="mb-2 block text-sm font-medium dark:text-white">Nomor DP</label><input
+                                    wire:model="code" readonly
+                                    class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-300">
+                            </div>
+                            <div><label class="mb-2 block text-sm font-medium dark:text-white">Tanggal
+                                    Pembayaran</label><input wire:model="paymentDate" type="date"
+                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                @error('paymentDate')
+                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div class="sm:col-span-2"><label
+                                    class="mb-2 block text-sm font-medium dark:text-white">Customer</label><select
+                                    wire:model.live="customerId"
+                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                    <option value="">-- Pilih Customer Terlebih Dahulu --</option>
+                                    @foreach ($customers as $customer)
+                                        <option value="{{ $customer->id }}">{{ $customer->code }} -
+                                            {{ $customer->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('customerId')
+                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div class="sm:col-span-2">
+                                <div class="mb-2 flex items-center justify-between"><label
+                                        class="text-sm font-medium dark:text-white">Daftar Pesanan Awal</label>
+                                    @if ($customerId)
+                                        <span class="text-xs text-gray-400">Centang satu atau beberapa Pesanan
+                                            Awal</span>
+                                    @endif
+                                </div>
+                                @if (!$customerId)
+                                    <div
+                                        class="rounded-lg border border-dashed border-gray-300 px-4 py-8 text-center text-sm text-gray-400 dark:border-zinc-600">
+                                        Pilih Customer untuk menampilkan Pesanan Awal yang telah dikonfirmasi dan belum
+                                        lunas.</div>
+                                @else
+                                    <div
+                                        class="overflow-x-auto rounded-lg border border-gray-200 dark:border-zinc-700">
+                                        <table class="w-full min-w-[900px] text-left text-sm dark:text-gray-200">
+                                            <thead
+                                                class="bg-gray-50 text-xs uppercase text-gray-600 dark:bg-zinc-900 dark:text-gray-300">
+                                                <tr>
+                                                    <th class="w-14 px-4 py-3 text-center">Pilih</th>
+                                                    <th class="px-4 py-3">Nomor</th>
+                                                    <th class="px-4 py-3">Tanggal</th>
+                                                    <th class="px-4 py-3 text-right">Neto</th>
+                                                    <th class="px-4 py-3 text-right">Target DP</th>
+                                                    <th class="px-4 py-3 text-right">DP Dibayar</th>
+                                                    <th class="px-4 py-3 text-right">Sisa DP</th>
+                                                    <th class="w-48 px-4 py-3 text-right">Nominal Bayar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
+                                                @forelse($preOrders as $preOrder)
+                                                    @php $isSelected=in_array($preOrder->id,array_map('intval',$selectedPreOrderIds),true); @endphp<tr wire:key="ar-dp-po-{{ $preOrder->id }}"
+                                                        wire:click="togglePreOrderSelection({{ $preOrder->id }})"
+                                                        wire:keydown.enter="togglePreOrderSelection({{ $preOrder->id }})"
+                                                        tabindex="0" role="checkbox"
+                                                        aria-checked="{{ $isSelected ? 'true' : 'false' }}"
+                                                        class="cursor-pointer outline-none transition-colors hover:bg-blue-50 focus:ring-2 focus:ring-inset focus:ring-blue-500 dark:hover:bg-blue-950/20 {{ $isSelected ? 'bg-blue-50 dark:bg-blue-950/20' : '' }}">
+                                                        <td class="px-4 py-3 text-center"><input
+                                                                wire:model.live="selectedPreOrderIds" x-on:click.stop
+                                                                type="checkbox" value="{{ $preOrder->id }}"
+                                                                class="h-4 w-4 rounded border-gray-300 text-blue-600">
+                                                        </td>
+                                                        <td
+                                                            class="whitespace-nowrap px-4 py-3 font-medium dark:text-white">
+                                                            {{ $preOrder->pre_order_no }}</td>
+                                                        <td class="whitespace-nowrap px-4 py-3">
+                                                            {{ $preOrder->date->format('d/m/Y') }}</td>
+                                                        <td class="whitespace-nowrap px-4 py-3 text-right">Rp
+                                                            {{ number_format($preOrder->grand_total, 0, ',', '.') }}</td>
+                                                        <td class="whitespace-nowrap px-4 py-3 text-right">Rp
+                                                            {{ number_format($preOrder->dp_amount, 0, ',', '.') }}</td>
+                                                        <td
+                                                            class="whitespace-nowrap px-4 py-3 text-right text-green-600">
+                                                            Rp
+                                                            {{ number_format((int) $preOrder->posted_dp_amount, 0, ',', '.') }}
+                                                        </td>
+                                                        <td class="whitespace-nowrap px-4 py-3 text-right font-medium">
+                                                            Rp
+                                                            {{ number_format($preOrder->remaining_dp_amount, 0, ',', '.') }}
+                                                        </td>
+                                                        <td class="px-4 py-3">
+                                                            @if ($isSelected)
+                                                                <input wire:key="ar-dp-allocation-{{ $preOrder->id }}"
+                                                                    x-on:click.stop type="text" inputmode="numeric"
+                                                                    x-data="{ display: '{{ number_format((int) ($allocations[$preOrder->id] ?? 0), 0, ',', '.') }}' }" x-model="display"
+                                                                    @input="let raw=display.replace(/\./g,'').replace(/\D/g,'');display=raw===''?'':Number(raw).toLocaleString('id-ID');$wire.set('allocations.{{ $preOrder->id }}',raw===''?0:Number(raw))"
+                                                                    class="w-44 rounded-lg border border-gray-300 bg-white p-2 text-right text-xs dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                                                @error("allocations.{$preOrder->id}")
+                                                                    <p class="mt-1 text-xs text-red-500">
+                                                                        {{ $message }}</p>
+                                                                @enderror@else<span
+                                                                    class="block text-right text-xs text-gray-400">Belum
+                                                                    dipilih</span>
+                                                            @endif
+                                                        </td>
+                                                    </tr>
+                                                @empty<tr>
+                                                        <td colspan="8"
+                                                            class="px-4 py-8 text-center text-gray-400">Tidak ada
+                                                            Pesanan Awal terkonfirmasi dengan target DP yang masih
+                                                            tersisa.</td>
+                                                    </tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @endif
+                                @error('selectedPreOrderIds')
+                                    <p class="mt-2 text-xs text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div><label class="mb-2 block text-sm font-medium dark:text-white">Rekening
+                                    Penerimaan</label><select wire:model="bankAccountId"
+                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                    <option value="">-- Pilih Rekening --</option>
+                                    @foreach ($bankAccounts as $bank)
+                                        <option value="{{ $bank->id }}">{{ $bank->name }} -
+                                            {{ $bank->account_number }}</option>
+                                    @endforeach
+                                </select>
+                                @error('bankAccountId')
+                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div><label class="mb-2 block text-sm font-medium dark:text-white">Metode
+                                    Pembayaran</label><select wire:model="paymentMethod"
+                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                    <option>Transfer</option>
+                                    <option>Tunai</option>
+                                    <option>Giro</option>
+                                </select></div>
+                            <div><label class="mb-2 block text-sm font-medium dark:text-white">Total Penerimaan
+                                    DP</label><input value="Rp {{ number_format($amount, 0, ',', '.') }}" readonly
+                                    class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-blue-50 p-2.5 text-sm font-semibold text-blue-700 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300">
+                                <p class="mt-1 text-xs text-gray-400">Dihitung dari jumlah nominal Pesanan Awal yang
+                                    dicentang.</p>
+                            </div>
+                            <div><label class="mb-2 block text-sm font-medium dark:text-white">Catatan</label>
+                                <textarea wire:model="notes" rows="2"
+                                    class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="flex shrink-0 justify-end gap-2 border-t border-gray-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                        <button wire:click="$set('showModal',false)" type="button"
+                            class="cursor-pointer rounded-lg border border-gray-600 px-4 py-2 text-sm dark:text-gray-300">Batal</button><button
+                            type="submit"
+                            class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">Simpan
+                            Draf</button></div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    @if ($showPostModal)
+        <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4">
+            <div class="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-zinc-800">
+                <h3 class="mb-2 text-lg font-semibold dark:text-white">Posting Penerimaan DP?</h3>
+                <p class="mb-6 text-sm text-gray-400">Setelah diposting, status DP Pesanan Awal menjadi Dibayar
+                    Sebagian atau Dibayar. Konversi ke Sales Order baru terbuka setelah target DP lunas.</p>
+                <div class="flex justify-end gap-3"><button wire:click="$set('showPostModal',false)"
+                        class="rounded-lg border px-4 py-2">Batal</button><button wire:click="post"
+                        class="rounded-lg bg-green-600 px-4 py-2 text-white">Posting</button></div>
+            </div>
+        </div>
+    @endif
+    @if ($showDeleteModal)
+        <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4">
+            <div class="w-full max-w-sm rounded-2xl bg-white p-6 dark:bg-zinc-800">
+                <h3 class="mb-6 text-lg font-semibold dark:text-white">Hapus draft penerimaan DP?</h3>
+                <div class="flex justify-end gap-3"><button wire:click="$set('showDeleteModal',false)"
+                        class="rounded-lg border px-4 py-2">Batal</button><button wire:click="delete"
+                        @disabled(!auth()->user()?->isSuperAdmin())
+                        class="rounded-lg bg-red-600 px-4 py-2 text-white disabled:opacity-40">Hapus</button></div>
+            </div>
+        </div>
+    @endif
+    @if ($showDetailModal && $selectedPayment)
+        <div class="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div
+                class="flex max-h-[80vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-900">
+                <div class="flex items-center justify-between border-b p-6 dark:border-zinc-700">
+                    <div>
+                        <h3 class="text-lg font-semibold dark:text-white">Rincian Penerimaan DP</h3>
+                        <p class="font-mono text-sm text-gray-400">{{ $selectedPayment->code }}</p>
+                    </div><button wire:click="$set('showDetailModal',false)"
+                        class="cursor-pointer text-gray-400 hover:text-white"><svg class="h-5 w-5" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg></button>
+                </div>
+                <div class="min-h-0 flex-1 overflow-y-auto p-6">
+                    <dl class="grid gap-5 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                        <div>
+                            <dt class="text-gray-400">Customer</dt>
+                            <dd>{{ $selectedPayment->customer?->code }} - {{ $selectedPayment->customer?->name }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-gray-400">Tanggal</dt>
+                            <dd>{{ $selectedPayment->payment_date->format('d/m/Y') }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-gray-400">Rekening</dt>
+                            <dd>{{ $selectedPayment->bankAccount?->name }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-gray-400">Status</dt>
+                            <dd>{{ $selectedPayment->status }}</dd>
+                        </div>
+                    </dl>
+                    <div class="mt-5 overflow-x-auto rounded-lg border border-gray-200 dark:border-zinc-700">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50 dark:bg-zinc-800">
+                                <tr>
+                                    <th class="px-4 py-3 text-left">Pesanan Awal</th>
+                                    <th class="px-4 py-3 text-left">Tanggal</th>
+                                    <th class="px-4 py-3 text-right">Target DP</th>
+                                    <th class="px-4 py-3 text-right">Alokasi Pembayaran</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y dark:divide-zinc-700">
+                                @foreach ($selectedPayment->allocations as $allocation)
+                                    <tr>
+                                        <td class="px-4 py-3 font-medium">{{ $allocation->preOrder?->pre_order_no }}
+                                        </td>
+                                        <td class="px-4 py-3">{{ $allocation->preOrder?->date?->format('d/m/Y') }}
+                                        </td>
+                                        <td class="px-4 py-3 text-right">Rp
+                                            {{ number_format($allocation->preOrder?->dp_amount ?? 0, 0, ',', '.') }}</td>
+                                        <td class="px-4 py-3 text-right font-medium">Rp
+                                            {{ number_format($allocation->amount, 0, ',', '.') }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot class="bg-gray-50 font-bold dark:bg-zinc-800">
+                                <tr>
+                                    <td colspan="3" class="px-4 py-3 text-right">Total Penerimaan DP</td>
+                                    <td class="px-4 py-3 text-right">Rp
+                                        {{ number_format($selectedPayment->amount, 0, ',', '.') }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
                 </div>
-            @endif
-        </td></tr>@empty<tr><td colspan="8" class="px-4 py-10 text-center text-gray-400">Belum ada penerimaan DP pelanggan.</td></tr>@endforelse
-    </tbody></table></div><div class="mt-4">{{ $payments->links() }}</div>
-
-    @if($showModal)<div class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm"><div class="flex h-[80vh] max-h-[calc(100dvh-2rem)] w-full max-w-full flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-800"><div class="flex shrink-0 items-center justify-between border-b border-gray-200 bg-zinc-50 px-8 py-6 dark:border-zinc-700 dark:bg-zinc-900"><h3 class="text-lg font-semibold dark:text-white">{{ $editingId?'Ubah':'Tambah' }} Penerimaan DP</h3><button wire:click="$set('showModal',false)" type="button" class="cursor-pointer text-gray-400 hover:text-white"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button></div><form wire:submit="save" x-on:keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()" class="flex min-h-0 flex-1 flex-col"><div class="min-h-0 flex-1 overflow-y-auto px-8 py-6"><div class="grid gap-5 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-6">
-        <div><label class="mb-2 block text-sm font-medium dark:text-white">Nomor DP</label><input wire:model="code" readonly class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-300"></div>
-        <div><label class="mb-2 block text-sm font-medium dark:text-white">Tanggal Pembayaran</label><input wire:model="paymentDate" type="date" class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">@error('paymentDate')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror</div>
-
-        <div class="sm:col-span-2"><label class="mb-2 block text-sm font-medium dark:text-white">Customer</label><select wire:model.live="customerId" class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><option value="">-- Pilih Customer Terlebih Dahulu --</option>@foreach($customers as $customer)<option value="{{ $customer->id }}">{{ $customer->code }} - {{ $customer->name }}</option>@endforeach</select>@error('customerId')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror</div>
-
-        <div class="sm:col-span-2"><div class="mb-2 flex items-center justify-between"><label class="text-sm font-medium dark:text-white">Daftar Pesanan Awal</label>@if($customerId)<span class="text-xs text-gray-400">Centang satu atau beberapa Pesanan Awal</span>@endif</div>
-            @if(!$customerId)
-                <div class="rounded-lg border border-dashed border-gray-300 px-4 py-8 text-center text-sm text-gray-400 dark:border-zinc-600">Pilih Customer untuk menampilkan Pesanan Awal yang telah dikonfirmasi dan belum lunas.</div>
-            @else
-                <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-zinc-700"><table class="w-full min-w-[900px] text-left text-sm dark:text-gray-200"><thead class="bg-gray-50 text-xs uppercase text-gray-600 dark:bg-zinc-900 dark:text-gray-300"><tr><th class="w-14 px-4 py-3 text-center">Pilih</th><th class="px-4 py-3">Nomor</th><th class="px-4 py-3">Tanggal</th><th class="px-4 py-3 text-right">Neto</th><th class="px-4 py-3 text-right">Target DP</th><th class="px-4 py-3 text-right">DP Dibayar</th><th class="px-4 py-3 text-right">Sisa DP</th><th class="w-48 px-4 py-3 text-right">Nominal Bayar</th></tr></thead><tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
-                    @forelse($preOrders as $preOrder)@php $isSelected=in_array($preOrder->id,array_map('intval',$selectedPreOrderIds),true); @endphp<tr wire:key="ar-dp-po-{{ $preOrder->id }}" wire:click="togglePreOrderSelection({{ $preOrder->id }})" wire:keydown.enter="togglePreOrderSelection({{ $preOrder->id }})" tabindex="0" role="checkbox" aria-checked="{{ $isSelected?'true':'false' }}" class="cursor-pointer outline-none transition-colors hover:bg-blue-50 focus:ring-2 focus:ring-inset focus:ring-blue-500 dark:hover:bg-blue-950/20 {{ $isSelected?'bg-blue-50 dark:bg-blue-950/20':'' }}"><td class="px-4 py-3 text-center"><input wire:model.live="selectedPreOrderIds" x-on:click.stop type="checkbox" value="{{ $preOrder->id }}" class="h-4 w-4 rounded border-gray-300 text-blue-600"></td><td class="whitespace-nowrap px-4 py-3 font-medium dark:text-white">{{ $preOrder->pre_order_no }}</td><td class="whitespace-nowrap px-4 py-3">{{ $preOrder->date->format('d/m/Y') }}</td><td class="whitespace-nowrap px-4 py-3 text-right">Rp {{ number_format($preOrder->grand_total,0,',','.') }}</td><td class="whitespace-nowrap px-4 py-3 text-right">Rp {{ number_format($preOrder->dp_amount,0,',','.') }}</td><td class="whitespace-nowrap px-4 py-3 text-right text-green-600">Rp {{ number_format((int)$preOrder->posted_dp_amount,0,',','.') }}</td><td class="whitespace-nowrap px-4 py-3 text-right font-medium">Rp {{ number_format($preOrder->remaining_dp_amount,0,',','.') }}</td><td class="px-4 py-3">@if($isSelected)<input wire:key="ar-dp-allocation-{{ $preOrder->id }}" x-on:click.stop type="text" inputmode="numeric" x-data="{display:'{{ number_format((int)($allocations[$preOrder->id]??0),0,',','.') }}'}" x-model="display" @input="let raw=display.replace(/\./g,'').replace(/\D/g,'');display=raw===''?'':Number(raw).toLocaleString('id-ID');$wire.set('allocations.{{ $preOrder->id }}',raw===''?0:Number(raw))" class="w-44 rounded-lg border border-gray-300 bg-white p-2 text-right text-xs dark:border-gray-600 dark:bg-zinc-800 dark:text-white">@error("allocations.{$preOrder->id}")<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror@else<span class="block text-right text-xs text-gray-400">Belum dipilih</span>@endif</td></tr>
-                    @empty<tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">Tidak ada Pesanan Awal terkonfirmasi dengan target DP yang masih tersisa.</td></tr>@endforelse
-                </tbody></table></div>
-            @endif
-            @error('selectedPreOrderIds')<p class="mt-2 text-xs text-red-500">{{ $message }}</p>@enderror
+                <div class="flex justify-end border-t p-4"><button wire:click="$set('showDetailModal',false)"
+                        class="cursor-pointer rounded-lg bg-zinc-700 px-5 py-2 text-white hover:bg-zinc-600">Tutup</button>
+                </div>
+            </div>
         </div>
-
-        <div><label class="mb-2 block text-sm font-medium dark:text-white">Rekening Penerimaan</label><select wire:model="bankAccountId" class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><option value="">-- Pilih Rekening --</option>@foreach($bankAccounts as $bank)<option value="{{ $bank->id }}">{{ $bank->name }} - {{ $bank->account_number }}</option>@endforeach</select>@error('bankAccountId')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror</div>
-        <div><label class="mb-2 block text-sm font-medium dark:text-white">Metode Pembayaran</label><select wire:model="paymentMethod" class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><option>Transfer</option><option>Tunai</option><option>Giro</option></select></div>
-        <div><label class="mb-2 block text-sm font-medium dark:text-white">Total Penerimaan DP</label><input value="Rp {{ number_format($amount,0,',','.') }}" readonly class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-blue-50 p-2.5 text-sm font-semibold text-blue-700 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300"><p class="mt-1 text-xs text-gray-400">Dihitung dari jumlah nominal Pesanan Awal yang dicentang.</p></div>
-        <div><label class="mb-2 block text-sm font-medium dark:text-white">Catatan</label><textarea wire:model="notes" rows="2" class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"></textarea></div>
-    </div></div><div class="flex shrink-0 justify-end gap-2 border-t border-gray-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900"><button wire:click="$set('showModal',false)" type="button" class="cursor-pointer rounded-lg border border-gray-600 px-4 py-2 text-sm dark:text-gray-300">Batal</button><button type="submit" class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">Simpan Draf</button></div></form></div></div>@endif
-
-    @if($showPostModal)<div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4"><div class="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-zinc-800"><h3 class="mb-2 text-lg font-semibold dark:text-white">Posting Penerimaan DP?</h3><p class="mb-6 text-sm text-gray-400">Setelah diposting, status DP Pesanan Awal menjadi Dibayar Sebagian atau Dibayar. Konversi ke Sales Order baru terbuka setelah target DP lunas.</p><div class="flex justify-end gap-3"><button wire:click="$set('showPostModal',false)" class="rounded-lg border px-4 py-2">Batal</button><button wire:click="post" class="rounded-lg bg-green-600 px-4 py-2 text-white">Posting</button></div></div></div>@endif
-    @if($showDeleteModal)<div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4"><div class="w-full max-w-sm rounded-2xl bg-white p-6 dark:bg-zinc-800"><h3 class="mb-6 text-lg font-semibold dark:text-white">Hapus draft penerimaan DP?</h3><div class="flex justify-end gap-3"><button wire:click="$set('showDeleteModal',false)" class="rounded-lg border px-4 py-2">Batal</button><button wire:click="delete" @disabled(!auth()->user()?->isSuperAdmin()) class="rounded-lg bg-red-600 px-4 py-2 text-white disabled:opacity-40">Hapus</button></div></div></div>@endif
-    @if($showDetailModal&&$selectedPayment)<div class="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 backdrop-blur-sm"><div class="flex max-h-[80vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-900"><div class="flex items-center justify-between border-b p-6 dark:border-zinc-700"><div><h3 class="text-lg font-semibold dark:text-white">Rincian Penerimaan DP</h3><p class="font-mono text-sm text-gray-400">{{ $selectedPayment->code }}</p></div><button wire:click="$set('showDetailModal',false)" class="cursor-pointer text-gray-400 hover:text-white"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button></div><div class="min-h-0 flex-1 overflow-y-auto p-6"><dl class="grid gap-5 text-sm sm:grid-cols-2 lg:grid-cols-4"><div><dt class="text-gray-400">Customer</dt><dd>{{ $selectedPayment->customer?->code }} - {{ $selectedPayment->customer?->name }}</dd></div><div><dt class="text-gray-400">Tanggal</dt><dd>{{ $selectedPayment->payment_date->format('d/m/Y') }}</dd></div><div><dt class="text-gray-400">Rekening</dt><dd>{{ $selectedPayment->bankAccount?->name }}</dd></div><div><dt class="text-gray-400">Status</dt><dd>{{ $selectedPayment->status }}</dd></div></dl><div class="mt-5 overflow-x-auto rounded-lg border border-gray-200 dark:border-zinc-700"><table class="w-full text-sm"><thead class="bg-gray-50 dark:bg-zinc-800"><tr><th class="px-4 py-3 text-left">Pesanan Awal</th><th class="px-4 py-3 text-left">Tanggal</th><th class="px-4 py-3 text-right">Target DP</th><th class="px-4 py-3 text-right">Alokasi Pembayaran</th></tr></thead><tbody class="divide-y dark:divide-zinc-700">@foreach($selectedPayment->allocations as $allocation)<tr><td class="px-4 py-3 font-medium">{{ $allocation->preOrder?->pre_order_no }}</td><td class="px-4 py-3">{{ $allocation->preOrder?->date?->format('d/m/Y') }}</td><td class="px-4 py-3 text-right">Rp {{ number_format($allocation->preOrder?->dp_amount??0,0,',','.') }}</td><td class="px-4 py-3 text-right font-medium">Rp {{ number_format($allocation->amount,0,',','.') }}</td></tr>@endforeach</tbody><tfoot class="bg-gray-50 font-bold dark:bg-zinc-800"><tr><td colspan="3" class="px-4 py-3 text-right">Total Penerimaan DP</td><td class="px-4 py-3 text-right">Rp {{ number_format($selectedPayment->amount,0,',','.') }}</td></tr></tfoot></table></div></div><div class="flex justify-end border-t p-4"><button wire:click="$set('showDetailModal',false)" class="cursor-pointer rounded-lg bg-zinc-700 px-5 py-2 text-white hover:bg-zinc-600">Tutup</button></div></div></div>@endif
+    @endif
 </div>

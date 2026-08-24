@@ -183,8 +183,8 @@
                                         <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
                                             @if ($gr->status === 'Draft')
                                                 <li>
-                                                    <button wire:click="confirmReceive({{ $gr->id }})" @disabled(! auth()->user()?->hasPermission('purchases.transaction.good-receive.receive'))
-                                                        @click="open = false"
+                                                    <button wire:click="confirmReceive({{ $gr->id }})"
+                                                        @disabled(!auth()->user()?->hasPermission('purchases.transaction.good-receive.receive')) @click="open = false"
                                                         class="flex items-center gap-2 w-full py-2 px-4 text-green-700 hover:bg-green-700 hover:text-white dark:text-green-300 dark:hover:bg-green-700 dark:hover:text-white cursor-pointer">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                             viewBox="0 0 24 24">
@@ -243,8 +243,8 @@
                                         <div class="py-1">
                                             <button
                                                 @if (!$locked && auth()->user()?->hasPermission('purchases.transaction.good-receive.delete')) wire:click="confirmDelete({{ $gr->id }})" @endif
-                                                @disabled($locked || ! auth()->user()?->hasPermission('purchases.transaction.good-receive.delete'))
-                                                @click="open = false" @disabled($locked)
+                                                @disabled($locked || !auth()->user()?->hasPermission('purchases.transaction.good-receive.delete')) @click="open = false"
+                                                @disabled($locked)
                                                 class="flex items-center gap-2 w-full py-2 px-4 text-base {{ $locked ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer' }}">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -276,7 +276,8 @@
 
     {{-- SHOW MODAL --}}
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
+        <div
+            class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
             <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-full mx-auto h-[80vh] max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden"
                 @click.outside="$wire.showModal = false">
 
@@ -386,7 +387,8 @@
                                             Outstanding</th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Qty
                                             Diterima</th>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Gudang</th>
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
+                                            Gudang</th>
                                     </tr>
                                 </thead>
 
@@ -505,7 +507,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="delete" wire:loading.attr="disabled" @disabled(! auth()->user()?->hasPermission('purchases.transaction.good-receive.delete'))
+                    <button wire:click="delete" wire:loading.attr="disabled" @disabled(!auth()->user()?->hasPermission('purchases.transaction.good-receive.delete'))
                         class="px-4 py-2 text-sm rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-50">
                         <span wire:loading.remove wire:target="delete">Hapus</span>
                         <span wire:loading wire:target="delete">Menghapus...</span>
@@ -517,7 +519,8 @@
 
     {{-- DETAIL MODAL --}}
     @if ($showDetailModal && $selectedGR)
-        <div class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 backdrop-blur-sm p-4">
+        <div
+            class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 backdrop-blur-sm p-4">
             <div
                 class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[min(80vh,calc(100dvh-2rem))] overflow-y-auto">
 
@@ -695,7 +698,8 @@
                                     <option value="Cancelled">Dibatalkan</option>
                                 </select>
 
-                                <button wire:click="updateStatus" wire:loading.attr="disabled" @disabled(! auth()->user()?->hasPermission('purchases.transaction.good-receive.receive'))
+                                <button wire:click="updateStatus" wire:loading.attr="disabled"
+                                    @disabled(!auth()->user()?->hasPermission('purchases.transaction.good-receive.receive'))
                                     class="px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium disabled:opacity-50 cursor-pointer">
                                     <span wire:loading.remove wire:target="updateStatus">Simpan Status</span>
                                     <span wire:loading wire:target="updateStatus">Menyimpan...</span>
@@ -748,7 +752,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="receive" wire:loading.attr="disabled" @disabled(! auth()->user()?->hasPermission('purchases.transaction.good-receive.receive'))
+                    <button wire:click="receive" wire:loading.attr="disabled" @disabled(!auth()->user()?->hasPermission('purchases.transaction.good-receive.receive'))
                         class="px-4 py-2 text-sm rounded-lg bg-green-700 text-white hover:bg-green-800 disabled:opacity-50 cursor-pointer">
                         <span wire:loading.remove wire:target="receive">
                             Ya, Terima
