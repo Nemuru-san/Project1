@@ -213,6 +213,26 @@ table > tbody > tr.erp-table-row-active {
     margin: 0 !important;
 }
 
+/* The row itself is the action trigger; keep only an invisible host for its popup menu. */
+.erp-row-action-host {
+    position: absolute !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+}
+
+.erp-row-action-host > button {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */

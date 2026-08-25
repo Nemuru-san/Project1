@@ -37,3 +37,20 @@ it('keeps all current table action menu variants compatible with the global inte
         expect(preg_match('/\bopen\s*:\s*false/', $contents))->toBe(1);
     });
 });
+
+it('removes the visible action column while retaining its hidden row menu', function () {
+    $script = File::get(resource_path('js/app.js'));
+    $styles = File::get(resource_path('css/app.css'));
+
+    expect($script)
+        ->toContain('hideActionColumns()')
+        ->toContain("/^(aksi|actions?)$/i")
+        ->toContain("actionHeader.remove()")
+        ->toContain("context.host.classList.add('erp-row-action-host')")
+        ->toContain('previousCell.append(context.host)')
+        ->toContain('actionCell.remove()')
+        ->toContain('spanningCell.colSpan = visibleColumnCount')
+        ->and($styles)
+        ->toContain('.erp-row-action-host')
+        ->toContain('pointer-events: none !important');
+});

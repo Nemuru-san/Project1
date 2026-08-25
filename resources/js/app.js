@@ -27,6 +27,53 @@ const actionMenuContext = (row) => {
 
 const menuIsOpen = (menu) => menu && window.getComputedStyle(menu).display !== 'none';
 
+const hideActionColumns = () => {
+    document.querySelectorAll('table').forEach((table) => {
+        const headerCells = [...table.querySelectorAll(':scope > thead > tr > th')];
+        const actionHeader = headerCells.find((cell) => /^(aksi|actions?)$/i.test(cell.textContent.trim()));
+
+        if (actionHeader) {
+            table.dataset.actionColumnIndex = String(headerCells.indexOf(actionHeader));
+            table.dataset.visibleColumnCount = String(headerCells.length - 1);
+            actionHeader.remove();
+        }
+
+        const actionColumnIndex = Number.parseInt(table.dataset.actionColumnIndex ?? '', 10);
+        const visibleColumnCount = Number.parseInt(table.dataset.visibleColumnCount ?? '', 10);
+
+        if (Number.isNaN(actionColumnIndex)) {
+            return;
+        }
+
+        table.querySelectorAll(':scope > tbody > tr').forEach((row) => {
+            const cells = [...row.children].filter((cell) => cell.matches('td, th'));
+            const spanningCell = cells.find((cell) => cell.hasAttribute('colspan'));
+
+            if (spanningCell && ! Number.isNaN(visibleColumnCount)) {
+                spanningCell.colSpan = visibleColumnCount;
+
+                return;
+            }
+
+            const actionCell = cells[actionColumnIndex];
+
+            if (! actionCell) {
+                return;
+            }
+
+            const context = actionMenuContext(row);
+            const previousCell = cells[actionColumnIndex - 1];
+
+            if (context?.host && previousCell) {
+                context.host.classList.add('erp-row-action-host');
+                previousCell.append(context.host);
+            }
+
+            actionCell.remove();
+        });
+    });
+};
+
 const positionActionMenu = (context) => {
     if (! context?.table || ! menuIsOpen(context.menu)) {
         context?.row?.classList.remove('erp-table-row-active');
@@ -53,6 +100,8 @@ const positionActionMenu = (context) => {
 };
 
 const refreshActionRows = () => {
+    hideActionColumns();
+
     document.querySelectorAll('tbody > tr').forEach((row) => {
         const context = actionMenuContext(row);
 
