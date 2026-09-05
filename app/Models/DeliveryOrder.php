@@ -44,7 +44,7 @@ class DeliveryOrder extends Model
     }
 
     /**
-     * Super admin, pembuat dokumen, dan salesman pemilik kanvas asal boleh melihat/mencetak.
+     * Super admin, pembuat dokumen, dan salesman pemilik order boleh melihat/mencetak.
      */
     public function isAccessibleBy(?User $user): bool
     {
@@ -57,8 +57,7 @@ class DeliveryOrder extends Model
 
         $salesmanId = $user->salesman()->where('is_active', true)->value('id');
 
-        return (bool) $this->salesOrder?->salesCanvas
-            && $this->salesOrder->salesCanvas->salesman_id === $salesmanId;
+        return $this->salesOrder?->salesman_id === $salesmanId;
     }
 
     public function salesOrder(): BelongsTo

@@ -6,7 +6,7 @@
 
 @php
     if ($variant === 'solid') {
-        throw new \Exception('The "solid" variant is not supported in Lucide.');
+        throw new \Exception('Varian "solid" tidak didukung oleh Lucide.');
     }
 
     $classes = Flux::classes('shrink-0')->add(

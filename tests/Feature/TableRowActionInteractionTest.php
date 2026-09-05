@@ -11,10 +11,11 @@ it('provides one global row-click interaction for every alpine table action menu
         ->toContain("element.querySelector(':scope > [x-show=\"open\"]')")
         ->toContain("target?.closest('tbody > tr')")
         ->toContain('closeOtherActionMenus(row)')
-        ->toContain("context.trigger.click()")
+        ->toContain('context.trigger.click()')
         ->toContain("context.row.classList.add('erp-table-row-active')")
         ->toContain("context.menu.style.setProperty('position', 'fixed', 'important')")
         ->toContain('const top = rowRect.bottom + 6')
+        ->toContain("window.Livewire.hook('morphed', () => scheduleActionMenuRefresh())")
         ->and($styles)
         ->toContain('tr.erp-table-row-active')
         ->toContain('.erp-action-menu-centered');
@@ -44,8 +45,8 @@ it('removes the visible action column while retaining its hidden row menu', func
 
     expect($script)
         ->toContain('hideActionColumns()')
-        ->toContain("/^(aksi|actions?)$/i")
-        ->toContain("actionHeader.remove()")
+        ->toContain('/^(aksi|actions?)$/i')
+        ->toContain('actionHeader.remove()')
         ->toContain("context.host.classList.add('erp-row-action-host')")
         ->toContain('previousCell.append(context.host)')
         ->toContain('actionCell.remove()')

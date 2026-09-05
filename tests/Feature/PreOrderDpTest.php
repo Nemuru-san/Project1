@@ -105,7 +105,7 @@ it('rejects converting an unconfirmed pre order', function () {
     $data = preOrderDpFixture();
 
     expect(fn () => app(ConvertPreOrderToSalesOrder::class)->handle($data['preOrder']->id))
-        ->toThrow(RuntimeException::class, 'Pesanan Awal harus dikonfirmasi sebelum dijadikan Sales Order.');
+        ->toThrow(RuntimeException::class, 'Pesanan Awal harus dikonfirmasi sebelum dijadikan Pesanan Penjualan.');
 });
 
 it('posts a customer dp and creates a balanced journal', function () {
@@ -137,7 +137,7 @@ it('posts a customer dp and creates a balanced journal', function () {
         ->and(SalesOrder::count())->toBe(0);
 
     expect(fn () => app(ConvertPreOrderToSalesOrder::class)->handle($data['preOrder']->id))
-        ->toThrow(RuntimeException::class, 'Target DP Pesanan Awal harus dibayar lunas sebelum dijadikan Sales Order.');
+        ->toThrow(RuntimeException::class, 'Target DP Pesanan Awal harus dibayar lunas sebelum dijadikan Pesanan Penjualan.');
 
     $finalPayment = ArDpPayment::create([
         'code' => 'ARDP-TEST-FINAL', 'payment_date' => '2026-07-23', 'pre_order_id' => $data['preOrder']->id,

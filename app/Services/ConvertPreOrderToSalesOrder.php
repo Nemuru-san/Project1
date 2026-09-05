@@ -21,11 +21,11 @@ class ConvertPreOrderToSalesOrder
             }
 
             if ($preOrder->status !== PreOrder::STATUS_CONFIRMED) {
-                throw new RuntimeException('Pesanan Awal harus dikonfirmasi sebelum dijadikan Sales Order.');
+                throw new RuntimeException('Pesanan Awal harus dikonfirmasi sebelum dijadikan Pesanan Penjualan.');
             }
 
             if ($preOrder->dp_payment_status !== PreOrder::DP_STATUS_PAID) {
-                throw new RuntimeException('Target DP Pesanan Awal harus dibayar lunas sebelum dijadikan Sales Order.');
+                throw new RuntimeException('Target DP Pesanan Awal harus dibayar lunas sebelum dijadikan Pesanan Penjualan.');
             }
 
             $dpAmount = (int) $preOrder->dpAllocations()
@@ -37,6 +37,7 @@ class ConvertPreOrderToSalesOrder
                 'order_no' => $this->generateCode(),
                 'date' => now()->toDateString(),
                 'pre_order_id' => $preOrder->id,
+                'salesman_id' => $preOrder->customer?->default_salesman_id,
                 'customer_id' => $preOrder->customer_id,
                 'customer_address_id' => $preOrder->customer_address_id,
                 'is_taxed' => $preOrder->is_taxed,

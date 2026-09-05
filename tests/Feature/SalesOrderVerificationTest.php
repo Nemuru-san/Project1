@@ -95,6 +95,70 @@ it('requires sales order confirmation for delivery and invoicing, then invoice c
     Livewire::test(ArPaymentComponent::class)->call('openCreate')->assertSee($invoice->invoice_no);
 });
 
+it('blocks sales order confirmation when customer credit limit is exceeded', function () {
+    $data = verifiedSalesOrderFixture();
+    $data['customer']->update(['credit_limit' => 90000]);
+    $this->actingAs($data['user']);
+
+    Livewire::test(SalesOrderComponent::class)
+        ->call('openConfirmOrder', $data['order']->id)
+        ->call('confirmOrder')
+        ->assertHasErrors(['credit_limit']);
+
+    expect($data['order']->fresh()->status)->toBe('draft');
+});
+
+it('uses customer payment terms for the sales invoice due date', function () {
+    $data = verifiedSalesOrderFixture();
+    $data['customer']->update(['payment_terms_days' => 45]);
+    $data['order']->forceFill(['status' => 'verified', 'verified_at' => now(), 'verified_by' => $data['user']->id])->save();
+    $this->actingAs($data['user']);
+
+    Livewire::test(SalesInvoiceComponent::class)
+        ->call('openCreate')
+        ->set('invoiceDate', '2026-08-20')
+        ->set('salesOrderId', $data['order']->id)
+        ->assertSet('dueDate', '2026-10-04');
+});
+
+it('rechecks customer credit limit when a sales invoice is confirmed', function () {
+    $data = verifiedSalesOrderFixture();
+    $data['customer']->update(['credit_limit' => 150000]);
+    $this->actingAs($data['user']);
+
+    Livewire::test(SalesOrderComponent::class)
+        ->call('openConfirmOrder', $data['order']->id)
+        ->call('confirmOrder')
+        ->assertHasNoErrors();
+
+    Livewire::test(SalesInvoiceComponent::class)
+        ->call('openCreate')
+        ->set('salesOrderId', $data['order']->id)
+        ->call('save')
+        ->assertHasNoErrors();
+    $draftInvoice = SalesInvoice::sole();
+
+    $otherOrder = SalesOrder::create([
+        'order_no' => 'SO-CREDIT-EXISTING', 'date' => '2026-08-01', 'customer_id' => $data['customer']->id,
+        'subtotal' => 60000, 'grand_total' => 60000, 'amount_due' => 60000,
+        'status' => 'verified', 'verified_at' => now(), 'verified_by' => $data['user']->id, 'created_by' => $data['user']->id,
+    ]);
+    SalesInvoice::create([
+        'invoice_no' => 'FP-CREDIT-EXISTING', 'invoice_date' => '2026-08-01', 'due_date' => '2026-08-31',
+        'sales_order_id' => $otherOrder->id, 'customer_id' => $data['customer']->id,
+        'subtotal' => 60000, 'grand_total' => 60000, 'amount_due' => 60000,
+        'status' => SalesInvoice::STATUS_CONFIRMED, 'confirmed_at' => now(), 'confirmed_by' => $data['user']->id, 'created_by' => $data['user']->id,
+    ]);
+    createSalesInvoiceAccounts();
+
+    Livewire::test(SalesInvoiceComponent::class)
+        ->call('openConfirmInvoice', $draftInvoice->id)
+        ->call('confirmInvoice')
+        ->assertDispatched('toast', type: 'error');
+
+    expect($draftInvoice->fresh()->status)->toBe(SalesInvoice::STATUS_DRAFT);
+});
+
 it('enforces one sales invoice per sales order', function () {
     $data = verifiedSalesOrderFixture();
     $this->actingAs($data['user']);

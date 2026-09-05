@@ -195,7 +195,7 @@
 
     @if ($showModal)
         <div
-            class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm">
+            class="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm">
             <div
                 class="mx-auto flex h-[80vh] max-h-[calc(100dvh-2rem)] w-full max-w-full flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-800">
                 <div
@@ -212,7 +212,8 @@
                 <form wire:submit="save"
                     x-on:keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()"
                     class="flex min-h-0 flex-1 flex-col">
-                    <div class="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+                    <div class="min-h-0 flex-1 touch-pan-y overflow-y-auto px-8 py-6"
+                        style="overscroll-behavior: contain; scrollbar-gutter: stable; -webkit-overflow-scrolling: touch;">
                         <div class="grid gap-5 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-6">
                             <div><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Nomor
                                     Surat Jalan</label><input wire:model="deliveryNo" readonly

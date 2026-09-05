@@ -68,12 +68,12 @@ class User extends Component
     }
 
     protected array $messages = [
-        'name.required' => 'Nama user wajib diisi.',
+        'name.required' => 'Nama pengguna wajib diisi.',
         'email.required' => 'Email wajib diisi.',
         // 'email.email' => 'Format email tidak valid.',
         'email.unique' => 'Email sudah digunakan.',
-        'password.required' => 'Password wajib diisi.',
-        'password.min' => 'Password minimal 8 karakter.',
+        'password.required' => 'Kata sandi wajib diisi.',
+        'password.min' => 'Kata sandi minimal 8 karakter.',
         'password.confirmed' => 'Konfirmasi password tidak sama.',
         'role_id.required' => 'Peran wajib dipilih.',
         'role_id.exists' => 'Peran tidak valid.',

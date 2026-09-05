@@ -89,7 +89,7 @@ class ChartOfAccount extends Component
         'type.in' => 'Tipe akun tidak valid.',
         'normal_balance.required' => 'Saldo normal wajib dipilih.',
         'normal_balance.in' => 'Saldo normal tidak valid.',
-        'parent_id.exists' => 'Parent account tidak valid.',
+        'parent_id.exists' => 'Akun induk tidak valid.',
     ];
 
     public function updatingSearch(): void
@@ -131,7 +131,7 @@ class ChartOfAccount extends Component
         $account = ModelsChartOfAccount::findOrFail($id);
 
         if (! $account->is_postable) {
-            $this->dispatch('toast', message: 'Akun header tidak bisa diedit.', type: 'error');
+            $this->dispatch('toast', message: 'Akun induk tidak dapat diubah.', type: 'error');
 
             return;
         }
@@ -153,7 +153,7 @@ class ChartOfAccount extends Component
         $this->validate();
 
         if ($this->accountId && $this->parent_id === $this->accountId) {
-            $this->addError('parent_id', 'Parent account tidak boleh dirinya sendiri.');
+            $this->addError('parent_id', 'Akun induk tidak boleh mengacu pada dirinya sendiri.');
 
             return;
         }
@@ -191,7 +191,7 @@ class ChartOfAccount extends Component
         }
 
         if (! $account->is_postable) {
-            $this->dispatch('toast', message: 'Akun header tidak bisa dihapus.', type: 'error');
+            $this->dispatch('toast', message: 'Akun induk tidak dapat dihapus.', type: 'error');
 
             return;
         }
@@ -218,7 +218,7 @@ class ChartOfAccount extends Component
             $this->showDeleteModal = false;
             $this->deleteTargetId = null;
 
-            $this->dispatch('toast', message: 'Akun header tidak bisa dihapus.', type: 'error');
+            $this->dispatch('toast', message: 'Akun induk tidak dapat dihapus.', type: 'error');
 
             return;
         }
@@ -227,7 +227,7 @@ class ChartOfAccount extends Component
             $this->showDeleteModal = false;
             $this->deleteTargetId = null;
 
-            $this->dispatch('toast', message: 'Akun tidak bisa dihapus karena masih punya child account.', type: 'error');
+            $this->dispatch('toast', message: 'Akun tidak dapat dihapus karena masih memiliki akun turunan.', type: 'error');
 
             return;
         }

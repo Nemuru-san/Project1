@@ -104,6 +104,8 @@
                     :expanded="request()->routeIs('sales.master.*')">
                     <flux:sidebar.item href="{{ route('sales.master.customer') }}" wire:navigate>Pelanggan
                     </flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('sales.master.customer-address-code') }}" wire:navigate>Kode Alamat
+                    </flux:sidebar.item>
                     <flux:sidebar.item href="{{ route('sales.master.salesman') }}" wire:navigate>Tenaga Penjualan</flux:sidebar.item>
                 </flux:sidebar.group>
 

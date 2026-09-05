@@ -80,7 +80,7 @@
                             {{ $order->order_no }}</td>
                         <td class="whitespace-nowrap px-4 py-3">{{ $order->date->format('d/m/Y') }}</td>
                         <td class="whitespace-nowrap px-4 py-3">
-                            {{ $order->preOrder?->pre_order_no ?? ($order->salesCanvas?->canvas_no ?? 'Manual') }}</td>
+                            {{ $order->order_type === 'direct' ? 'Penjualan Langsung / Scan' : ($order->preOrder?->pre_order_no ?? ($order->salesCanvas?->canvas_no ?? 'Manual')) }}</td>
                         <td class="px-4 py-3">{{ $order->customer?->name ?? '-' }}</td>
                         <td class="whitespace-nowrap px-4 py-3 text-right font-medium">Rp
                             {{ number_format($order->grand_total, 0, ',', '.') }}</td>
@@ -132,7 +132,15 @@
                                                             stroke-width="2"
                                                             d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                     </svg>Rincian</button></li>
-                                            @if ($order->status === 'draft' && auth()->user()?->canPerform('sales.transaction.salesOrder', 'verify'))
+                                            @if($order->order_type === 'direct' && $order->status === 'completed' && $order->salesInvoice)
+                                                <li><a href="{{ route('sales.transaction.salesOrder.thermal-print', $order->id) }}" target="_blank" @click="open=false"
+                                                    class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-purple-600 hover:bg-purple-600 hover:text-white dark:text-purple-300">
+                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2m-12-4h12v8H6v-8Z" />
+                                                    </svg>Print Thermal
+                                                </a></li>
+                                            @endif
+                                            @if ($order->status === 'draft' && $order->order_type !== 'direct' && auth()->user()?->canPerform('sales.transaction.salesOrder', 'verify'))
                                                 <li><button type="button"
                                                         wire:click="openConfirmOrder({{ $order->id }})"
                                                         @click="open=false"
@@ -181,7 +189,7 @@
 
     @if ($showModal)
         <div
-            class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm">
+            class="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm">
             <div
                 class="mx-auto flex h-[80vh] max-h-[calc(100dvh-2rem)] w-full max-w-full flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-800">
                 <div
@@ -196,10 +204,11 @@
                         </svg></button>
                 </div>
 
-                <form wire:submit="save"
+                <form wire:submit="save" x-on:scan-focus.window="$nextTick(() => $refs.scanInput?.focus())"
                     x-on:keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()"
                     class="flex min-h-0 flex-1 flex-col">
-                    <div class="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+                    <div class="min-h-0 flex-1 touch-pan-y overflow-y-auto px-8 py-6"
+                        style="overscroll-behavior: contain; scrollbar-gutter: stable; -webkit-overflow-scrolling: touch;">
                         <div class="grid gap-5 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-6">
                             <div><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Nomor
                                     SO</label><input wire:model="orderNo" readonly
@@ -213,8 +222,18 @@
                                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                                 @enderror
                             </div>
-                            <div><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Sumber
-                                    Sales Order</label><select wire:model.live="sourceType"
+                            <div><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Mode Transaksi</label><select wire:model.live="orderType"
+                                    @disabled($editingId)
+                                    class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                    <option value="regular">Sales Order Reguler</option>
+                                    <option value="direct">Penjualan Langsung / Scan</option>
+                                </select>
+                                @error('orderType')
+                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            @if($orderType === 'regular')
+                            <div><label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Sumber Sales Order</label><select wire:model.live="sourceType"
                                     @disabled($editingId)
                                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
                                     <option value="manual">Manual / Tanpa Referensi</option>
@@ -225,6 +244,7 @@
                                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                                 @enderror
                             </div>
+                            @endif
                             @if ($sourceType === 'sales_canvas')
                                 <div><label
                                         class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Nomor
@@ -308,6 +328,34 @@
                                 <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
+                        @if($orderType === 'direct')
+                            <div class="mt-6 rounded-xl border-2 border-blue-300 bg-blue-50 p-5 dark:border-blue-800 dark:bg-blue-950/30">
+                                <div class="mb-4">
+                                    <h3 class="text-lg font-bold text-blue-900 dark:text-blue-200">Scan Barang</h3>
+                                    <p class="text-sm text-blue-700 dark:text-blue-300">Pilih gudang, lalu scan barcode atau SKU. Scan produk yang sama akan menambah qty.</p>
+                                </div>
+                                <div class="grid gap-4 md:grid-cols-[260px_1fr_auto]">
+                                    <div>
+                                        <label class="mb-1 block text-sm font-medium dark:text-white">Gudang</label>
+                                        <select wire:model="scanWarehouseId" class="w-full rounded-lg border border-gray-300 bg-white p-3 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                            <option value="">-- Pilih Gudang --</option>
+                                            @foreach($warehouses as $warehouse)
+                                                <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('scanWarehouseId') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div>
+                                        <label class="mb-1 block text-sm font-medium dark:text-white">Barcode / SKU</label>
+                                        <input x-ref="scanInput" wire:model="scanCode" wire:keydown.enter.prevent="scanProduct"
+                                            type="text" autocomplete="off" autofocus placeholder="Scan barcode lalu tekan Enter"
+                                            class="w-full rounded-lg border border-blue-400 bg-white p-3 font-mono text-lg dark:border-blue-700 dark:bg-zinc-800 dark:text-white">
+                                        @error('scanCode') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                    </div>
+                                    <button type="button" wire:click="scanProduct" class="self-end rounded-lg bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700">Tambah</button>
+                                </div>
+                            </div>
+                        @endif
                         <div class="mt-12">
                             <h3 class="mb-4 text-lg font-bold text-gray-900 dark:text-white">Detail Produk</h3>
                             @error('items')
@@ -331,8 +379,7 @@
                                             </th>
                                             <th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">Satuan
                                             </th>
-                                            <th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">AFS (Stok
-                                                Tersedia)</th>
+                                            <th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">AFS (Stok Tersedia)</th>
                                             <th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">Qty</th>
                                             <th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">Harga
                                             </th>
@@ -344,7 +391,7 @@
                                     </thead>
                                     <tbody>
                                         @forelse($items as $index => $item)
-                                            <tr wire:key="so-item-{{ $item['product_id'] }}"
+                                            <tr wire:key="so-item-{{ $item['product_id'] }}-{{ $item['warehouse_id'] }}-{{ $index }}"
                                                 class="hover:bg-gray-100 dark:hover:bg-zinc-800">
                                                 <td
                                                     class="border border-gray-300 px-4 py-3 text-center dark:border-zinc-600">
@@ -427,12 +474,77 @@
                                 @endforeach
                             </div>
                         </div>
+                        @if($orderType === 'direct')
+                            @php $selectedCustomer = $customers->firstWhere('id', $customerId); @endphp
+                            <div class="mt-6 rounded-xl border border-emerald-300 bg-emerald-50 p-5 dark:border-emerald-800 dark:bg-emerald-950/30">
+                                <h4 class="mb-4 text-lg font-bold text-emerald-900 dark:text-emerald-200">Pembayaran & Checkout</h4>
+                                @error('checkout') <p class="mb-3 rounded bg-red-100 p-2 text-sm text-red-700">{{ $message }}</p> @enderror
+                                @if($selectedCustomer)
+                                    <div class="mb-4 grid gap-2 rounded-lg bg-white/70 p-3 text-sm md:grid-cols-3 dark:bg-zinc-900/50 dark:text-gray-200">
+                                        <div>Customer: <strong>{{ $selectedCustomer->name }}</strong></div>
+                                        <div>Plafon: <strong>{{ $selectedCustomer->credit_limit === null ? 'Tanpa batas' : 'Rp '.number_format($selectedCustomer->credit_limit, 0, ',', '.') }}</strong></div>
+                                        <div>Termin: <strong>{{ $selectedCustomer->payment_terms_days }} hari</strong></div>
+                                    </div>
+                                @endif
+                                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                    <div>
+                                        <label class="mb-1 block text-sm font-medium dark:text-white">Jenis Pembayaran</label>
+                                        <select wire:model.live="paymentMode" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                            <option value="paid">Lunas</option>
+                                            <option value="partial">Bayar Sebagian</option>
+                                            <option value="credit">Kredit</option>
+                                        </select>
+                                    </div>
+                                    @if($paymentMode !== 'credit')
+                                        <div>
+                                            <label class="mb-1 block text-sm font-medium dark:text-white">Metode</label>
+                                            <select wire:model="paymentMethod" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                                <option value="Tunai">Tunai</option>
+                                                <option value="Transfer">Transfer</option>
+                                                <option value="Giro">Giro</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="mb-1 block text-sm font-medium dark:text-white">Akun Kas / Bank</label>
+                                            <select wire:model="bankAccountId" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                                <option value="">-- Pilih Akun --</option>
+                                                @foreach($bankAccounts as $account)
+                                                    <option value="{{ $account->id }}">{{ $account->display_label }}</option>
+                                                @endforeach
+                                            </select>
+                                            @error('bankAccountId') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                        </div>
+                                    @endif
+                                    <div>
+                                        <label class="mb-1 block text-sm font-medium dark:text-white">Jumlah Dibayar</label>
+                                        @if($paymentMode === 'partial')
+                                            <input wire:model="paidAmount" type="number" min="1" max="{{ max(0, $totals['grand_total'] - 1) }}" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                        @else
+                                            <input value="Rp {{ number_format($paymentMode === 'paid' ? $totals['grand_total'] : 0, 0, ',', '.') }}" readonly class="w-full rounded-lg border bg-gray-100 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-300">
+                                        @endif
+                                        @error('paidAmount') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex justify-between rounded-lg border-t border-emerald-300 pt-4 text-sm dark:border-emerald-800 dark:text-gray-200">
+                                    <span>Sisa setelah checkout</span>
+                                    <strong>Rp {{ number_format(max(0, $totals['grand_total'] - ($paymentMode === 'paid' ? $totals['grand_total'] : ($paymentMode === 'credit' ? 0 : $paidAmount))), 0, ',', '.') }}</strong>
+                                </div>
+                            </div>
+                        @endif
                     </div>
 
                     <div
                         class="flex shrink-0 justify-end gap-2 border-t border-gray-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
                         <button wire:click="$set('showModal', false)" type="button"
-                            class="cursor-pointer rounded-lg border border-gray-600 px-4 py-2 text-sm dark:text-gray-300">Batal</button><button
+                            class="cursor-pointer rounded-lg border border-gray-600 px-4 py-2 text-sm dark:text-gray-300">Batal</button>
+                        @if($orderType === 'direct' && auth()->user()?->canPerform('sales.transaction.salesOrder', 'verify'))
+                            <button type="button" wire:click="checkout" wire:loading.attr="disabled" wire:target="checkout"
+                                class="cursor-pointer rounded-lg bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50">
+                                <span wire:loading.remove wire:target="checkout">Checkout & Proses</span>
+                                <span wire:loading wire:target="checkout">Memproses...</span>
+                            </button>
+                        @endif
+                        <button
                             type="submit" wire:loading.attr="disabled"
                             class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"><span
                                 wire:loading.remove wire:target="save">Simpan</span><span wire:loading

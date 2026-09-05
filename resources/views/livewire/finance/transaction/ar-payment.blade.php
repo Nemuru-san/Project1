@@ -131,8 +131,7 @@
                                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
                                     <option value="">-- Pilih Rekening --</option>
                                     @foreach ($bankAccounts as $bank)
-                                        <option value="{{ $bank->id }}">{{ $bank->name }} -
-                                            {{ $bank->account_number }}</option>
+                                        <option value="{{ $bank->id }}">{{ $bank->display_label }}</option>
                                     @endforeach
                                 </select>
                                 @error('bankAccountId')

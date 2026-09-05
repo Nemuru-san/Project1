@@ -111,8 +111,8 @@ class PurchaseOrder extends Component
             'date.date' => 'Format tanggal tidak valid.',
             'date.before_or_equal' => 'Tanggal tidak boleh lebih dari hari ini.',
 
-            'supplier_id.required' => 'Supplier wajib dipilih.',
-            'supplier_id.exists' => 'Supplier tidak valid.',
+            'supplier_id.required' => 'Pemasok wajib dipilih.',
+            'supplier_id.exists' => 'Pemasok tidak valid.',
 
             'items.required' => 'Detail produk wajib diisi.',
             'items.array' => 'Format detail produk tidak valid.',
@@ -132,9 +132,9 @@ class PurchaseOrder extends Component
             'items.*.qty.integer' => 'Qty order harus angka bulat.',
             'items.*.qty.min' => 'Qty order minimal 1.',
 
-            'items.*.price.required' => 'Price wajib diisi.',
+            'items.*.price.required' => 'Harga wajib diisi.',
             'items.*.price.numeric' => 'Price harus angka.',
-            'items.*.price.min' => 'Price tidak boleh minus.',
+            'items.*.price.min' => 'Harga tidak boleh negatif.',
 
             'items.*.disc.required' => 'Disc wajib diisi. Isi 0 jika tidak ada diskon.',
             'items.*.disc.integer' => 'Disc harus angka bulat.',
@@ -702,7 +702,7 @@ class PurchaseOrder extends Component
             PurchaseOrderModel::STATUS_DRAFT,
             PurchaseOrderModel::STATUS_APPROVED,
         ])) {
-            $this->addError('selectedStatus', 'Status PO ini sudah tidak bisa diubah manual.');
+            $this->addError('selectedStatus', 'Status Pesanan Pembelian ini tidak dapat diubah secara manual.');
 
             return;
         }
@@ -716,7 +716,7 @@ class PurchaseOrder extends Component
             $this->selectedStatus === PurchaseOrderModel::STATUS_DRAFT
         ) {
             if ($purchaseOrder->goodsReceives()->exists()) {
-                $this->addError('selectedStatus', 'PO tidak bisa dikembalikan ke Draft karena sudah memiliki Goods Receive.');
+                $this->addError('selectedStatus', 'Pesanan Pembelian tidak dapat dikembalikan ke Draf karena sudah memiliki Penerimaan Barang.');
 
                 return;
             }
@@ -733,13 +733,13 @@ class PurchaseOrder extends Component
             $this->selectedStatus === PurchaseOrderModel::STATUS_APPROVED
         ) {
             if ($purchaseOrder->items()->count() <= 0) {
-                $this->addError('selectedStatus', 'PO tidak bisa di-approve karena item masih kosong.');
+                $this->addError('selectedStatus', 'Pesanan Pembelian tidak dapat disetujui karena rincian masih kosong.');
 
                 return;
             }
 
             if ((int) $purchaseOrder->nett <= 0) {
-                $this->addError('selectedStatus', 'PO tidak bisa di-approve karena nett masih 0.');
+                $this->addError('selectedStatus', 'Pesanan Pembelian tidak dapat disetujui karena nilai bersih masih 0.');
 
                 return;
             }

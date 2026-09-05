@@ -57,9 +57,9 @@ class Warehouse extends Component
     }
 
     protected array $messages = [
-        'name.required' => 'Nama warehouse wajib diisi.',
-        'name.unique' => 'Nama warehouse sudah digunakan.',
-        'name.max' => 'Nama warehouse maksimal 255 karakter.',
+        'name.required' => 'Nama gudang wajib diisi.',
+        'name.unique' => 'Nama gudang sudah digunakan.',
+        'name.max' => 'Nama gudang maksimal 255 karakter.',
         'desc.max' => 'Deskripsi maksimal 255 karakter.',
         'address.max' => 'Alamat maksimal 255 karakter.',
     ];

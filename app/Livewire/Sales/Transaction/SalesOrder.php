@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Sales\Transaction;
 
+use App\Models\BankAccount;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\PreOrder;
@@ -13,6 +14,8 @@ use App\Models\SalesOrder as SalesOrderModel;
 use App\Models\Warehouse;
 use App\Services\Inventory\AvailableForSalesService;
 use App\Services\Inventory\StockQuantityFormatter;
+use App\Services\Sales\CustomerCreditService;
+use App\Services\Sales\DirectSalesCheckoutService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -57,6 +60,8 @@ class SalesOrder extends Component
 
     public string $sourceType = 'manual';
 
+    public string $orderType = 'regular';
+
     public string $orderNo = '';
 
     public string $date = '';
@@ -81,6 +86,18 @@ class SalesOrder extends Component
 
     public array $selectedProductIds = [];
 
+    public string $scanCode = '';
+
+    public ?int $scanWarehouseId = null;
+
+    public string $paymentMode = 'paid';
+
+    public string $paymentMethod = 'Tunai';
+
+    public ?int $bankAccountId = null;
+
+    public int $paidAmount = 0;
+
     protected function rules(): array
     {
         $currentOrder = $this->editingId
@@ -89,6 +106,7 @@ class SalesOrder extends Component
 
         return [
             'date' => ['required', 'date'],
+            'orderType' => ['required', Rule::in(['regular', 'direct'])],
             'sourceType' => ['required', Rule::in(['manual', 'sales_canvas', 'pre_order'])],
             'salesCanvasId' => ['nullable', 'required_if:sourceType,sales_canvas', 'integer', Rule::exists('sales_canvases', 'id')->where(function ($query) use ($currentOrder) {
                 $query->whereNull('deleted_at')->where(function ($query) use ($currentOrder) {
@@ -124,11 +142,11 @@ class SalesOrder extends Component
     }
 
     protected $messages = [
-        'customerId.required' => 'Customer wajib dipilih.',
+        'customerId.required' => 'Pelanggan wajib dipilih.',
         'salesCanvasId.required_if' => 'Nomor Sales Kanvas wajib dipilih.',
-        'salesCanvasId.exists' => 'Sales Kanvas harus berstatus dikonfirmasi dan belum digunakan pada Sales Order lain.',
+        'salesCanvasId.exists' => 'Penjualan Kanvas harus berstatus Dikonfirmasi dan belum digunakan pada Pesanan Penjualan lain.',
         'preOrderId.required_if' => 'Nomor Pre Order wajib dipilih.',
-        'preOrderId.exists' => 'Pre Order harus berstatus dikonfirmasi dan belum digunakan pada Sales Order lain.',
+        'preOrderId.exists' => 'Pesanan Awal harus berstatus Dikonfirmasi dan belum digunakan pada Pesanan Penjualan lain.',
         'items.required' => 'Tambahkan minimal satu produk.',
         'items.min' => 'Tambahkan minimal satu produk.',
         'items.*.warehouse_id.required' => 'Gudang wajib dipilih.',
@@ -193,7 +211,7 @@ class SalesOrder extends Component
         $this->authorizeOrder($order);
 
         if ($order->status !== 'draft') {
-            $this->dispatch('toast', message: 'Sales Order yang sudah diproses tidak dapat diubah.', type: 'error');
+            $this->dispatch('toast', message: 'Pesanan Penjualan yang sudah diproses tidak dapat diubah.', type: 'error');
 
             return;
         }
@@ -202,6 +220,7 @@ class SalesOrder extends Component
         $this->editingId = $order->id;
         $this->orderNo = $order->order_no;
         $this->date = $order->date->format('Y-m-d');
+        $this->orderType = $order->order_type ?? 'regular';
         $this->sourceType = $order->sales_canvas_id ? 'sales_canvas' : ($order->pre_order_id ? 'pre_order' : 'manual');
         $this->salesCanvasId = $order->sales_canvas_id;
         $this->preOrderId = $order->pre_order_id;
@@ -238,6 +257,29 @@ class SalesOrder extends Component
         if (! $this->editingId) {
             $this->items = [];
         }
+    }
+
+    public function updatedOrderType(): void
+    {
+        if ($this->orderType === 'direct') {
+            $this->sourceType = 'manual';
+            $this->salesCanvasId = null;
+            $this->preOrderId = null;
+            $this->scanWarehouseId ??= Warehouse::query()->orderBy('id')->value('id');
+        }
+
+        if (! $this->editingId) {
+            $this->orderNo = $this->generateCode();
+        }
+    }
+
+    public function updatedPaymentMode(): void
+    {
+        $this->paidAmount = match ($this->paymentMode) {
+            'paid' => $this->totals()['grand_total'],
+            'credit' => 0,
+            default => $this->paidAmount,
+        };
     }
 
     public function updatedSalesCanvasId(): void
@@ -309,6 +351,43 @@ class SalesOrder extends Component
         $this->items[] = $this->makeItem($product);
     }
 
+    public function scanProduct(): void
+    {
+        $this->validate([
+            'scanCode' => ['required', 'string', 'max:255'],
+            'scanWarehouseId' => ['required', 'integer', 'exists:warehouses,id'],
+        ], [
+            'scanCode.required' => 'Scan atau masukkan barcode/SKU produk.',
+            'scanWarehouseId.required' => 'Gudang scan wajib dipilih.',
+        ]);
+
+        $code = trim($this->scanCode);
+        $product = Product::with(['prices.unit', 'baseUnit'])
+            ->whereHas('prices')
+            ->where(fn (Builder $query) => $query->where('barcode', $code)->orWhere('sku', $code))
+            ->first();
+
+        if (! $product) {
+            $this->addError('scanCode', "Produk dengan barcode/SKU {$code} tidak ditemukan.");
+            $this->dispatch('scan-focus');
+
+            return;
+        }
+
+        $index = collect($this->items)->search(fn (array $item) => (int) $item['product_id'] === $product->id
+            && (int) $item['warehouse_id'] === $this->scanWarehouseId);
+
+        if ($index !== false) {
+            $this->items[$index]['qty'] = (int) $this->items[$index]['qty'] + 1;
+        } else {
+            $this->items[] = $this->makeItem($product, $this->scanWarehouseId);
+        }
+
+        $this->scanCode = '';
+        $this->resetErrorBag('scanCode');
+        $this->dispatch('scan-focus');
+    }
+
     public function removeItem(int $index): void
     {
         unset($this->items[$index]);
@@ -340,6 +419,40 @@ class SalesOrder extends Component
 
     public function save(): void
     {
+        $this->persist(false);
+    }
+
+    public function checkout(): void
+    {
+        if (! auth()->user()?->canPerform('sales.transaction.salesOrder', 'verify')) {
+            throw ValidationException::withMessages(['checkout' => 'Anda tidak memiliki izin untuk checkout Penjualan Langsung.']);
+        }
+        if ($this->orderType !== 'direct') {
+            throw ValidationException::withMessages(['checkout' => 'Checkout hanya tersedia untuk mode Penjualan Langsung / Scan.']);
+        }
+
+        $this->validate([
+            'paymentMode' => ['required', Rule::in(['paid', 'partial', 'credit'])],
+            'paymentMethod' => ['required', Rule::in(['Tunai', 'Transfer', 'Giro'])],
+            'bankAccountId' => ['nullable', 'required_unless:paymentMode,credit', 'integer', Rule::exists('bank_accounts', 'id')->where(fn ($query) => $query->where('is_active', true)->whereNull('deleted_at'))],
+            'paidAmount' => ['required', 'integer', 'min:0'],
+        ]);
+
+        $total = $this->totals()['grand_total'];
+        $paidAmount = match ($this->paymentMode) {
+            'paid' => $total,
+            'credit' => 0,
+            default => $this->paidAmount,
+        };
+        if ($this->paymentMode === 'partial' && ($paidAmount <= 0 || $paidAmount >= $total)) {
+            throw ValidationException::withMessages(['paidAmount' => 'Pembayaran sebagian harus lebih dari Rp 0 dan kurang dari total transaksi.']);
+        }
+        $this->paidAmount = $paidAmount;
+        $this->persist(true);
+    }
+
+    private function persist(bool $checkout): void
+    {
         $wasEditing = (bool) $this->editingId;
 
         if (! $wasEditing) {
@@ -360,7 +473,7 @@ class SalesOrder extends Component
             }
         }
 
-        DB::transaction(function () {
+        $savedOrder = DB::transaction(function () {
             $totals = $this->totals();
             $order = $this->editingId
                 ? SalesOrderModel::findOrFail($this->editingId)
@@ -405,8 +518,11 @@ class SalesOrder extends Component
             $order->fill([
                 'order_no' => $order->exists ? $order->order_no : $this->generateCode(),
                 'date' => $this->date,
+                'order_type' => $this->orderType,
                 'sales_canvas_id' => $this->salesCanvasId,
                 'pre_order_id' => $this->preOrderId,
+                'salesman_id' => $salesCanvas?->salesman_id
+                    ?? Customer::whereKey($this->customerId)->value('default_salesman_id'),
                 'customer_id' => $this->customerId,
                 'customer_address_id' => $this->customerAddressId,
                 'is_taxed' => $this->tax,
@@ -445,7 +561,26 @@ class SalesOrder extends Component
                     'line_total' => $gross - (int) $item['discount_amount'],
                 ]);
             }
+
+            return $order;
         });
+
+        if ($checkout) {
+            $this->editingId = $savedOrder->id;
+            $result = app(DirectSalesCheckoutService::class)->handle(
+                $savedOrder->id,
+                $this->paidAmount,
+                $this->bankAccountId,
+                $this->paymentMethod,
+                (int) Auth::id(),
+            );
+            $invoiceNo = $result['invoice']->invoice_no;
+            $remaining = (int) $result['invoice']->fresh()->amount_due;
+            $this->resetForm();
+            $this->dispatch('toast', message: "Checkout berhasil. Faktur {$invoiceNo}, sisa tagihan Rp ".number_format($remaining, 0, ',', '.'), type: 'success');
+
+            return;
+        }
 
         $this->resetForm();
         $this->dispatch('toast', message: $wasEditing ? 'Sales Order berhasil diperbarui.' : 'Sales Order berhasil dibuat.', type: 'success');
@@ -515,6 +650,11 @@ class SalesOrder extends Component
             return;
         }
         $order = SalesOrderModel::findOrFail($id);
+        if ($order->order_type === 'direct') {
+            $this->dispatch('toast', message: 'Penjualan Langsung harus diproses melalui Checkout.', type: 'error');
+
+            return;
+        }
         if ($order->status !== 'draft') {
             $this->dispatch('toast', message: 'Hanya Pesanan Penjualan berstatus Draf yang dapat dikonfirmasi.', type: 'error');
 
@@ -539,6 +679,8 @@ class SalesOrder extends Component
             if ($order->status !== 'draft') {
                 throw ValidationException::withMessages(['status' => 'Pesanan Penjualan sudah diproses.']);
             }
+            $customer = Customer::lockForUpdate()->findOrFail($order->customer_id);
+            app(CustomerCreditService::class)->assertAvailable($customer, (int) $order->amount_due);
             $order->forceFill(['status' => 'verified', 'verified_at' => now(), 'verified_by' => Auth::id()])->save();
         });
         $this->showConfirmModal = false;
@@ -562,7 +704,7 @@ class SalesOrder extends Component
         }
 
         $salesmanId = auth()->user()?->salesman()->where('is_active', true)->value('id');
-        $ownsConvertedOrder = $order->salesCanvas && $order->salesCanvas->salesman_id === $salesmanId;
+        $ownsConvertedOrder = $order->salesman_id === $salesmanId;
 
         abort_unless($ownsConvertedOrder || $order->created_by === Auth::id(), 403);
     }
@@ -643,15 +785,19 @@ class SalesOrder extends Component
 
     private function resetForm(): void
     {
-        $this->reset(['showModal', 'showProductModal', 'showDeleteModal', 'editingId', 'deleteTargetId', 'orderNo', 'salesCanvasId', 'preOrderId', 'customerId', 'customerAddressId', 'tax', 'notes', 'items', 'productSearch', 'categoryFilter', 'selectedProductIds']);
+        $this->reset(['showModal', 'showProductModal', 'showDeleteModal', 'editingId', 'deleteTargetId', 'orderNo', 'salesCanvasId', 'preOrderId', 'customerId', 'customerAddressId', 'tax', 'notes', 'items', 'productSearch', 'categoryFilter', 'selectedProductIds', 'scanCode', 'bankAccountId', 'paidAmount']);
         $this->date = now()->format('Y-m-d');
+        $this->orderType = 'regular';
         $this->sourceType = 'manual';
+        $this->scanWarehouseId = Warehouse::query()->orderBy('id')->value('id');
+        $this->paymentMode = 'paid';
+        $this->paymentMethod = 'Tunai';
         $this->resetErrorBag();
     }
 
     private function generateCode(): string
     {
-        $prefix = 'SO-M-'.now()->format('ymd').'-';
+        $prefix = ($this->orderType === 'direct' ? 'SO-L-' : 'SO-M-').now()->format('ymd').'-';
         $sequence = SalesOrderModel::withTrashed()->where('order_no', 'like', $prefix.'%')->count() + 1;
 
         return $prefix.str_pad((string) $sequence, 3, '0', STR_PAD_LEFT);
@@ -661,9 +807,10 @@ class SalesOrder extends Component
     {
         $currentSalesmanId = auth()->user()?->salesman()->where('is_active', true)->value('id');
         $salesOrders = SalesOrderModel::query()
-            ->with(['salesCanvas', 'preOrder', 'customer'])
+            ->with(['salesCanvas', 'preOrder', 'customer', 'salesInvoice'])
             ->when(! auth()->user()->isSuperAdmin() && ! auth()->user()->canPerform('sales.transaction.salesOrder', 'verify'), fn (Builder $query) => $query->where(function (Builder $query) use ($currentSalesmanId) {
                 $query->where('created_by', Auth::id())
+                    ->orWhere('salesman_id', $currentSalesmanId ?? 0)
                     ->orWhereHas('salesCanvas', fn (Builder $canvas) => $canvas->where('salesman_id', $currentSalesmanId ?? 0));
             }))
             ->when($this->showTrashed, fn (Builder $query) => $query->withTrashed())
@@ -721,6 +868,7 @@ class SalesOrder extends Component
                 ->when($this->categoryFilter, fn (Builder $query) => $query->where('category_id', $this->categoryFilter))
                 ->orderBy('name')->limit(50)->get(),
             'categories' => ProductCategory::orderBy('name')->get(),
+            'bankAccounts' => BankAccount::with('chartOfAccount')->where('is_active', true)->orderBy('name')->get(),
             'totals' => $this->totals(),
         ]);
     }

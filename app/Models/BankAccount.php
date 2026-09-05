@@ -13,6 +13,7 @@ class BankAccount extends Model
 
     protected $fillable = [
         'name',
+        'account_type',
         'bank_name',
         'account_number',
         'account_holder',
@@ -23,6 +24,15 @@ class BankAccount extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function getDisplayLabelAttribute(): string
+    {
+        if ($this->account_type === 'cash') {
+            return $this->name.' (Cash)';
+        }
+
+        return $this->name.($this->account_number ? ' - '.$this->account_number : '');
+    }
 
     public function chartOfAccount(): BelongsTo
     {

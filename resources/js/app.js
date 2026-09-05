@@ -169,6 +169,21 @@ document.addEventListener('click', (event) => {
 window.addEventListener('resize', () => scheduleActionMenuRefresh());
 document.addEventListener('livewire:navigated', () => scheduleActionMenuRefresh());
 
+let livewireActionRefreshRegistered = false;
+
+const registerLivewireActionRefresh = () => {
+    if (livewireActionRefreshRegistered || ! window.Livewire) {
+        return;
+    }
+
+    window.Livewire.hook('morphed', () => scheduleActionMenuRefresh());
+    livewireActionRefreshRegistered = true;
+};
+
+document.addEventListener('livewire:init', registerLivewireActionRefresh);
+document.addEventListener('livewire:initialized', registerLivewireActionRefresh);
+registerLivewireActionRefresh();
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => scheduleActionMenuRefresh(), { once: true });
 } else {

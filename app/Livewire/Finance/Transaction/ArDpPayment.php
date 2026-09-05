@@ -82,7 +82,7 @@ class ArDpPayment extends Component
     }
 
     protected $messages = [
-        'customerId.required' => 'Customer wajib dipilih terlebih dahulu.',
+        'customerId.required' => 'Pelanggan wajib dipilih terlebih dahulu.',
         'selectedPreOrderIds.required' => 'Pilih minimal satu Pesanan Awal.',
         'selectedPreOrderIds.min' => 'Pilih minimal satu Pesanan Awal.',
         'allocations.*.min' => 'Nominal alokasi DP harus lebih dari 0.',
@@ -262,7 +262,7 @@ class ArDpPayment extends Component
         DB::transaction(function () use ($ids, $total) {
             $payment = $this->editingId ? ArDpPaymentModel::lockForUpdate()->findOrFail($this->editingId) : new ArDpPaymentModel;
             if ($payment->exists && $payment->status !== ArDpPaymentModel::STATUS_DRAFT) {
-                throw new \RuntimeException('DP yang sudah posted tidak dapat diubah.');
+                throw new \RuntimeException('DP yang sudah diposting tidak dapat diubah.');
             }
 
             $payment->fill([
@@ -296,7 +296,7 @@ class ArDpPayment extends Component
     {
         $payment = ArDpPaymentModel::findOrFail($id);
         if ($payment->status !== ArDpPaymentModel::STATUS_DRAFT) {
-            $this->dispatch('toast', message: 'Hanya DP draft yang dapat diposting.', type: 'error');
+            $this->dispatch('toast', message: 'Hanya DP berstatus Draf yang dapat diposting.', type: 'error');
 
             return;
         }
@@ -328,7 +328,7 @@ class ArDpPayment extends Component
                 foreach ($payment->allocations as $allocation) {
                     $preOrder = $preOrders->get($allocation->pre_order_id);
                     if (! $preOrder || $preOrder->customer_id !== $payment->customer_id || $preOrder->status !== PreOrder::STATUS_CONFIRMED) {
-                        throw new \RuntimeException('Semua Pesanan Awal harus milik Customer yang dipilih dan berstatus Dikonfirmasi.');
+                        throw new \RuntimeException('Semua Pesanan Awal harus milik pelanggan yang dipilih dan berstatus Dikonfirmasi.');
                     }
 
                     $posted = (int) $preOrder->dpAllocations()
@@ -387,7 +387,7 @@ class ArDpPayment extends Component
     {
         $payment = ArDpPaymentModel::findOrFail($id);
         if ($payment->status !== ArDpPaymentModel::STATUS_DRAFT) {
-            $this->dispatch('toast', message: 'DP posted tidak dapat dihapus.', type: 'error');
+            $this->dispatch('toast', message: 'DP yang sudah diposting tidak dapat dihapus.', type: 'error');
 
             return;
         }

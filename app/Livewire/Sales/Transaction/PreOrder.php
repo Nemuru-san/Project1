@@ -102,7 +102,7 @@ class PreOrder extends Component
     }
 
     protected $messages = [
-        'customerId.required' => 'Customer wajib dipilih.',
+        'customerId.required' => 'Pelanggan wajib dipilih.',
         'dpAmount.required' => 'Nominal DP wajib diisi.',
         'dpAmount.min' => 'Nominal DP harus lebih dari 0.',
         'items.required' => 'Tambahkan minimal satu produk.',
@@ -165,7 +165,7 @@ class PreOrder extends Component
         $this->authorizePreOrder($preOrder);
 
         if ($preOrder->status !== PreOrderModel::STATUS_DRAFT || $preOrder->dpAllocations()->whereHas('payment', fn ($query) => $query->where('status', ArDpPayment::STATUS_POSTED))->exists()) {
-            $this->dispatch('toast', message: 'Pesanan Awal yang sudah memiliki DP posted atau sudah dikonversi tidak dapat diubah.', type: 'error');
+            $this->dispatch('toast', message: 'Pesanan Awal yang sudah memiliki DP terposting atau sudah dikonversi tidak dapat diubah.', type: 'error');
 
             return;
         }
@@ -353,12 +353,12 @@ class PreOrder extends Component
 
         $preOrder = PreOrderModel::findOrFail($id);
         if ($preOrder->status !== PreOrderModel::STATUS_CONFIRMED) {
-            $this->dispatch('toast', message: 'Pesanan Awal harus dikonfirmasi sebelum dijadikan Sales Order.', type: 'error');
+            $this->dispatch('toast', message: 'Pesanan Awal harus dikonfirmasi sebelum dijadikan Pesanan Penjualan.', type: 'error');
 
             return;
         }
         if ($preOrder->dp_payment_status !== PreOrderModel::DP_STATUS_PAID) {
-            $this->dispatch('toast', message: 'Target DP harus dibayar lunas sebelum Pesanan Awal dijadikan Sales Order.', type: 'error');
+            $this->dispatch('toast', message: 'Target DP harus dibayar lunas sebelum Pesanan Awal dijadikan Pesanan Penjualan.', type: 'error');
 
             return;
         }

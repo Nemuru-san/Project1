@@ -16,8 +16,6 @@ class Salesman extends Model
         'code',
         'name',
         'user_id',
-        'default_customer_id',
-        'default_customer_address_id',
         'is_active',
         'created_by',
     ];
@@ -34,16 +32,6 @@ class Salesman extends Model
         return $this->belongsTo(User::class)->withTrashed();
     }
 
-    public function defaultCustomer(): BelongsTo
-    {
-        return $this->belongsTo(Customer::class, 'default_customer_id');
-    }
-
-    public function defaultCustomerAddress(): BelongsTo
-    {
-        return $this->belongsTo(CustomerAddress::class, 'default_customer_address_id');
-    }
-
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -52,5 +40,20 @@ class Salesman extends Model
     public function salesCanvases(): HasMany
     {
         return $this->hasMany(SalesCanvas::class);
+    }
+
+    public function customers(): HasMany
+    {
+        return $this->hasMany(Customer::class, 'default_salesman_id');
+    }
+
+    public function salesOrders(): HasMany
+    {
+        return $this->hasMany(SalesOrder::class);
+    }
+
+    public function monthlyTargets(): HasMany
+    {
+        return $this->hasMany(SalesmanTarget::class);
     }
 }

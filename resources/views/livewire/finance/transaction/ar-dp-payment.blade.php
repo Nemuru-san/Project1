@@ -299,8 +299,7 @@
                                     class="w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
                                     <option value="">-- Pilih Rekening --</option>
                                     @foreach ($bankAccounts as $bank)
-                                        <option value="{{ $bank->id }}">{{ $bank->name }} -
-                                            {{ $bank->account_number }}</option>
+                                        <option value="{{ $bank->id }}">{{ $bank->display_label }}</option>
                                     @endforeach
                                 </select>
                                 @error('bankAccountId')
@@ -314,8 +313,7 @@
                                     <option>Tunai</option>
                                     <option>Giro</option>
                                 </select></div>
-                            <div><label class="mb-2 block text-sm font-medium dark:text-white">Total Penerimaan
-                                    DP</label><input value="Rp {{ number_format($amount, 0, ',', '.') }}" readonly
+                            <div><label class="mb-2 block text-sm font-medium dark:text-white">Total Penerimaan DP</label><input value="Rp {{ number_format($amount, 0, ',', '.') }}" readonly
                                     class="w-full cursor-not-allowed rounded-lg border border-gray-300 bg-blue-50 p-2.5 text-sm font-semibold text-blue-700 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300">
                                 <p class="mt-1 text-xs text-gray-400">Dihitung dari jumlah nominal Pesanan Awal yang
                                     dicentang.</p>

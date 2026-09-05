@@ -58,11 +58,11 @@ class ProductCategory extends Component
     }
 
     protected array $messages = [
-        'code.required' => 'Kode category wajib diisi.',
+        'code.required' => 'Kode kategori wajib diisi.',
         'code.regex' => 'Kode hanya boleh berisi huruf kapital, angka, titik, strip, dan underscore.',
-        'code.unique' => 'Kode category sudah digunakan.',
-        'name.required' => 'Nama category wajib diisi.',
-        'name.unique' => 'Nama category sudah digunakan.',
+        'code.unique' => 'Kode kategori sudah digunakan.',
+        'name.required' => 'Nama kategori wajib diisi.',
+        'name.unique' => 'Nama kategori sudah digunakan.',
     ];
 
     public function updatingSearch(): void

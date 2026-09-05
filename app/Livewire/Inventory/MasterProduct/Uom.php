@@ -49,9 +49,9 @@ class Uom extends Component
     }
 
     protected array $messages = [
-        'code.required' => 'UOM code wajib diisi.',
-        'code.unique' => 'UOM code sudah digunakan.',
-        'name.required' => 'UOM description wajib diisi.',
+        'code.required' => 'Kode satuan wajib diisi.',
+        'code.unique' => 'Kode satuan sudah digunakan.',
+        'name.required' => 'Deskripsi satuan wajib diisi.',
     ];
 
     public function updatingSearch(): void

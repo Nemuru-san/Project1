@@ -30,7 +30,7 @@ it('blocks purchasing and inventory authorization actions without granular permi
         [PurchaseOrder::class, 'confirmDelete', 'Anda tidak memiliki izin untuk menghapus Pesanan Pembelian.'],
         [GoodsReceive::class, 'confirmReceive', 'Anda tidak memiliki izin untuk menerima barang.'],
         [GoodsReceive::class, 'confirmDelete', 'Anda tidak memiliki izin untuk menghapus Penerimaan Barang.'],
-        [PurchaseInvoice::class, 'confirmPost', 'Anda tidak memiliki izin untuk mem-posting Faktur Pembelian.'],
+        [PurchaseInvoice::class, 'confirmPost', 'Anda tidak memiliki izin untuk memposting Faktur Pembelian.'],
         [PurchaseInvoice::class, 'confirmDelete', 'Anda tidak memiliki izin untuk menghapus Faktur Pembelian.'],
         [TransferStock::class, 'confirmApprove', 'Anda tidak memiliki izin untuk menyetujui Transfer Stok.'],
         [TransferStock::class, 'confirmDelete', 'Anda tidak memiliki izin untuk menghapus Transfer Stok.'],

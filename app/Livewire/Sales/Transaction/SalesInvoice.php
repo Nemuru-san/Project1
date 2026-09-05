@@ -3,11 +3,14 @@
 namespace App\Livewire\Sales\Transaction;
 
 use App\Models\ChartOfAccount;
+use App\Models\Customer;
 use App\Models\DeliveryOrder;
 use App\Models\JournalEntry;
 use App\Models\SalesInvoice as SalesInvoiceModel;
 use App\Models\SalesOrder;
+use App\Services\Sales\CustomerCreditService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -191,6 +194,18 @@ class SalesInvoice extends Component
             'line_total' => (int) $item->line_total,
         ])->all();
         $this->totals = $this->totalsFromOrder($order);
+        $this->applyCustomerPaymentTerms($order->customer);
+    }
+
+    public function updatedInvoiceDate(): void
+    {
+        if (! $this->salesOrderId) {
+            return;
+        }
+
+        $this->applyCustomerPaymentTerms(
+            SalesOrder::with('customer')->find($this->salesOrderId)?->customer
+        );
     }
 
     public function updatedSelectedDeliveryOrderIds(): void
@@ -434,6 +449,9 @@ class SalesInvoice extends Component
                     throw new \RuntimeException('Faktur Penjualan sudah diproses.');
                 }
 
+                $customer = Customer::lockForUpdate()->findOrFail($invoice->customer_id);
+                app(CustomerCreditService::class)->assertAvailable($customer, (int) $invoice->amount_due);
+
                 $receivableId = $this->accountId('1300', $invoice->amount_due > 0);
                 $advanceId = $this->accountId('2300', $invoice->dp_amount > 0);
                 $revenueId = $this->accountId('4100', ($invoice->grand_total - $invoice->tax_amount) > 0);
@@ -560,7 +578,7 @@ class SalesInvoice extends Component
             return;
         }
         $salesmanId = auth()->user()?->salesman()->where('is_active', true)->value('id');
-        $ownsConverted = $order->salesCanvas && $order->salesCanvas->salesman_id === $salesmanId;
+        $ownsConverted = $order->salesman_id === $salesmanId;
         abort_unless($ownsConverted || $order->created_by === Auth::id(), 403);
     }
 
@@ -574,6 +592,17 @@ class SalesInvoice extends Component
         $this->invoiceDate = now()->toDateString();
         $this->dueDate = now()->addDays(30)->toDateString();
         $this->resetErrorBag();
+    }
+
+    private function applyCustomerPaymentTerms(?Customer $customer): void
+    {
+        if (! $customer || ! $this->invoiceDate) {
+            return;
+        }
+
+        $this->dueDate = Carbon::parse($this->invoiceDate)
+            ->addDays((int) $customer->payment_terms_days)
+            ->toDateString();
     }
 
     private function generateCode(): string
@@ -602,6 +631,7 @@ class SalesInvoice extends Component
             ->whereDoesntHave('salesInvoice')
             ->when(! auth()->user()?->isSuperAdmin(), fn (Builder $query) => $query->where(function (Builder $query) use ($salesmanId) {
                 $query->where('created_by', Auth::id())
+                    ->orWhere('salesman_id', $salesmanId ?? 0)
                     ->orWhereHas('salesCanvas', fn (Builder $canvas) => $canvas->where('salesman_id', $salesmanId ?? 0));
             }));
     }
@@ -613,6 +643,7 @@ class SalesInvoice extends Component
             ->with(['salesOrder', 'customer'])
             ->when(! auth()->user()?->isSuperAdmin(), fn (Builder $query) => $query->where(function (Builder $query) use ($salesmanId) {
                 $query->where('created_by', Auth::id())
+                    ->orWhereHas('salesOrder', fn (Builder $order) => $order->where('salesman_id', $salesmanId ?? 0))
                     ->orWhereHas('salesOrder.salesCanvas', fn (Builder $canvas) => $canvas->where('salesman_id', $salesmanId ?? 0));
             }))
             ->when($this->dateFrom, fn (Builder $query) => $query->whereDate('invoice_date', '>=', $this->dateFrom))

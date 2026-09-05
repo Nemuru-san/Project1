@@ -118,10 +118,10 @@ class SalesCanvas extends Component
     }
 
     protected $messages = [
-        'salesmanId.required' => 'Salesman wajib ditentukan.',
-        'salesmanId.exists' => 'Salesman tidak aktif atau tidak ditemukan.',
-        'customerId.required' => 'Customer wajib dipilih.',
-        'customerAddressId.exists' => 'Alamat harus berasal dari customer yang dipilih.',
+        'salesmanId.required' => 'Tenaga penjual wajib ditentukan.',
+        'salesmanId.exists' => 'Tenaga penjual tidak aktif atau tidak ditemukan.',
+        'customerId.required' => 'Pelanggan wajib dipilih.',
+        'customerAddressId.exists' => 'Alamat harus berasal dari pelanggan yang dipilih.',
         'items.required' => 'Tambahkan minimal satu produk.',
         'items.min' => 'Tambahkan minimal satu produk.',
         'items.*.warehouse_id.required' => 'Gudang wajib dipilih.',
@@ -191,7 +191,7 @@ class SalesCanvas extends Component
         if (auth()->user()->isSuperAdmin()) {
             if ($salesman) {
                 $this->salesmanId = $salesman->id;
-                $this->applySalesmanDefaults($salesman);
+                $this->clearCustomerSelection();
             }
 
             $this->showModal = true;
@@ -206,7 +206,7 @@ class SalesCanvas extends Component
         }
 
         $this->salesmanId = $salesman->id;
-        $this->applySalesmanDefaults($salesman);
+        $this->clearCustomerSelection();
 
         $this->showModal = true;
     }
@@ -220,7 +220,7 @@ class SalesCanvas extends Component
         $salesman = Salesman::where('is_active', true)->find($this->salesmanId);
 
         if ($salesman) {
-            $this->applySalesmanDefaults($salesman);
+            $this->clearCustomerSelection();
         }
     }
 
@@ -457,7 +457,7 @@ class SalesCanvas extends Component
         $canvas = SalesCanvasModel::findOrFail($id);
 
         if ($canvas->status !== SalesCanvasModel::STATUS_CONFIRMED) {
-            $this->dispatch('toast', message: 'Penjualan Kanvas harus dikonfirmasi sebelum dijadikan Sales Order.', type: 'error');
+            $this->dispatch('toast', message: 'Penjualan Kanvas harus dikonfirmasi sebelum dijadikan Pesanan Penjualan.', type: 'error');
 
             return;
         }
@@ -681,10 +681,10 @@ class SalesCanvas extends Component
         }
     }
 
-    private function applySalesmanDefaults(Salesman $salesman): void
+    private function clearCustomerSelection(): void
     {
-        $this->customerId = $salesman->default_customer_id;
-        $this->customerAddressId = $salesman->default_customer_address_id;
+        $this->customerId = null;
+        $this->customerAddressId = null;
     }
 
     private function currentSalesman(): ?Salesman

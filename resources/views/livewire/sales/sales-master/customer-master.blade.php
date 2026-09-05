@@ -53,6 +53,9 @@
                     <th class="cursor-pointer px-4 py-3" wire:click="sortBy('code')">Kode</th>
                     <th class="cursor-pointer px-4 py-3" wire:click="sortBy('name')">Pelanggan</th>
                     <th class="px-4 py-3">Telepon & Email</th>
+                    <th class="px-4 py-3">Salesman Default</th>
+                    <th class="px-4 py-3 text-right">Plafon</th>
+                    <th class="px-4 py-3 text-center">Termin</th>
                     <th class="px-4 py-3 text-center">Kontak</th>
                     <th class="px-4 py-3 text-center">Alamat</th>
                     <th class="cursor-pointer px-4 py-3 text-center" wire:click="sortBy('is_active')">Status</th>
@@ -73,6 +76,11 @@
                             <div>{{ $customer->phone ?: '-' }}</div>
                             <div class="text-xs text-gray-500">{{ $customer->email ?: '-' }}</div>
                         </td>
+                        <td class="px-4 py-3">{{ $customer->defaultSalesman?->name ?? '-' }}</td>
+                        <td class="whitespace-nowrap px-4 py-3 text-right">
+                            {{ $customer->credit_limit === null ? 'Tanpa batas' : 'Rp '.number_format($customer->credit_limit, 0, ',', '.') }}
+                        </td>
+                        <td class="whitespace-nowrap px-4 py-3 text-center">{{ $customer->payment_terms_days }} hari</td>
                         <td class="px-4 py-3 text-center">{{ $customer->pics_count }}</td>
                         <td class="px-4 py-3 text-center">{{ $customer->addresses_count }}</td>
                         <td class="px-4 py-3 text-center">
@@ -154,7 +162,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-10 text-center text-gray-500">Belum ada data pelanggan.</td>
+                        <td colspan="10" class="px-4 py-10 text-center text-gray-500">Belum ada data pelanggan.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -164,7 +172,7 @@
     <div class="mt-4">{{ $customers->links() }}</div>
 
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-center justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm">
+        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm">
             <div class="mx-auto flex h-[80vh] max-h-[calc(100dvh-2rem)] w-full max-w-full flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-800">
                 <div class="flex shrink-0 items-center justify-between border-b border-gray-200 bg-zinc-50 px-8 py-6 dark:border-zinc-700 dark:bg-zinc-900">
                     <h3 class="text-lg font-semibold dark:text-white">{{ $editingId ? 'Ubah Pelanggan' : 'Tambah Pelanggan' }}</h3>
@@ -195,6 +203,38 @@
                                 <label class="mb-1 block text-sm font-medium dark:text-white">Telepon</label>
                                 <input wire:model="phone" type="text" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
                                 @error('phone') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-sm font-medium dark:text-white">Salesman Default</label>
+                                <select wire:model="default_salesman_id" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                                    <option value="">Tanpa salesman default</option>
+                                    @foreach ($salesmen as $salesman)
+                                        <option value="{{ $salesman->id }}">{{ $salesman->code }} - {{ $salesman->name }}</option>
+                                    @endforeach
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">Fee order langsung ke toko akan diatribusikan ke salesman ini.</p>
+                                @error('default_salesman_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-sm font-medium dark:text-white">Plafon Kredit</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-gray-500">Rp</span>
+                                    <input wire:model="credit_limit" type="number" min="0" step="1"
+                                        class="w-full rounded-lg border p-2.5 pl-10 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white"
+                                        placeholder="Kosong = tanpa batas">
+                                </div>
+                                <p class="mt-1 text-xs text-gray-500">Kosongkan jika customer tidak dibatasi plafon kredit.</p>
+                                @error('credit_limit') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-sm font-medium dark:text-white">Jatuh Tempo Customer</label>
+                                <div class="relative">
+                                    <input wire:model="payment_terms_days" type="number" min="0" max="3650" step="1"
+                                        class="w-full rounded-lg border p-2.5 pr-14 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                                    <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">hari</span>
+                                </div>
+                                <p class="mt-1 text-xs text-gray-500">Dipakai otomatis untuk jatuh tempo Faktur Penjualan.</p>
+                                @error('payment_terms_days') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                             </div>
                             <div class="md:col-span-2 lg:col-span-2">
                                 <label class="mb-1 block text-sm font-medium dark:text-white">Catatan</label>
@@ -274,10 +314,24 @@
                                     </div>
                                     <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
                                         <div>
-                                            <label class="mb-1 block text-xs dark:text-gray-300">Kode <span class="text-gray-400">(opsional)</span></label>
-                                            <input wire:model="addresses.{{ $index }}.code" type="text" placeholder="Kosongkan untuk otomatis"
+                                            <label class="mb-1 block text-xs dark:text-gray-300">Kode Alamat <span class="text-red-500">*</span></label>
+                                            <select wire:model.live="addresses.{{ $index }}.code"
                                                 class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                                                <option value="">-- Pilih Kode Alamat --</option>
+                                                @foreach ($addressCodes as $addressCode)
+                                                    <option value="{{ $addressCode->code }}">{{ $addressCode->code }}{{ $addressCode->description ? ' - '.$addressCode->description : '' }}</option>
+                                                @endforeach
+                                            </select>
                                             @error("addresses.$index.code") <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                        </div>
+                                        <div>
+                                            <label class="mb-1 block text-xs dark:text-gray-300">Keterangan Kode Alamat</label>
+                                            <input type="text"
+                                                value="{{ $addressCodes->firstWhere('code', $address['code'])?->description ?? '' }}"
+                                                data-testid="address-code-description-{{ $index }}"
+                                                readonly
+                                                class="w-full cursor-not-allowed rounded-lg border bg-gray-100 p-2.5 text-sm text-gray-600 dark:border-gray-600 dark:bg-zinc-900 dark:text-gray-300"
+                                                placeholder="Keterangan kode alamat">
                                         </div>
                                         <div>
                                             <label class="mb-1 block text-xs dark:text-gray-300">Label <span class="text-gray-400">(opsional)</span></label>
@@ -382,6 +436,20 @@
                             <div>
                                 <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">NPWP</dt>
                                 <dd class="mt-1 text-gray-700 dark:text-gray-200">{{ $detailCustomer['tax_number'] ?: '-' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Salesman Default</dt>
+                                <dd class="mt-1 text-gray-700 dark:text-gray-200">{{ $detailCustomer['default_salesman'] ?: '-' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Plafon Kredit</dt>
+                                <dd class="mt-1 text-gray-700 dark:text-gray-200">
+                                    {{ $detailCustomer['credit_limit'] === null ? 'Tanpa batas' : 'Rp '.number_format($detailCustomer['credit_limit'], 0, ',', '.') }}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Jatuh Tempo</dt>
+                                <dd class="mt-1 text-gray-700 dark:text-gray-200">{{ $detailCustomer['payment_terms_days'] }} hari</dd>
                             </div>
                             @if ($detailCustomer['notes'])
                                 <div class="sm:col-span-2 lg:col-span-3">

@@ -1,4 +1,5 @@
 <div x-data="{ toastMsg: '', toastType: '' }"
+    x-effect="document.body.style.overflow = ($wire.showModal || $wire.showDeleteModal || $wire.showTargetModal) ? 'hidden' : ''"
     @toast.window="toastMsg = $event.detail.message; toastType = $event.detail.type; setTimeout(() => toastMsg = '', 3000)">
     <div x-cloak x-show="toastMsg" x-transition
         :class="toastType === 'success' ? 'bg-green-600' : 'bg-red-600'"
@@ -31,6 +32,12 @@
                 Tampilkan terhapus
             </label>
 
+            <label class="flex w-full items-center gap-2 whitespace-nowrap text-sm dark:text-gray-300 sm:w-auto">
+                Bulan Target
+                <input type="month" wire:model.live="targetMonth"
+                    class="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+            </label>
+
             <button wire:click="openCreate"
                 class="inline-flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 sm:w-auto">
                 <span class="text-lg leading-none">+</span> Tambah Salesman
@@ -45,7 +52,9 @@
                     <th class="cursor-pointer px-4 py-3" wire:click="sortBy('code')">Kode</th>
                     <th class="cursor-pointer px-4 py-3" wire:click="sortBy('name')">Nama</th>
                     <th class="px-4 py-3">Login ERP</th>
-                    <th class="px-4 py-3">Customer Default</th>
+                    <th class="px-4 py-3 text-right">Target</th>
+                    <th class="px-4 py-3 text-right">Realisasi</th>
+                    <th class="min-w-40 px-4 py-3">Pencapaian</th>
                     <th class="px-4 py-3">Status</th>
                     <th class="px-4 py-3">Aksi</th>
                 </tr>
@@ -63,15 +72,25 @@
                                 <span class="text-gray-400">Belum terhubung</span>
                             @endif
                         </td>
+                        @php
+                            $monthlyTarget = (int) ($salesman->monthlyTargets->first()?->target_amount ?? 0);
+                            $monthlySales = (int) ($salesman->monthly_sales_total ?? 0);
+                            $achievement = $monthlyTarget > 0 ? round(($monthlySales / $monthlyTarget) * 100, 1) : 0;
+                        @endphp
+                        <td class="whitespace-nowrap px-4 py-3 text-right font-medium">
+                            {{ $monthlyTarget > 0 ? 'Rp '.number_format($monthlyTarget, 0, ',', '.') : '-' }}
+                        </td>
+                        <td class="whitespace-nowrap px-4 py-3 text-right">
+                            Rp {{ number_format($monthlySales, 0, ',', '.') }}
+                        </td>
                         <td class="px-4 py-3">
-                            @if ($salesman->defaultCustomer)
-                                <div>{{ $salesman->defaultCustomer->name }}</div>
-                                @if ($salesman->defaultCustomerAddress)
-                                    <div class="max-w-xs truncate text-xs text-gray-400">{{ $salesman->defaultCustomerAddress->label }}</div>
-                                @endif
-                            @else
-                                <span class="text-gray-400">-</span>
-                            @endif
+                            <div class="mb-1 flex items-center justify-between text-xs">
+                                <span>{{ $monthlyTarget > 0 ? number_format($achievement, 1, ',', '.').'%' : 'Belum diatur' }}</span>
+                            </div>
+                            <div class="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-zinc-700">
+                                <div class="h-full rounded-full {{ $achievement >= 100 ? 'bg-green-500' : 'bg-blue-500' }}"
+                                    style="width: {{ min(100, $achievement) }}%"></div>
+                            </div>
                         </td>
                         <td class="px-4 py-3">
                             @if ($salesman->trashed())
@@ -106,6 +125,15 @@
                                     class="z-50 w-44 divide-y divide-gray-100 rounded bg-white shadow dark:divide-gray-600 dark:bg-gray-700">
                                     @unless ($salesman->trashed())
                                         <ul class="py-1 text-sm text-gray-700 dark:text-gray-200">
+                                            <li>
+                                                <button type="button" wire:click="openTarget({{ $salesman->id }})" @click="open = false"
+                                                    class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-emerald-700 hover:bg-emerald-600 hover:text-white dark:text-emerald-300">
+                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6M4 4h16v16H4z" />
+                                                    </svg>
+                                                    Atur Target
+                                                </button>
+                                            </li>
                                             <li>
                                                 <button type="button" wire:click="openEdit({{ $salesman->id }})" @click="open = false"
                                                     class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
@@ -142,7 +170,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="px-4 py-10 text-center text-gray-400">Belum ada data salesman.</td></tr>
+                    <tr><td colspan="8" class="px-4 py-10 text-center text-gray-400">Belum ada data salesman.</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -150,16 +178,58 @@
 
     <div class="mt-4">{{ $salesmen->links() }}</div>
 
-    @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-            <div class="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-800">
-                <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-zinc-700">
-                    <h3 class="text-lg font-semibold dark:text-white">{{ $salesmanId ? 'Ubah' : 'Tambah' }} Salesman</h3>
-                    <button type="button" wire:click="$set('showModal', false)" class="cursor-pointer text-2xl text-gray-500">&times;</button>
+    @if ($showTargetModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-zinc-800">
+                <div class="mb-5 flex items-start justify-between">
+                    <div>
+                        <h3 class="font-semibold dark:text-white">Target Bulanan Salesman</h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $targetSalesmanName }} · {{ \Carbon\Carbon::createFromFormat('Y-m', $targetMonth)->translatedFormat('F Y') }}</p>
+                    </div>
+                    <button type="button" wire:click="$set('showTargetModal', false)" class="cursor-pointer text-gray-400 hover:text-gray-700 dark:hover:text-white">✕</button>
                 </div>
 
-                <form wire:submit="save" x-on:keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()" class="min-h-0 flex-1 overflow-y-auto">
-                    <div class="space-y-4 px-6 py-5">
+                <div>
+                    <label class="mb-1 block text-sm font-medium dark:text-white">Target Omzet <span class="text-red-500">*</span></label>
+                    <div class="flex rounded-lg border border-gray-300 dark:border-gray-600">
+                        <span class="flex items-center bg-gray-100 px-3 text-sm text-gray-500 dark:bg-zinc-700 dark:text-gray-300">Rp</span>
+                        <input wire:model="targetAmount" type="number" min="1" step="1000" autofocus
+                            class="w-full rounded-r-lg border-0 p-2.5 text-sm focus:ring-blue-500 dark:bg-zinc-700 dark:text-white"
+                            placeholder="Contoh: 100000000">
+                    </div>
+                    @error('targetAmount') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Realisasi dihitung dari faktur penjualan berstatus Confirmed pada bulan target.</p>
+                </div>
+
+                <div class="mt-6 flex justify-between gap-2">
+                    <button type="button" wire:click="deleteTarget" @disabled($targetAmount <= 0)
+                        class="cursor-pointer rounded-lg px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:hover:bg-red-950/30">Hapus Target</button>
+                    <div class="flex gap-2">
+                        <button type="button" wire:click="$set('showTargetModal', false)" class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2 text-sm dark:border-gray-600 dark:text-gray-200">Batal</button>
+                        <button type="button" wire:click="saveTarget" wire:loading.attr="disabled" wire:target="saveTarget"
+                            class="cursor-pointer rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-700 disabled:opacity-50">Simpan Target</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if ($showModal)
+        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm">
+            <div class="mx-auto flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-zinc-800">
+                <div class="flex shrink-0 items-center justify-between border-b border-gray-200 bg-zinc-50 px-8 py-6 dark:border-zinc-700 dark:bg-zinc-900">
+                    <h3 class="text-lg font-semibold dark:text-white">{{ $salesmanId ? 'Ubah' : 'Tambah' }} Salesman</h3>
+                    <button type="button" wire:click="$set('showModal', false)" class="cursor-pointer text-gray-400 hover:text-gray-700 dark:hover:text-white">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <form wire:submit="save" x-on:keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()" class="flex min-h-0 flex-1 flex-col">
+                    <div class="min-h-0 flex-1 touch-pan-y overflow-y-auto px-8 py-6"
+                        style="overscroll-behavior: contain; scrollbar-gutter: stable; -webkit-overflow-scrolling: touch;">
+                        <div class="space-y-5">
                         <div>
                             <label class="mb-1 block text-sm font-medium dark:text-white">Kode Salesman <span class="text-red-500">*</span></label>
                             <input wire:model="code" type="text" placeholder="SM-001"
@@ -209,38 +279,16 @@
                             </div>
                         </div>
 
-                        <div>
-                            <label class="mb-1 block text-sm font-medium dark:text-white">Customer Default</label>
-                            <select wire:model.live="defaultCustomerId" class="w-full rounded-lg border border-gray-300 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
-                                <option value="">Tanpa customer default</option>
-                                @foreach ($customers as $customer)
-                                    <option value="{{ $customer->id }}">{{ $customer->code }} - {{ $customer->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('defaultCustomerId') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                        </div>
-
-                        <div>
-                            <label class="mb-1 block text-sm font-medium dark:text-white">Alamat Pengiriman Default</label>
-                            <select wire:model="defaultCustomerAddressId" @disabled(!$defaultCustomerId)
-                                class="w-full rounded-lg border border-gray-300 p-2.5 text-sm disabled:opacity-50 dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
-                                <option value="">Tanpa alamat default</option>
-                                @foreach ($customerAddresses as $address)
-                                    <option value="{{ $address->id }}">{{ $address->code }} - {{ $address->label }}</option>
-                                @endforeach
-                            </select>
-                            @error('defaultCustomerAddressId') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                        </div>
-
                         <label class="flex cursor-pointer items-center gap-2 text-sm dark:text-white">
                             <input wire:model="isActive" type="checkbox" class="h-4 w-4 rounded">
                             Salesman aktif
                         </label>
+                        </div>
                     </div>
 
-                    <div class="flex justify-end gap-2 border-t border-gray-200 px-6 py-4 dark:border-zinc-700">
-                        <button type="button" wire:click="$set('showModal', false)" class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2.5 text-sm dark:border-gray-600 dark:text-gray-200">Batal</button>
-                        <button type="submit" wire:loading.attr="disabled" wire:target="save" class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm text-white hover:bg-blue-700 disabled:opacity-50">
+                    <div class="flex shrink-0 justify-end gap-2 border-t border-gray-200 bg-white p-6 dark:border-zinc-700 dark:bg-zinc-900">
+                        <button type="button" wire:click="$set('showModal', false)" class="cursor-pointer rounded-lg border border-gray-600 px-4 py-2 text-sm dark:text-gray-300">Batal</button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="save" class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50">
                             <span wire:loading.remove wire:target="save">Simpan Salesman</span>
                             <span wire:loading wire:target="save">Menyimpan...</span>
                         </button>

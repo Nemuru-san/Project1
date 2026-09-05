@@ -111,6 +111,7 @@ class RoleUser extends Component
 
         'Penjualan - Master' => [
             'sales.master.customer' => 'Pelanggan',
+            'sales.master.customer-address-code' => 'Kode Alamat Pelanggan',
             'sales.master.salesman' => 'Tenaga Penjualan',
         ],
 
@@ -196,8 +197,8 @@ class RoleUser extends Component
     }
 
     protected array $messages = [
-        'name.required' => 'Nama role wajib diisi.',
-        'name.unique' => 'Nama role sudah digunakan.',
+        'name.required' => 'Nama peran wajib diisi.',
+        'name.unique' => 'Nama peran sudah digunakan.',
     ];
 
     public function updatingSearch(): void

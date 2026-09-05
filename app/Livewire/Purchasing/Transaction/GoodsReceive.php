@@ -112,7 +112,7 @@ class GoodsReceive extends Component
     protected array $messages = [
         'date.required' => 'Tanggal GR wajib diisi.',
         'purchase_order_id.required' => 'PO wajib dipilih.',
-        'supplier_id.required' => 'Supplier wajib dipilih.',
+        'supplier_id.required' => 'Pemasok wajib dipilih.',
         'items.required' => 'Detail item tidak boleh kosong.',
         'items.*.warehouse_id.required' => 'Gudang wajib dipilih.',
         'items.*.qty_received.min' => 'Qty received tidak boleh minus.',
@@ -198,7 +198,7 @@ class GoodsReceive extends Component
         if ($goodsReceive->status !== 'Draft') {
             $this->dispatch(
                 'toast',
-                message: 'Goods Receive hanya bisa diedit saat status draft.',
+                message: 'Penerimaan Barang hanya dapat diubah saat berstatus Draf.',
                 type: 'error'
             );
 
@@ -275,7 +275,7 @@ class GoodsReceive extends Component
 
             $this->dispatch(
                 'toast',
-                message: 'PO tidak bisa dipilih. Hanya PO status Approved atau Partially Received yang boleh dibuatkan Goods Receive.',
+                message: 'Pesanan Pembelian tidak dapat dipilih. Hanya Pesanan Pembelian berstatus Disetujui atau Diterima Sebagian yang dapat dibuatkan Penerimaan Barang.',
                 type: 'error'
             );
 
@@ -516,7 +516,7 @@ class GoodsReceive extends Component
             GoodsReceiveModel::STATUS_DRAFT,
             GoodsReceiveModel::STATUS_RECEIVED,
         ], true)) {
-            $this->addError('selectedStatus', 'Status Goods Receive ini tidak bisa diubah manual.');
+            $this->addError('selectedStatus', 'Status Penerimaan Barang ini tidak dapat diubah secara manual.');
 
             return;
         }
@@ -561,7 +561,7 @@ class GoodsReceive extends Component
             $this->selectedStatus === GoodsReceiveModel::STATUS_RECEIVED
         ) {
             if ($goodsReceive->items()->count() <= 0) {
-                $this->addError('selectedStatus', 'Goods Receive tidak bisa Received karena item masih kosong.');
+                $this->addError('selectedStatus', 'Penerimaan Barang tidak dapat diterima karena rincian masih kosong.');
 
                 return;
             }
@@ -571,7 +571,7 @@ class GoodsReceive extends Component
             });
 
             if ($invalidItem) {
-                $this->addError('selectedStatus', 'Goods Receive tidak bisa Received karena masih ada qty received yang 0.');
+                $this->addError('selectedStatus', 'Penerimaan Barang tidak dapat diterima karena masih ada jumlah penerimaan bernilai 0.');
 
                 return;
             }
@@ -629,13 +629,13 @@ class GoodsReceive extends Component
         $goodsReceive = GoodsReceiveModel::with('items')->findOrFail($id);
 
         if ($goodsReceive->status !== GoodsReceiveModel::STATUS_DRAFT) {
-            $this->dispatch('toast', message: 'Hanya Goods Receive Draft yang bisa di-receive.', type: 'error');
+            $this->dispatch('toast', message: 'Hanya Penerimaan Barang berstatus Draf yang dapat diterima.', type: 'error');
 
             return;
         }
 
         if ($goodsReceive->items->isEmpty()) {
-            $this->dispatch('toast', message: 'Goods Receive tidak bisa di-receive karena item masih kosong.', type: 'error');
+            $this->dispatch('toast', message: 'Penerimaan Barang tidak dapat diterima karena rincian masih kosong.', type: 'error');
 
             return;
         }
@@ -717,7 +717,7 @@ class GoodsReceive extends Component
             $this->showReceiveModal = false;
             $this->receiveTargetId = null;
 
-            $this->dispatch('toast', message: 'Hanya Goods Receive Draft yang bisa di-receive.', type: 'error');
+            $this->dispatch('toast', message: 'Hanya Penerimaan Barang berstatus Draf yang dapat diterima.', type: 'error');
 
             return;
         }
@@ -767,7 +767,7 @@ class GoodsReceive extends Component
         if ($goodsReceive->status !== 'Draft') {
             $this->dispatch(
                 'toast',
-                message: 'Hanya Goods Receive status draft yang boleh dihapus.',
+                message: 'Hanya Penerimaan Barang berstatus Draf yang dapat dihapus.',
                 type: 'error'
             );
 

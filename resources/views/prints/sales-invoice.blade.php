@@ -7,7 +7,7 @@
     $company = config('company');
     $bank = collect(config('company.bank'))->filter()->isNotEmpty()
         ? (object) config('company.bank')
-        : BankAccount::where('is_active', true)->orderBy('id')->first();
+        : BankAccount::where('is_active', true)->where('account_type', 'bank')->orderBy('id')->first();
 
     $customer = $invoice->customer;
     $address = $invoice->salesOrder?->customerAddress ?? $customer?->primaryAddress;

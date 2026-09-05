@@ -1,18 +1,35 @@
 <?php
 
 use App\Livewire\Sales\SalesMaster\SalesMan;
-use App\Models\Customer;
-use App\Models\CustomerAddress;
 use App\Models\Role;
 use App\Models\Salesman as SalesmanModel;
+use App\Models\SalesmanTarget;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 
+it('positions the create and edit salesman modal at the top like other forms', function () {
+    $admin = User::factory()->create();
+    $this->actingAs($admin);
+
+    Livewire::test(SalesMan::class)
+        ->call('openCreate')
+        ->assertSet('showModal', true)
+        ->assertSeeHtml('items-start justify-center overflow-y-auto')
+        ->assertSeeHtml('max-h-[calc(100dvh-2rem)]')
+        ->assertSeeHtml('class="flex min-h-0 flex-1 flex-col"');
+
+    $salesman = SalesmanModel::create(['code' => 'SM-EDIT', 'name' => 'Salesman Edit']);
+
+    Livewire::test(SalesMan::class)
+        ->call('openEdit', $salesman->id)
+        ->assertSet('showModal', true)
+        ->assertSee('Ubah Salesman')
+        ->assertSeeHtml('items-start justify-center overflow-y-auto');
+});
+
 it('creates a salesman together with an ERP login and salesman role', function () {
     $admin = User::factory()->create();
-    $customer = Customer::factory()->create();
-    $address = CustomerAddress::factory()->for($customer)->create();
     $this->actingAs($admin);
 
     Livewire::test(SalesMan::class)
@@ -21,8 +38,6 @@ it('creates a salesman together with an ERP login and salesman role', function (
         ->set('login', 'budi.sales@example.test')
         ->set('password', 'password-sales')
         ->set('passwordConfirmation', 'password-sales')
-        ->set('defaultCustomerId', $customer->id)
-        ->set('defaultCustomerAddressId', $address->id)
         ->call('save')
         ->assertHasNoErrors()
         ->assertDispatched('toast');
@@ -34,8 +49,6 @@ it('creates a salesman together with an ERP login and salesman role', function (
         ->and($salesman->user->is($account))->toBeTrue()
         ->and($account->role->name)->toBe('Salesman')
         ->and(Hash::check('password-sales', $account->password))->toBeTrue()
-        ->and($salesman->defaultCustomer->is($customer))->toBeTrue()
-        ->and($salesman->defaultCustomerAddress->is($address))->toBeTrue()
         ->and($salesman->creator->is($admin))->toBeTrue();
 });
 
@@ -54,25 +67,6 @@ it('does not allow duplicate ERP login credentials', function () {
         ->assertHasErrors(['login' => 'unique']);
 
     expect(SalesmanModel::count())->toBe(0);
-});
-
-it('rejects a delivery address from a different customer', function () {
-    $admin = User::factory()->create();
-    $customer = Customer::factory()->create();
-    $otherCustomer = Customer::factory()->create();
-    $otherAddress = CustomerAddress::factory()->for($otherCustomer)->create();
-    $this->actingAs($admin);
-
-    Livewire::test(SalesMan::class)
-        ->set('code', 'SM-001')
-        ->set('name', 'Budi Santoso')
-        ->set('login', 'budi@example.test')
-        ->set('password', 'password-sales')
-        ->set('passwordConfirmation', 'password-sales')
-        ->set('defaultCustomerId', $customer->id)
-        ->set('defaultCustomerAddressId', $otherAddress->id)
-        ->call('save')
-        ->assertHasErrors(['defaultCustomerAddressId' => 'exists']);
 });
 
 it('updates soft deletes and restores a salesman', function () {
@@ -178,4 +172,35 @@ it('renders the salesman master page for authenticated users', function () {
         ->assertSee('Buka aksi salesman')
         ->assertSee('Ubah')
         ->assertSee('Hapus');
+});
+
+it('creates updates and deletes one monthly target per salesman', function () {
+    $admin = User::factory()->create();
+    $salesman = SalesmanModel::create(['code' => 'SM-TARGET', 'name' => 'Salesman Target']);
+    $this->actingAs($admin);
+
+    $component = Livewire::test(SalesMan::class)
+        ->set('targetMonth', '2026-09')
+        ->call('openTarget', $salesman->id)
+        ->assertSet('showTargetModal', true)
+        ->set('targetAmount', 100000000)
+        ->call('saveTarget')
+        ->assertHasNoErrors()
+        ->assertDispatched('toast', type: 'success');
+
+    expect(SalesmanTarget::sole()->target_month->toDateString())->toBe('2026-09-01')
+        ->and(SalesmanTarget::sole()->target_amount)->toBe(100000000);
+
+    $component->call('openTarget', $salesman->id)
+        ->assertSet('targetAmount', 100000000)
+        ->set('targetAmount', 125000000)
+        ->call('saveTarget');
+
+    expect(SalesmanTarget::count())->toBe(1)
+        ->and(SalesmanTarget::sole()->target_amount)->toBe(125000000);
+
+    $component->call('openTarget', $salesman->id)
+        ->call('deleteTarget');
+
+    expect(SalesmanTarget::count())->toBe(0);
 });

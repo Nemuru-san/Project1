@@ -52,9 +52,9 @@ class SupplierManager extends Component
     }
 
     protected $messages = [
-        'code.required' => 'Kode supplier wajib diisi.',
-        'code.unique' => 'Kode supplier sudah digunakan.',
-        'name.required' => 'Nama supplier wajib diisi.',
+        'code.required' => 'Kode pemasok wajib diisi.',
+        'code.unique' => 'Kode pemasok sudah digunakan.',
+        'name.required' => 'Nama pemasok wajib diisi.',
         'address.required' => 'Alamat wajib diisi.',
         'contact.required' => 'Kontak wajib diisi.',
     ];

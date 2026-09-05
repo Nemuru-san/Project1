@@ -77,10 +77,33 @@
     .status-draft {
         margin-top: 6px; text-align: center; font-weight: bold; letter-spacing: 3px; color: #b91c1c;
     }
-    @page { size: A4 portrait; margin: 10mm; }
+    /* Continuous form Epson LX-310: lebar 16 inci, tinggi 9 inci. */
+    @page { size: 16in 9in; margin: 0; }
     @media print {
-        body { background: #fff; padding: 0; font-size: 11px; }
+        html, body {
+            width: 16in;
+            height: 9in;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #fff;
+            font-size: 11px;
+            overflow: hidden;
+        }
         .toolbar, .tearline { display: none !important; }
-        .sheet { max-width: none; border: 0; padding: 0; }
+        .sheet {
+            width: 16in;
+            height: 9in;
+            max-width: none;
+            margin: 0;
+            border: 0;
+            padding: .18in .35in;
+            overflow: hidden;
+            break-inside: avoid;
+            break-after: avoid-page;
+            page-break-inside: avoid;
+            page-break-after: avoid;
+        }
     }
 </style>

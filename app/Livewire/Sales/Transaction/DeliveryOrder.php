@@ -433,7 +433,7 @@ class DeliveryOrder extends Component
         }
 
         $salesmanId = auth()->user()?->salesman()->where('is_active', true)->value('id');
-        $ownsConvertedOrder = $salesOrder->salesCanvas && $salesOrder->salesCanvas->salesman_id === $salesmanId;
+        $ownsConvertedOrder = $salesOrder->salesman_id === $salesmanId;
         abort_unless($ownsConvertedOrder || $salesOrder->created_by === Auth::id(), 403);
     }
 
@@ -471,6 +471,7 @@ class DeliveryOrder extends Component
             ->whereHas('items')
             ->when(! auth()->user()?->isSuperAdmin(), fn (Builder $query) => $query->where(function (Builder $query) use ($currentSalesmanId) {
                 $query->where('created_by', Auth::id())
+                    ->orWhere('salesman_id', $currentSalesmanId ?? 0)
                     ->orWhereHas('salesCanvas', fn (Builder $canvas) => $canvas->where('salesman_id', $currentSalesmanId ?? 0));
             }));
     }
@@ -482,6 +483,7 @@ class DeliveryOrder extends Component
             ->with(['salesOrder.preOrder', 'salesOrder.salesCanvas', 'customer'])
             ->when(! auth()->user()?->isSuperAdmin(), fn (Builder $query) => $query->where(function (Builder $query) use ($currentSalesmanId) {
                 $query->where('created_by', Auth::id())
+                    ->orWhereHas('salesOrder', fn (Builder $order) => $order->where('salesman_id', $currentSalesmanId ?? 0))
                     ->orWhereHas('salesOrder.salesCanvas', fn (Builder $canvas) => $canvas->where('salesman_id', $currentSalesmanId ?? 0));
             }))
             ->when($this->dateFrom !== '', fn (Builder $query) => $query->whereDate('delivery_date', '>=', $this->dateFrom))

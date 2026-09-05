@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Sales\SalesMaster;
 
+use App\Models\AddressCode;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\CustomerPic;
+use App\Models\Salesman;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -46,7 +48,13 @@ class CustomerMaster extends Component
 
     public string $tax_number = '';
 
+    public ?int $credit_limit = null;
+
+    public int $payment_terms_days = 30;
+
     public string $notes = '';
+
+    public ?int $default_salesman_id = null;
 
     public bool $is_active = true;
 
@@ -70,7 +78,10 @@ class CustomerMaster extends Component
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
             'tax_number' => ['nullable', 'string', 'max:100'],
+            'credit_limit' => ['nullable', 'integer', 'min:0'],
+            'payment_terms_days' => ['required', 'integer', 'min:0', 'max:3650'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'default_salesman_id' => ['nullable', 'integer', Rule::exists('salesmen', 'id')->where(fn ($query) => $query->where('is_active', true)->whereNull('deleted_at'))],
             'is_active' => ['boolean'],
 
             'pics' => ['required', 'array', 'min:1'],
@@ -84,7 +95,7 @@ class CustomerMaster extends Component
 
             'addresses' => ['required', 'array', 'min:1'],
             'addresses.*.id' => ['nullable', 'integer'],
-            'addresses.*.code' => ['nullable', 'string', 'max:50'],
+            'addresses.*.code' => ['required', 'string', 'max:50'],
             'addresses.*.label' => ['nullable', 'string', 'max:255'],
             'addresses.*.address_type' => ['required', Rule::in(['billing', 'shipping', 'both'])],
             'addresses.*.address' => ['required', 'string', 'max:1000'],
@@ -106,6 +117,7 @@ class CustomerMaster extends Component
         'pics.*.email.email' => 'Format email kontak tidak valid.',
         'addresses.required' => 'Minimal satu alamat wajib diisi.',
         'addresses.min' => 'Minimal satu alamat wajib diisi.',
+        'addresses.*.code.required' => 'Kode alamat wajib dipilih.',
         'addresses.*.address_type.required' => 'Tipe alamat wajib dipilih.',
         'addresses.*.address.required' => 'Alamat lengkap wajib diisi.',
         'addresses.*.country.required' => 'Negara wajib diisi.',
@@ -154,7 +166,10 @@ class CustomerMaster extends Component
         $this->phone = $customer->phone ?? '';
         $this->email = $customer->email ?? '';
         $this->tax_number = $customer->tax_number ?? '';
+        $this->credit_limit = $customer->credit_limit;
+        $this->payment_terms_days = $customer->payment_terms_days;
         $this->notes = $customer->notes ?? '';
+        $this->default_salesman_id = $customer->default_salesman_id;
         $this->is_active = $customer->is_active;
         $this->pics = $customer->pics->map(fn (CustomerPic $pic) => [
             'id' => $pic->id,
@@ -252,7 +267,8 @@ class CustomerMaster extends Component
 
         DB::transaction(function () use ($validated): void {
             $customerData = collect($validated)->only([
-                'name', 'phone', 'email', 'tax_number', 'notes', 'is_active',
+                'name', 'phone', 'email', 'tax_number', 'credit_limit', 'payment_terms_days',
+                'default_salesman_id', 'notes', 'is_active',
             ])->all();
 
             if ($this->editingId) {
@@ -288,7 +304,7 @@ class CustomerMaster extends Component
     public function openDetail(int $id): void
     {
         $customer = Customer::withTrashed()
-            ->with(['pics', 'addresses'])
+            ->with(['pics', 'addresses', 'defaultSalesman'])
             ->findOrFail($id);
 
         $this->detailCustomer = [
@@ -297,7 +313,10 @@ class CustomerMaster extends Component
             'phone' => $customer->phone,
             'email' => $customer->email,
             'tax_number' => $customer->tax_number,
+            'credit_limit' => $customer->credit_limit,
+            'payment_terms_days' => $customer->payment_terms_days,
             'notes' => $customer->notes,
+            'default_salesman' => $customer->defaultSalesman?->name,
             'is_active' => $customer->is_active,
             'is_trashed' => $customer->trashed(),
             'created_at' => $customer->created_at?->format('d M Y H:i'),
@@ -380,14 +399,10 @@ class CustomerMaster extends Component
 
             if ($id) {
                 $address = $customer->addresses()->whereKey($id)->firstOrFail();
-                // Kode dikosongkan saat edit berarti kembali ke kode otomatis.
-                $address->update($row + ['code' => $code ?: $this->addressCode($address->id)]);
+                $address->update($row + ['code' => $code]);
                 $keptIds[] = $address->id;
             } else {
-                $address = $customer->addresses()->create($row + ['code' => $code ?: 'AUTO']);
-                if ($code === '') {
-                    $address->update(['code' => $this->addressCode($address->id)]);
-                }
+                $address = $customer->addresses()->create($row + ['code' => $code]);
                 $keptIds[] = $address->id;
             }
         }
@@ -457,11 +472,6 @@ class CustomerMaster extends Component
         return 'CUST-'.str_pad((string) $id, 5, '0', STR_PAD_LEFT);
     }
 
-    private function addressCode(int $id): string
-    {
-        return 'ADDR-'.str_pad((string) $id, 3, '0', STR_PAD_LEFT);
-    }
-
     private function resetForm(): void
     {
         $this->editingId = null;
@@ -470,7 +480,10 @@ class CustomerMaster extends Component
         $this->phone = '';
         $this->email = '';
         $this->tax_number = '';
+        $this->credit_limit = null;
+        $this->payment_terms_days = 30;
         $this->notes = '';
+        $this->default_salesman_id = null;
         $this->is_active = true;
         $this->pics = [$this->blankPic(true)];
         $this->addresses = [$this->blankAddress(true)];
@@ -509,7 +522,7 @@ class CustomerMaster extends Component
 
     public function render()
     {
-        $query = Customer::query()->withCount(['pics', 'addresses']);
+        $query = Customer::query()->with('defaultSalesman')->withCount(['pics', 'addresses']);
 
         if ($this->showTrashed) {
             $query->withTrashed();
@@ -525,9 +538,14 @@ class CustomerMaster extends Component
         }
 
         return view('livewire.sales.sales-master.customer-master', [
+            'addressCodes' => AddressCode::query()
+                ->where('is_active', true)
+                ->orderBy('code')
+                ->get(),
             'customers' => $query
                 ->orderBy($this->sortField, $this->sortDirection)
                 ->paginate($this->perPage),
+            'salesmen' => Salesman::where('is_active', true)->orderBy('name')->get(['id', 'code', 'name']),
         ]);
     }
 }

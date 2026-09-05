@@ -7,6 +7,7 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseReturn;
 use App\Models\PurchaseReturnInvoice;
 use App\Models\SalesInvoice;
+use App\Models\SalesOrder;
 use App\Models\SalesReturn;
 use App\Models\SalesReturnInvoice;
 use App\Models\StockTransfer;
@@ -155,6 +156,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('pages.sales.salesMaster.customer');
     })->name('sales.master.customer');
 
+    Route::view('sales/master/customer-address-code', 'pages.sales.salesMaster.customerAddressCode')
+        ->name('sales.master.customer-address-code');
+
     Route::get('sales/master/salesman', function () {
         return view('pages.sales.salesMaster.salesMan');
     })->name('sales.master.salesman');
@@ -170,6 +174,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('sales/transaction/salesOrder', function () {
         return view('pages.sales.salesTransaction.salesOrder');
     })->name('sales.transaction.salesOrder');
+
+    Route::get('sales/transaction/salesOrder/{id}/thermal-print', function ($id) {
+        $order = SalesOrder::forThermalPrint($id);
+        abort_unless($order->isAccessibleBy(auth()->user()), 403);
+        abort_unless($order->status === 'completed' && $order->salesInvoice, 422);
+
+        return view('prints.direct-sale-receipt', compact('order') + ['autoPrint' => true]);
+    })->name('sales.transaction.salesOrder.thermal-print');
 
     Route::get('sales/transaction/deliveryOrder', function () {
         return view('pages.sales.salesTransaction.deliveryOrder');

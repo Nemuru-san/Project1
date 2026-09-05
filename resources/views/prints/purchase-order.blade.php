@@ -8,8 +8,8 @@
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet" />
     <style>
         @page {
-            size: 210mm 140mm;
-            margin: 7mm;
+            size: 16in 9in;
+            margin: 0;
         }
 
         * {
@@ -19,6 +19,7 @@
 
         html,
         body {
+            width: 16in;
             height: 100%;
         }
 
@@ -31,7 +32,7 @@
         }
 
         .page {
-            min-height: calc(140mm - 14mm);
+            height: 100%;
             display: flex;
             flex-direction: column;
         }
@@ -156,6 +157,18 @@
         }
 
         @media print {
+            body {
+                padding: .18in .35in;
+                overflow: hidden;
+            }
+
+            .page {
+                overflow: hidden;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                page-break-after: avoid;
+            }
+
             .no-print {
                 display: none;
             }

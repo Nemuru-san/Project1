@@ -2,11 +2,12 @@
 
 namespace App\Livewire\Sales\SalesMaster;
 
-use App\Models\Customer;
-use App\Models\CustomerAddress;
 use App\Models\Role;
+use App\Models\SalesInvoice;
 use App\Models\Salesman as SalesmanModel;
+use App\Models\SalesmanTarget;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -43,17 +44,28 @@ class SalesMan extends Component
 
     public string $passwordConfirmation = '';
 
-    public ?int $defaultCustomerId = null;
-
-    public ?int $defaultCustomerAddressId = null;
-
     public bool $isActive = true;
 
     public bool $showModal = false;
 
     public bool $showDeleteModal = false;
 
+    public bool $showTargetModal = false;
+
     public ?int $deleteTargetId = null;
+
+    public string $targetMonth = '';
+
+    public ?int $targetSalesmanId = null;
+
+    public string $targetSalesmanName = '';
+
+    public int $targetAmount = 0;
+
+    public function mount(): void
+    {
+        $this->targetMonth = now()->format('Y-m');
+    }
 
     protected function rules(): array
     {
@@ -63,32 +75,20 @@ class SalesMan extends Component
             'login' => ['required', 'string', 'max:255', Rule::unique('users', 'email')->ignore($this->loginUserId)],
             'password' => [$this->loginUserId ? 'nullable' : 'required', 'string', 'min:8', 'same:passwordConfirmation'],
             'passwordConfirmation' => [$this->loginUserId ? 'nullable' : 'required', 'string'],
-            'defaultCustomerId' => ['nullable', 'integer', 'exists:customers,id'],
-            'defaultCustomerAddressId' => [
-                'nullable',
-                'integer',
-                Rule::exists('customer_addresses', 'id')->where(
-                    fn ($query) => $query
-                        ->where('customer_id', $this->defaultCustomerId)
-                        ->whereNull('deleted_at')
-                ),
-            ],
             'isActive' => ['boolean'],
         ];
     }
 
     protected $messages = [
-        'code.required' => 'Kode salesman wajib diisi.',
-        'code.unique' => 'Kode salesman sudah digunakan.',
-        'name.required' => 'Nama salesman wajib diisi.',
-        'login.required' => 'Email atau username login wajib diisi.',
-        'login.unique' => 'Email atau username login sudah digunakan.',
-        'password.required' => 'Password login wajib diisi.',
-        'password.min' => 'Password minimal 8 karakter.',
-        'password.same' => 'Konfirmasi password tidak sama.',
-        'passwordConfirmation.required' => 'Konfirmasi password wajib diisi.',
-        'defaultCustomerId.exists' => 'Customer tidak ditemukan.',
-        'defaultCustomerAddressId.exists' => 'Alamat harus berasal dari customer default yang dipilih.',
+        'code.required' => 'Kode tenaga penjual wajib diisi.',
+        'code.unique' => 'Kode tenaga penjual sudah digunakan.',
+        'name.required' => 'Nama tenaga penjual wajib diisi.',
+        'login.required' => 'Email atau nama pengguna untuk masuk wajib diisi.',
+        'login.unique' => 'Email atau nama pengguna untuk masuk sudah digunakan.',
+        'password.required' => 'Kata sandi untuk masuk wajib diisi.',
+        'password.min' => 'Kata sandi minimal 8 karakter.',
+        'password.same' => 'Konfirmasi kata sandi tidak sama.',
+        'passwordConfirmation.required' => 'Konfirmasi kata sandi wajib diisi.',
     ];
 
     public function updatingSearch(): void
@@ -106,9 +106,9 @@ class SalesMan extends Component
         $this->resetPage();
     }
 
-    public function updatedDefaultCustomerId(): void
+    public function updatedTargetMonth(): void
     {
-        $this->defaultCustomerAddressId = null;
+        $this->resetPage();
     }
 
     public function sortBy(string $field): void
@@ -139,11 +139,68 @@ class SalesMan extends Component
         $this->login = $salesman->user?->email ?? '';
         $this->password = '';
         $this->passwordConfirmation = '';
-        $this->defaultCustomerId = $salesman->default_customer_id;
-        $this->defaultCustomerAddressId = $salesman->default_customer_address_id;
         $this->isActive = $salesman->is_active;
         $this->resetErrorBag();
         $this->showModal = true;
+    }
+
+    public function openTarget(int $id): void
+    {
+        $this->validate(['targetMonth' => ['required', 'date_format:Y-m']]);
+
+        $salesman = SalesmanModel::findOrFail($id);
+        $target = SalesmanTarget::query()
+            ->where('salesman_id', $salesman->id)
+            ->whereDate('target_month', $this->targetMonth.'-01')
+            ->first();
+
+        $this->targetSalesmanId = $salesman->id;
+        $this->targetSalesmanName = $salesman->name;
+        $this->targetAmount = (int) ($target?->target_amount ?? 0);
+        $this->resetErrorBag('targetAmount');
+        $this->showTargetModal = true;
+    }
+
+    public function saveTarget(): void
+    {
+        $this->validate([
+            'targetMonth' => ['required', 'date_format:Y-m'],
+            'targetSalesmanId' => ['required', 'integer', 'exists:salesmen,id'],
+            'targetAmount' => ['required', 'integer', 'min:1'],
+        ], [
+            'targetAmount.required' => 'Nominal target wajib diisi.',
+            'targetAmount.min' => 'Nominal target harus lebih dari Rp 0.',
+        ]);
+
+        $target = SalesmanTarget::query()
+            ->where('salesman_id', $this->targetSalesmanId)
+            ->whereDate('target_month', $this->targetMonth.'-01')
+            ->first() ?? new SalesmanTarget([
+                'salesman_id' => $this->targetSalesmanId,
+                'target_month' => $this->targetMonth.'-01',
+            ]);
+        $target->target_amount = $this->targetAmount;
+        $target->updated_by = Auth::id();
+        $target->created_by ??= Auth::id();
+        $target->save();
+
+        $this->showTargetModal = false;
+        $this->dispatch('toast', message: 'Target bulanan salesman berhasil disimpan.', type: 'success');
+    }
+
+    public function deleteTarget(): void
+    {
+        if (! $this->targetSalesmanId) {
+            return;
+        }
+
+        SalesmanTarget::query()
+            ->where('salesman_id', $this->targetSalesmanId)
+            ->whereDate('target_month', $this->targetMonth.'-01')
+            ->delete();
+
+        $this->showTargetModal = false;
+        $this->dispatch('toast', message: 'Target bulanan salesman berhasil dihapus.', type: 'success');
     }
 
     public function save(): void
@@ -181,8 +238,6 @@ class SalesMan extends Component
                 'code' => $this->code,
                 'name' => $this->name,
                 'user_id' => $user->id,
-                'default_customer_id' => $this->defaultCustomerId,
-                'default_customer_address_id' => $this->defaultCustomerAddressId,
                 'is_active' => $this->isActive,
             ];
 
@@ -257,8 +312,6 @@ class SalesMan extends Component
             'login',
             'password',
             'passwordConfirmation',
-            'defaultCustomerId',
-            'defaultCustomerAddressId',
         ]);
         $this->isActive = true;
         $this->resetErrorBag();
@@ -266,8 +319,25 @@ class SalesMan extends Component
 
     public function render()
     {
+        $period = preg_match('/^\d{4}-\d{2}$/', $this->targetMonth)
+            ? Carbon::createFromFormat('Y-m', $this->targetMonth)->startOfMonth()
+            : now()->startOfMonth();
+        $periodEnd = $period->copy()->endOfMonth();
+
         $salesmen = SalesmanModel::query()
-            ->with(['user', 'defaultCustomer', 'defaultCustomerAddress', 'creator'])
+            ->with([
+                'user',
+                'creator',
+                'monthlyTargets' => fn ($query) => $query->whereDate('target_month', $period->toDateString()),
+            ])
+            ->withSum([
+                'salesOrders as monthly_sales_total' => fn ($query) => $query->whereHas(
+                    'salesInvoice',
+                    fn (Builder $invoice) => $invoice
+                        ->where('status', SalesInvoice::STATUS_CONFIRMED)
+                        ->whereBetween('invoice_date', [$period->toDateString(), $periodEnd->toDateString()]),
+                ),
+            ], 'grand_total')
             ->when($this->showTrashed, fn (Builder $query) => $query->withTrashed())
             ->when($this->search !== '', function (Builder $query) {
                 $query->where(function (Builder $query) {
@@ -279,19 +349,7 @@ class SalesMan extends Component
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 
-        $customers = Customer::query()->where('is_active', true)->orderBy('name')->get(['id', 'code', 'name']);
-
-        $customerAddresses = CustomerAddress::query()
-            ->where('customer_id', $this->defaultCustomerId)
-            ->orderByDesc('is_primary')
-            ->orderBy('label')
-            ->get(['id', 'code', 'label', 'address']);
-
-        return view('livewire.sales.sales-master.sales-man', compact(
-            'salesmen',
-            'customers',
-            'customerAddresses',
-        ));
+        return view('livewire.sales.sales-master.sales-man', compact('salesmen'));
     }
 
     private function salesmanRole(): Role

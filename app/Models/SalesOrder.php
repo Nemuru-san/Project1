@@ -13,7 +13,7 @@ class SalesOrder extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'order_no', 'date', 'sales_canvas_id', 'pre_order_id', 'customer_id',
+        'order_no', 'date', 'order_type', 'sales_canvas_id', 'pre_order_id', 'salesman_id', 'customer_id',
         'customer_address_id', 'is_taxed', 'tax_rate', 'subtotal',
         'discount_total', 'tax_amount', 'grand_total', 'dp_amount',
         'amount_due', 'notes', 'status', 'created_by',
@@ -32,6 +32,29 @@ class SalesOrder extends Model
             'dp_amount' => 'integer',
             'amount_due' => 'integer',
         ];
+    }
+
+    public static function forThermalPrint(int|string $id): self
+    {
+        return static::with([
+            'customer', 'creator', 'items.product', 'items.unit',
+            'salesInvoice.payments.bankAccount',
+        ])->where('order_type', 'direct')->findOrFail($id);
+    }
+
+    public function isAccessibleBy(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+        if ($user->isSuperAdmin() || $this->created_by === $user->id) {
+            return true;
+        }
+
+        $salesmanId = $user->salesman()->where('is_active', true)->value('id');
+
+        return $this->salesman_id === $salesmanId
+            || $user->canPerform('sales.transaction.salesOrder', 'verify');
     }
 
     public function salesCanvas(): BelongsTo

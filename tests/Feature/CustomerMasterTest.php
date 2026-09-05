@@ -1,16 +1,18 @@
 <?php
 
 use App\Livewire\Sales\SalesMaster\CustomerMaster;
+use App\Models\AddressCode;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\CustomerPic;
 use App\Models\Role;
+use App\Models\Salesman;
 use App\Models\User;
 use Livewire\Livewire;
 
 function validCustomerForm(array $overrides = []): array
 {
-    return array_replace_recursive([
+    $form = array_replace_recursive([
         'code' => 'cust-001',
         'name' => 'PT Contoh Indonesia',
         'phone' => '021-555000',
@@ -67,6 +69,16 @@ function validCustomerForm(array $overrides = []): array
             ],
         ],
     ], $overrides);
+
+    collect($form['addresses'])
+        ->pluck('code')
+        ->filter()
+        ->each(fn (string $code) => AddressCode::firstOrCreate(
+            ['code' => $code],
+            ['is_active' => true],
+        ));
+
+    return $form;
 }
 
 it('opens the create customer modal from the add customer action', function () {
@@ -115,6 +127,40 @@ it('creates a customer with multiple pics and addresses in one form', function (
         ->and($customer->addresses->pluck('code')->sort()->values()->all())->toBe(['hq', 'wh-jkt']);
 });
 
+it('stores customer credit limit and payment terms', function () {
+    $this->actingAs(User::factory()->create());
+    $form = validCustomerForm();
+
+    Livewire::test(CustomerMaster::class)
+        ->set('name', $form['name'])
+        ->set('credit_limit', 25000000)
+        ->set('payment_terms_days', 45)
+        ->set('pics', $form['pics'])
+        ->set('addresses', $form['addresses'])
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(Customer::sole()->credit_limit)->toBe(25000000)
+        ->and(Customer::sole()->payment_terms_days)->toBe(45);
+});
+
+it('assigns the salesman who receives credit for direct store orders', function () {
+    $user = User::factory()->create();
+    $salesman = Salesman::create(['code' => 'SM-001', 'name' => 'Budi', 'is_active' => true]);
+    $this->actingAs($user);
+    $form = validCustomerForm();
+
+    Livewire::test(CustomerMaster::class)
+        ->set('name', $form['name'])
+        ->set('default_salesman_id', $salesman->id)
+        ->set('pics', $form['pics'])
+        ->set('addresses', $form['addresses'])
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(Customer::sole()->defaultSalesman->is($salesman))->toBeTrue();
+});
+
 it('updates nested rows and soft deletes rows removed from the form', function () {
     $user = User::factory()->create();
     $customer = Customer::factory()->for($user, 'creator')->create();
@@ -159,7 +205,7 @@ it('updates nested rows and soft deletes rows removed from the form', function (
         ->and($removedAddress->fresh()->trashed())->toBeTrue();
 });
 
-it('generates an address code only for rows left empty and allows an empty address label', function () {
+it('requires users to select a master code for every customer address', function () {
     $this->actingAs(User::factory()->create());
     $form = validCustomerForm([
         'addresses' => [
@@ -174,13 +220,25 @@ it('generates an address code only for rows left empty and allows an empty addre
         ->set('pics', $form['pics'])
         ->set('addresses', $form['addresses'])
         ->call('save')
-        ->assertHasNoErrors();
+        ->assertHasErrors('addresses.1.code');
 
-    $customer = Customer::with('addresses')->sole();
+    expect(Customer::count())->toBe(0);
+});
 
-    expect($customer->code)->toBe('CUST-00001')
-        ->and($customer->addresses->pluck('code')->sort()->values()->all())->toBe(['ADDR-002', 'GUDANG-A'])
-        ->and($customer->addresses->pluck('label'))->toContain('');
+it('shows the selected address code description in a readonly field', function () {
+    $this->actingAs(User::factory()->create());
+    AddressCode::create([
+        'code' => 'GUDANG-JKT',
+        'description' => 'Gudang Jakarta Utara',
+        'is_active' => true,
+    ]);
+
+    Livewire::test(CustomerMaster::class)
+        ->call('openCreate')
+        ->set('addresses.0.code', 'GUDANG-JKT')
+        ->assertSeeHtml('data-testid="address-code-description-0"')
+        ->assertSeeHtml('value="Gudang Jakarta Utara"')
+        ->assertSeeHtml('readonly');
 });
 
 it('rejects duplicate address codes within the same customer', function () {

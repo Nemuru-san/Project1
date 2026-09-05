@@ -120,10 +120,10 @@ class PurchaseInvoice extends Component
     }
 
     protected $messages = [
-        'date.required' => 'Tanggal invoice wajib diisi.',
+        'date.required' => 'Tanggal faktur wajib diisi.',
         'purchase_order_id.required' => 'Pesanan Pembelian wajib dipilih.',
-        'selectedGoodsReceiveIds.required' => 'Pilih minimal satu Goods Receive.',
-        'supplier_id.required' => 'Supplier wajib dipilih.',
+        'selectedGoodsReceiveIds.required' => 'Pilih minimal satu Penerimaan Barang.',
+        'supplier_id.required' => 'Pemasok wajib dipilih.',
         'itemRows.required' => 'Detail produk wajib ada.',
         'itemRows.min' => 'Minimal harus ada 1 detail produk.',
     ];
@@ -417,7 +417,7 @@ class PurchaseInvoice extends Component
             ->get();
 
         if ($receives->count() !== count($ids)) {
-            $this->addError('selectedGoodsReceiveIds', 'Semua Goods Receive harus berstatus Received dan berasal dari PO yang dipilih.');
+            $this->addError('selectedGoodsReceiveIds', 'Semua Penerimaan Barang harus berstatus Diterima dan berasal dari Pesanan Pembelian yang dipilih.');
             $this->itemRows = [];
             $this->recalculateTotals();
 
@@ -505,7 +505,7 @@ class PurchaseInvoice extends Component
         $goodsReceiveIds = array_values(array_unique(array_map('intval', $this->selectedGoodsReceiveIds)));
         if ($this->invoiceId && $goodsReceiveIds === []
             && ModelsPurchaseInvoice::findOrFail($this->invoiceId)->goodsReceives()->exists()) {
-            $this->addError('selectedGoodsReceiveIds', 'Pilih minimal satu Goods Receive.');
+            $this->addError('selectedGoodsReceiveIds', 'Pilih minimal satu Penerimaan Barang.');
 
             return;
         }
@@ -617,7 +617,7 @@ class PurchaseInvoice extends Component
     public function postInvoice(): void
     {
         if (! auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.post')) {
-            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk mem-posting Faktur Pembelian.', type: 'error');
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk memposting Faktur Pembelian.', type: 'error');
 
             return;
         }
@@ -795,7 +795,7 @@ class PurchaseInvoice extends Component
     public function confirmPost(int $id): void
     {
         if (! auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.post')) {
-            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk mem-posting Faktur Pembelian.', type: 'error');
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk memposting Faktur Pembelian.', type: 'error');
 
             return;
         }
@@ -803,7 +803,7 @@ class PurchaseInvoice extends Component
         $invoice = ModelsPurchaseInvoice::findOrFail($id);
 
         if ($invoice->status !== ModelsPurchaseInvoice::STATUS_DRAFT) {
-            $this->dispatch('toast', message: 'Hanya invoice Draft yang bisa di-post.', type: 'error');
+            $this->dispatch('toast', message: 'Hanya faktur berstatus Draf yang dapat diposting.', type: 'error');
 
             return;
         }

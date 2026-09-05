@@ -47,7 +47,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                Tambah Rekening Bank
+                Tambah Bank / Cash
             </button>
         </div>
     </div>
@@ -65,6 +65,8 @@
                             @endif
                         </div>
                     </th>
+
+                    <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('account_type')">Tipe</th>
 
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('bank_name')">
                         <div class="flex items-center gap-1">
@@ -89,6 +91,12 @@
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $bank->trashed() ? 'opacity-60' : '' }}">
                         <td class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                             {{ $bank->name }}
+                        </td>
+
+                        <td class="px-4 py-4">
+                            <span class="rounded px-2 py-1 text-xs {{ $bank->account_type === 'cash' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200' : 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200' }}">
+                                {{ $bank->account_type === 'cash' ? 'Cash' : 'Bank' }}
+                            </span>
                         </td>
 
                         <td class="px-4 py-4">
@@ -192,8 +200,8 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center py-8 text-gray-400 dark:text-gray-500">
-                            Tidak ada data bank account.
+                        <td colspan="8" class="text-center py-8 text-gray-400 dark:text-gray-500">
+                            Tidak ada data bank atau cash.
                         </td>
                     </tr>
                 @endforelse
@@ -214,7 +222,7 @@
 
                 <div class="flex items-center justify-between mb-5">
                     <h3 class="text-lg font-semibold dark:text-white">
-                        {{ $bankAccountId ? 'Ubah Rekening Bank' : 'Tambah Rekening Bank' }}
+                        {{ $bankAccountId ? 'Ubah Bank / Cash' : 'Tambah Bank / Cash' }}
                     </h3>
                     <button wire:click="$set('showModal', false)"
                         class="text-gray-400 hover:text-white cursor-pointer">
@@ -226,6 +234,17 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium dark:text-gray-300 mb-1">
+                            Tipe Akun <span class="text-red-500">*</span>
+                        </label>
+                        <select wire:model.live="account_type"
+                            class="w-full text-sm dark:bg-zinc-700 border border-gray-600 dark:text-white rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="bank">Bank</option>
+                            <option value="cash">Cash / Kas</option>
+                        </select>
+                    </div>
+
                     {{-- Name --}}
                     <div>
                         <label class="block text-sm font-medium dark:text-gray-300 mb-1">
@@ -257,6 +276,7 @@
                         @enderror
                     </div>
 
+                    @if ($account_type === 'bank')
                     {{-- Bank Name --}}
                     <div>
                         <label class="block text-sm font-medium dark:text-gray-300 mb-1">
@@ -292,6 +312,11 @@
                             <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+                    @else
+                        <div class="md:col-span-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200">
+                            Akun Cash tidak memerlukan nama bank, nomor rekening, atau pemilik rekening.
+                        </div>
+                    @endif
 
                     {{-- Is Active --}}
                     <div class="flex items-center">

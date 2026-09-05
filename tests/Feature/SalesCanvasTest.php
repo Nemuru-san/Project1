@@ -28,10 +28,9 @@ function salesCanvasFixture(array $overrides = []): array
         'code' => fake()->unique()->bothify('SM-###'),
         'name' => $user->name,
         'user_id' => $user->id,
-        'default_customer_id' => $customer->id,
-        'default_customer_address_id' => $address->id,
         'is_active' => true,
     ]);
+    $customer->update(['default_salesman_id' => $salesman->id]);
     $category = ProductCategory::create([
         'code' => fake()->unique()->bothify('CAT-###'),
         'name' => 'Kategori Test',
@@ -71,7 +70,7 @@ function salesCanvasFixture(array $overrides = []): array
     return array_merge(compact('role', 'user', 'salesman', 'customer', 'address', 'category', 'unit', 'warehouse', 'product'), $overrides);
 }
 
-it('automatically uses the logged in salesman and their customer defaults', function () {
+it('automatically uses the logged in salesman without choosing a default customer', function () {
     $data = salesCanvasFixture();
     $this->actingAs($data['user']);
 
@@ -81,8 +80,8 @@ it('automatically uses the logged in salesman and their customer defaults', func
         ->call('openProductPicker')
         ->assertSet('showModal', true)
         ->assertSet('salesmanId', $data['salesman']->id)
-        ->assertSet('customerId', $data['customer']->id)
-        ->assertSet('customerAddressId', $data['address']->id)
+        ->assertSet('customerId', null)
+        ->assertSet('customerAddressId', null)
         ->assertSeeHtml('h-[80vh]')
         ->assertSeeHtml('max-w-full')
         ->assertSeeHtml('Detail Harga')
@@ -124,6 +123,8 @@ it('creates a draft canvas sale with calculated totals', function () {
         ->set('date', '2026-07-22')
         ->set('tax', true)
         ->set('salesmanId', 999999)
+        ->set('customerId', $data['customer']->id)
+        ->set('customerAddressId', $data['address']->id)
         ->set('items', [[
             'product_id' => $data['product']->id,
             'sku' => $data['product']->sku,
@@ -216,7 +217,7 @@ it('requires confirmation before converting a canvas sale into a sales order', f
     Livewire::test(SalesCanvas::class)
         ->call('confirmConvertToSalesOrder', $canvas->id)
         ->assertSet('showConvertModal', false)
-        ->assertDispatched('toast', message: 'Penjualan Kanvas harus dikonfirmasi sebelum dijadikan Sales Order.', type: 'error')
+        ->assertDispatched('toast', message: 'Penjualan Kanvas harus dikonfirmasi sebelum dijadikan Pesanan Penjualan.', type: 'error')
         ->call('openConfirmCanvas', $canvas->id)
         ->assertSet('showConfirmModal', true)
         ->assertSet('confirmTargetId', $canvas->id)
@@ -390,6 +391,7 @@ it('creates a sales order manually without a sales canvas reference', function (
 
     expect($order->sales_canvas_id)->toBeNull()
         ->and($order->pre_order_id)->toBeNull()
+        ->and($order->salesman_id)->toBe($data['salesman']->id)
         ->and($order->customer_id)->toBe($data['customer']->id)
         ->and($order->status)->toBe('draft')
         ->and($order->items)->toHaveCount(1)

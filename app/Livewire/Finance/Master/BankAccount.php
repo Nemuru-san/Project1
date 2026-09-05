@@ -27,6 +27,8 @@ class BankAccount extends Component
 
     public string $name = '';
 
+    public string $account_type = 'bank';
+
     public string $bank_name = '';
 
     public string $account_number = '';
@@ -48,6 +50,7 @@ class BankAccount extends Component
     {
         return [
             'name' => 'required|string|max:255',
+            'account_type' => 'required|in:bank,cash',
             'bank_name' => 'nullable|string|max:255',
             'account_number' => 'nullable|string|max:255',
             'account_holder' => 'nullable|string|max:255',
@@ -79,7 +82,7 @@ class BankAccount extends Component
 
     public function sortBy(string $field): void
     {
-        if (! in_array($field, ['name', 'bank_name', 'account_number', 'account_holder', 'is_active', 'created_at'], true)) {
+        if (! in_array($field, ['name', 'account_type', 'bank_name', 'account_number', 'account_holder', 'is_active', 'created_at'], true)) {
             return;
         }
 
@@ -102,6 +105,7 @@ class BankAccount extends Component
 
         $this->bankAccountId = $bankAccount->id;
         $this->name = $bankAccount->name;
+        $this->account_type = $bankAccount->account_type ?? 'bank';
         $this->bank_name = $bankAccount->bank_name ?? '';
         $this->account_number = $bankAccount->account_number ?? '';
         $this->account_holder = $bankAccount->account_holder ?? '';
@@ -118,16 +122,17 @@ class BankAccount extends Component
         $coa = ChartOfAccount::findOrFail($this->chart_of_account_id);
 
         if (! $coa->is_active || ! $coa->is_postable || $coa->type !== 'Asset') {
-            $this->addError('chart_of_account_id', 'CoA harus akun Asset yang aktif dan postable.');
+            $this->addError('chart_of_account_id', 'Daftar Akun harus berupa akun Aset yang aktif dan dapat diposting.');
 
             return;
         }
 
         $data = [
             'name' => $this->name,
-            'bank_name' => $this->bank_name ?: null,
-            'account_number' => $this->account_number ?: null,
-            'account_holder' => $this->account_holder ?: null,
+            'account_type' => $this->account_type,
+            'bank_name' => $this->account_type === 'bank' ? ($this->bank_name ?: null) : null,
+            'account_number' => $this->account_type === 'bank' ? ($this->account_number ?: null) : null,
+            'account_holder' => $this->account_type === 'bank' ? ($this->account_holder ?: null) : null,
             'chart_of_account_id' => $this->chart_of_account_id,
             'is_active' => $this->is_active,
         ];
@@ -193,6 +198,7 @@ class BankAccount extends Component
     {
         $this->bankAccountId = null;
         $this->name = '';
+        $this->account_type = 'bank';
         $this->bank_name = '';
         $this->account_number = '';
         $this->account_holder = '';
@@ -214,6 +220,7 @@ class BankAccount extends Component
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('account_type', 'like', '%'.$this->search.'%')
                     ->orWhere('bank_name', 'like', '%'.$this->search.'%')
                     ->orWhere('account_number', 'like', '%'.$this->search.'%')
                     ->orWhere('account_holder', 'like', '%'.$this->search.'%')

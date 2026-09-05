@@ -187,7 +187,7 @@ class APPayment extends Component
         ])->findOrFail($id);
 
         if ($payment->status !== ModelsAPPayment::STATUS_DRAFT) {
-            $this->dispatch('toast', message: 'Payment yang sudah posted tidak bisa diedit.', type: 'error');
+            $this->dispatch('toast', message: 'Pembayaran yang sudah diposting tidak dapat diubah.', type: 'error');
 
             return;
         }
@@ -351,13 +351,13 @@ class APPayment extends Component
             $remaining = (int) ($row['remaining_amount'] ?? 0);
 
             if ($amount < 0) {
-                $this->addError("detailRows.$index.amount", 'Amount tidak boleh minus.');
+                $this->addError("detailRows.$index.amount", 'Nominal tidak boleh negatif.');
 
                 return;
             }
 
             if ($amount > $remaining) {
-                $this->addError("detailRows.$index.amount", 'Amount tidak boleh melebihi sisa tagihan.');
+                $this->addError("detailRows.$index.amount", 'Nominal tidak boleh melebihi sisa tagihan.');
 
                 return;
             }
@@ -368,7 +368,7 @@ class APPayment extends Component
             ->values();
 
         if ($payingRows->isEmpty()) {
-            $this->addError('total_amount', 'Minimal isi satu amount pembayaran.');
+            $this->addError('total_amount', 'Isi minimal satu nominal pembayaran.');
 
             return;
         }
@@ -377,7 +377,7 @@ class APPayment extends Component
             $payment = ModelsAPPayment::findOrFail($this->paymentId);
 
             if ($payment->status !== ModelsAPPayment::STATUS_DRAFT) {
-                $this->dispatch('toast', message: 'Payment yang sudah posted tidak bisa diedit.', type: 'error');
+                $this->dispatch('toast', message: 'Pembayaran yang sudah diposting tidak dapat diubah.', type: 'error');
 
                 return;
             }
@@ -426,13 +426,13 @@ class APPayment extends Component
         $payment = ModelsAPPayment::with('details')->findOrFail($id);
 
         if ($payment->status !== ModelsAPPayment::STATUS_DRAFT) {
-            $this->dispatch('toast', message: 'Hanya payment Draft yang bisa di-post.', type: 'error');
+            $this->dispatch('toast', message: 'Hanya pembayaran berstatus Draf yang dapat diposting.', type: 'error');
 
             return;
         }
 
         if ($payment->details->isEmpty()) {
-            $this->dispatch('toast', message: 'Payment tidak bisa di-post karena detail masih kosong.', type: 'error');
+            $this->dispatch('toast', message: 'Pembayaran tidak dapat diposting karena rincian masih kosong.', type: 'error');
 
             return;
         }
@@ -634,7 +634,7 @@ class APPayment extends Component
         $payment = ModelsAPPayment::findOrFail($id);
 
         if ($payment->status !== ModelsAPPayment::STATUS_DRAFT) {
-            $this->dispatch('toast', message: 'Payment yang sudah posted tidak bisa dihapus.', type: 'error');
+            $this->dispatch('toast', message: 'Pembayaran yang sudah diposting tidak dapat dihapus.', type: 'error');
 
             return;
         }
@@ -661,7 +661,7 @@ class APPayment extends Component
             $this->showDeleteModal = false;
             $this->deleteTargetId = null;
 
-            $this->dispatch('toast', message: 'Payment yang sudah posted tidak bisa dihapus.', type: 'error');
+            $this->dispatch('toast', message: 'Pembayaran yang sudah diposting tidak dapat dihapus.', type: 'error');
 
             return;
         }

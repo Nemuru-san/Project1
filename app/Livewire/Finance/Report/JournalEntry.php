@@ -92,7 +92,7 @@ class JournalEntry extends Component
         $journal = ModelsJournalEntry::findOrFail($id);
 
         if ($journal->status !== ModelsJournalEntry::STATUS_DRAFT) {
-            $this->dispatch('toast', message: 'Journal yang sudah posted tidak bisa dihapus.', type: 'error');
+            $this->dispatch('toast', message: 'Jurnal yang sudah diposting tidak dapat dihapus.', type: 'error');
 
             return;
         }
@@ -119,7 +119,7 @@ class JournalEntry extends Component
             $this->showDeleteModal = false;
             $this->deleteTargetId = null;
 
-            $this->dispatch('toast', message: 'Journal yang sudah posted tidak bisa dihapus.', type: 'error');
+            $this->dispatch('toast', message: 'Jurnal yang sudah diposting tidak dapat dihapus.', type: 'error');
 
             return;
         }

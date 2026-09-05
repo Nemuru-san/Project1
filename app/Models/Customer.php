@@ -19,6 +19,9 @@ class Customer extends Model
         'phone',
         'email',
         'tax_number',
+        'credit_limit',
+        'payment_terms_days',
+        'default_salesman_id',
         'notes',
         'is_active',
         'created_by',
@@ -28,6 +31,8 @@ class Customer extends Model
     {
         return [
             'is_active' => 'boolean',
+            'credit_limit' => 'integer',
+            'payment_terms_days' => 'integer',
         ];
     }
 
@@ -46,9 +51,9 @@ class Customer extends Model
         return $this->hasMany(CustomerAddress::class);
     }
 
-    public function salesmen(): HasMany
+    public function defaultSalesman(): BelongsTo
     {
-        return $this->hasMany(Salesman::class, 'default_customer_id');
+        return $this->belongsTo(Salesman::class, 'default_salesman_id')->withTrashed();
     }
 
     public function salesCanvases(): HasMany
@@ -59,6 +64,11 @@ class Customer extends Model
     public function salesOrders(): HasMany
     {
         return $this->hasMany(SalesOrder::class);
+    }
+
+    public function salesInvoices(): HasMany
+    {
+        return $this->hasMany(SalesInvoice::class);
     }
 
     public function primaryPic(): HasOne

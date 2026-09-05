@@ -5,6 +5,15 @@
     <meta charset="utf-8">
     <title>{{ $invoice->credit_note_no }}</title>
     <style>
+        @page {
+            size: 16in 9in;
+            margin: 0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, sans-serif;
             font-size: 12px;
@@ -55,6 +64,25 @@
         }
 
         @media print {
+            html,
+            body {
+                width: 16in;
+                height: 9in;
+            }
+
+            body {
+                margin: 0;
+                padding: .18in .35in;
+                overflow: hidden;
+            }
+
+            table,
+            tr,
+            .total {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
             button {
                 display: none
             }

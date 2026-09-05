@@ -237,21 +237,21 @@ class ProductMaster extends Component
                 $hasBaseUnitRow = true;
 
                 if ((int) $row['conversion'] !== 1) {
-                    $this->addError('priceRowsJson', 'Baris '.($index + 1).': Konversi base unit harus 1.');
+                    $this->addError('priceRowsJson', 'Baris '.($index + 1).': Konversi satuan dasar harus 1.');
 
                     return;
                 }
             }
 
             if (! is_numeric($row['price']) || (int) $row['price'] <= 0) {
-                $this->addError('priceRowsJson', 'Baris '.($index + 1).': Retail Price harus lebih dari 0.');
+                $this->addError('priceRowsJson', 'Baris '.($index + 1).': Harga eceran harus lebih dari 0.');
 
                 return;
             }
         }
 
         if (! $hasBaseUnitRow) {
-            $this->addError('priceRowsJson', 'Base unit harus ada di Unit & Harga.');
+            $this->addError('priceRowsJson', 'Satuan dasar harus tersedia pada daftar Satuan & Harga.');
 
             return;
         }

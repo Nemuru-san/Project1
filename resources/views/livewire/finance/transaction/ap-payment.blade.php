@@ -321,7 +321,7 @@
                                 <option value="">-- Pilih Rekening Bank --</option>
                                 @foreach ($bankAccounts as $bank)
                                     <option value="{{ $bank->id }}">
-                                        {{ $bank->name ?? ($bank->bank_name ?? 'Rekening Bank #' . $bank->id) }}
+                                        {{ $bank->display_label }}
                                     </option>
                                 @endforeach
                             </select>
