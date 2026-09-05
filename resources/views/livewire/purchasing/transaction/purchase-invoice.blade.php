@@ -8,8 +8,19 @@
     </div>
 
     {{-- FILTER BAR --}}
-    <div
-        class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
+    <section class="my-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="flex flex-col gap-4 border-b border-gray-100 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between dark:border-zinc-700">
+            <div>
+                <h2 class="text-base font-semibold text-gray-900 dark:text-white">Filter Purchase Invoice</h2>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Temukan faktur pembelian berdasarkan kata kunci, status, pembayaran, atau rentang tanggal.</p>
+            </div>
+            <button wire:click="openCreate" type="button" class="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:w-auto">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                Tambah Purchase Invoice
+            </button>
+        </div>
+        <div class="p-4 sm:px-5">
+            <div class="flex flex-col gap-4">
         <div class="flex flex-col sm:flex-row sm:flex-wrap items-center gap-3 w-full">
             {{-- Search --}}
             <div class="relative w-full sm:w-72">
@@ -70,13 +81,6 @@
                 </svg>
                 Export CSV
             </button> --}}
-            <button wire:click="openCreate"
-                class="order-last sm:ml-auto inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Tambah Transaksi
-            </button>
         </div>
     </div>
 
@@ -91,7 +95,9 @@
             class="rounded-lg border border-gray-600 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-zinc-800 cursor-pointer">
             Bersihkan Filter
         </button>
-    </div>
+            </div>
+        </div>
+    </section>
 
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">

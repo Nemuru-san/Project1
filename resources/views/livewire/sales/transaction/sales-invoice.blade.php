@@ -4,35 +4,57 @@
         class="fixed right-5 top-5 z-[80] rounded-lg px-4 py-2 text-sm text-white shadow-lg"><span
             x-text="toastMsg"></span></div>
 
-    <div class="my-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <div class="relative w-full sm:w-72"><svg class="pointer-events-none absolute left-3 top-3 h-5 w-5 text-gray-400"
-                fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd"
-                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                    clip-rule="evenodd" />
-            </svg><input wire:model.live.debounce.300ms="search" type="search"
-                placeholder="Cari faktur, SO, atau pelanggan..."
-                class="w-full rounded-lg border p-2.5 pl-10 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
+    <section class="my-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <div class="flex flex-col gap-4 border-b border-gray-100 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between dark:border-zinc-700">
+            <div>
+                <h2 class="text-base font-semibold text-gray-900 dark:text-white">Filter Faktur Penjualan</h2>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Temukan faktur berdasarkan kata kunci atau rentang tanggal.</p>
+            </div>
+            <button wire:click="openCreate" type="button"
+                class="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:w-auto">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                Tambah Faktur Penjualan
+            </button>
         </div>
-        <input wire:model.live="dateFrom" type="date" aria-label="Tanggal mulai"
-            class="rounded-lg border p-2.5 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
-        <span class="hidden text-gray-400 sm:inline">s.d.</span>
-        <input wire:model.live="dateTo" type="date" aria-label="Tanggal selesai"
-            class="rounded-lg border p-2.5 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
-        <select wire:model.live="perPage"
-            class="rounded-lg border px-8 py-2.5 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
-            <option value="10">10 / hal</option>
-            <option value="25">25 / hal</option>
-            <option value="50">50 / hal</option>
-        </select>
-        @if ($search || $dateFrom || $dateTo)
-            <button wire:click="resetFilters"
-                class="cursor-pointer rounded-lg border px-4 py-2.5 text-sm dark:border-zinc-600 dark:text-gray-300">Reset</button>
-        @endif
-        <button wire:click="openCreate"
-            class="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 sm:ml-auto"><span
-                class="text-lg leading-none">+</span> Tambah Faktur Penjualan</button>
-    </div>
+
+        <div class="grid gap-4 p-4 sm:grid-cols-2 sm:px-5 lg:grid-cols-[minmax(18rem,1fr)_auto_auto] lg:items-end">
+            <div class="sm:col-span-2 lg:col-span-1">
+                <label for="invoice-search" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Pencarian</label>
+                <div class="relative">
+                    <svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                    </svg>
+                    <input id="invoice-search" wire:model.live.debounce.300ms="search" type="search" placeholder="Cari nomor faktur, No. SO, atau pelanggan..."
+                        class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 pl-10 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                </div>
+            </div>
+
+            <fieldset class="sm:col-span-2 lg:col-span-1">
+                <legend class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Rentang tanggal</legend>
+                <div class="flex items-center gap-2">
+                    <input wire:model.live="dateFrom" type="date" aria-label="Tanggal mulai" class="min-w-0 w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                    <span class="shrink-0 text-sm text-gray-400">s.d.</span>
+                    <input wire:model.live="dateTo" type="date" aria-label="Tanggal selesai" class="min-w-0 w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                </div>
+            </fieldset>
+
+            <div class="flex items-end gap-2">
+                <div class="min-w-0 flex-1 lg:w-32 lg:flex-none">
+                    <label for="invoice-per-page" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Tampilkan</label>
+                    <select id="invoice-per-page" wire:model.live="perPage" class="block w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                        <option value="10">10 / hal</option>
+                        <option value="25">25 / hal</option>
+                        <option value="50">50 / hal</option>
+                    </select>
+                </div>
+                @if ($search || $dateFrom || $dateTo)
+                    <button wire:click="resetFilters" type="button" title="Reset filter" aria-label="Reset filter" class="mb-0.5 inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-gray-300 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:border-zinc-600 dark:text-gray-300 dark:hover:bg-zinc-800 dark:hover:text-white">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.001 8.001 0 01-15.357-2M15 20h4" /></svg>
+                    </button>
+                @endif
+            </div>
+        </div>
+    </section>
 
     <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700">
         <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
