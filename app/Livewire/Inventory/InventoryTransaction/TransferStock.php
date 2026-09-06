@@ -20,6 +20,10 @@ class TransferStock extends Component
 
     public string $search = '';
 
+    public string $dateFrom = '';
+
+    public string $dateTo = '';
+
     public int $perPage = 10;
 
     public string $sortField = 'created_at';
@@ -85,6 +89,16 @@ class TransferStock extends Component
     }
 
     public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDateTo(): void
     {
         $this->resetPage();
     }
@@ -332,6 +346,12 @@ class TransferStock extends Component
         $this->selectedTransfer = null;
     }
 
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'dateFrom', 'dateTo']);
+        $this->resetPage();
+    }
+
     private function resetForm(): void
     {
         $this->reset([
@@ -460,6 +480,8 @@ class TransferStock extends Component
                         ->orWhereHas('warehouseTo', fn ($w) => $w->where('name', 'like', '%'.$this->search.'%'));
                 });
             })
+            ->when($this->dateFrom, fn ($q) => $q->whereDate('date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn ($q) => $q->whereDate('date', '<=', $this->dateTo))
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 
