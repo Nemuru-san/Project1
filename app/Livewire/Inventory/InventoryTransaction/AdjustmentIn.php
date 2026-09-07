@@ -20,6 +20,10 @@ class AdjustmentIn extends Component
 
     public string $search = '';
 
+    public string $dateFrom = '';
+
+    public string $dateTo = '';
+
     public int $perPage = 10;
 
     public string $sortField = 'created_at';
@@ -86,6 +90,16 @@ class AdjustmentIn extends Component
         $this->resetPage();
     }
 
+    public function updatingDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDateTo(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatingPerPage(): void
     {
         $this->resetPage();
@@ -93,6 +107,12 @@ class AdjustmentIn extends Component
 
     public function updatingShowTrashed(): void
     {
+        $this->resetPage();
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'dateFrom', 'dateTo', 'showTrashed']);
         $this->resetPage();
     }
 
@@ -429,6 +449,8 @@ class AdjustmentIn extends Component
                         ->orWhereHas('warehouse', fn ($w) => $w->where('name', 'like', '%'.$this->search.'%'));
                 });
             })
+            ->when($this->dateFrom, fn ($q) => $q->whereDate('date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn ($q) => $q->whereDate('date', '<=', $this->dateTo))
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 
