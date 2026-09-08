@@ -94,6 +94,11 @@ class StockBalance extends Component
         return app(StockQuantityFormatter::class)->format($product, $quantity);
     }
 
+    public function formatStockByUnit(?Product $product, int $quantity): array
+    {
+        return app(StockQuantityFormatter::class)->formatByUnit($product, $quantity, ['PKK', 'PAK', 'PCS']);
+    }
+
     public function openDetail(int $productId, int|string $warehouseId = ''): void
     {
         $product = Product::with(['category', 'prices.unit'])->findOrFail($productId);
@@ -103,10 +108,10 @@ class StockBalance extends Component
             : ['quantity_on_hand' => 0, 'reserved' => 0, 'available_for_sales' => 0];
 
         $this->selectedStock = [
-            'product_sku' => $product->sku,
-            'product_name' => $product->name,
-            'category_name' => $product->category?->name ?? '-',
-            'warehouse_name' => $warehouse?->name ?? '-',
+            'product_sku' => $product->name,
+            'product_name' => $product->sku,
+            'category_name' => $product->category?->desc ?? '-',
+            'warehouse_name' => $warehouse?->desc ?? '-',
             ...$availability,
             'quantity_on_hand_display' => app(StockQuantityFormatter::class)->format($product, $availability['quantity_on_hand']),
             'available_for_sales_display' => app(StockQuantityFormatter::class)->format($product, $availability['available_for_sales']),

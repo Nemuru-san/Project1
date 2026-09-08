@@ -137,7 +137,7 @@
                         </td>
 
                         <td class="px-4 py-4 text-gray-900 dark:text-white">
-                            {{ $product?->category?->name ?? '-' }}
+                            {{ $product?->category?->desc ?? '-' }}
                         </td>
 
                         <td class="px-4 py-4 text-gray-900 dark:text-white">
