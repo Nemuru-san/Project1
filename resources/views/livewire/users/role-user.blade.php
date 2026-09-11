@@ -10,6 +10,7 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
+        <p class="dark:text-white text-base font-semibold">Tabel Data Peran Pengguna</p>
 
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             {{-- Search --}}
@@ -44,7 +45,7 @@
 
             {{-- Tambah --}}
             <button wire:click="openCreate"
-                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:ml-auto sm:w-auto w-full justify-center">
+                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -55,8 +56,8 @@
 
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-sm font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
+            <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 w-12">No.</th>
 
@@ -76,7 +77,7 @@
                 </tr>
             </thead>
 
-            <tbody class="dark:bg-zinc-950 text-sm">
+            <tbody class="dark:bg-zinc-950 text-base">
                 @forelse ($roles as $index => $role)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $role->trashed() ? 'opacity-50' : '' }}">
@@ -166,7 +167,7 @@
 
                                         <div class="py-1">
                                             <button wire:click="confirmDelete({{ $role->id }})"
-                                                @disabled(!auth()->user()->isSuperAdmin()) @click="open = false"
+                                                @click="open = false"
                                                 class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -199,15 +200,14 @@
 
     {{-- CREATE / EDIT MODAL --}}
     @if ($showModal)
-        <div
-            class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
+        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-5xl mx-auto max-h-[min(80vh,calc(100dvh-2rem))] flex flex-col overflow-hidden">
+                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-5xl mx-auto max-h-[90vh] flex flex-col overflow-hidden">
 
                 <div
                     class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
                     <h3 class="text-lg font-semibold dark:text-white">
-                        {{ $editingId ? 'Ubah Peran' : 'Tambah Peran' }}
+                        {{ $editingId ? 'Edit Role' : 'Tambah Role' }}
                     </h3>
 
                     <button wire:click="$set('showModal', false)"
@@ -239,7 +239,7 @@
                             <div class="flex items-center justify-between mb-4">
                                 <h4
                                     class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                    Hak Akses Modul & Aksi
+                                    Hak Akses Modul
                                 </h4>
 
                                 <button type="button" wire:click="toggleFullAccess"
@@ -248,116 +248,40 @@
                                 </button>
                             </div>
 
-                            <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">
-                                Centang nama modul untuk memberi akses. Aksi tambahan seperti setujui, posting,
-                                konversi, dan hapus berada pada baris modul yang sama.
-                            </p>
-
                             @if (in_array('*', $selectedPermissions, true))
                                 <div
                                     class="mb-4 rounded-lg border border-blue-700 bg-blue-900/20 px-4 py-3 text-sm text-blue-300">
-                                    Peran ini punya akses ke semua modul dan aksi.
+                                    Peran ini punya akses ke semua modul.
                                 </div>
                             @endif
 
-                            @php
-                                $authorizationPermissions = collect($permissionGroups)
-                                    ->filter(fn($permissions, $group) => str_ends_with($group, ' - Otorisasi'))
-                                    ->flatMap(fn($permissions) => $permissions);
-                                $moduleGroups = collect($permissionGroups)->reject(
-                                    fn($permissions, $group) => str_ends_with($group, ' - Otorisasi'),
-                                );
-                            @endphp
-
                             <div
-                                class="{{ in_array('*', $selectedPermissions, true) ? 'pointer-events-none opacity-40' : '' }} space-y-4">
-                                @foreach ($moduleGroups as $group => $permissions)
-                                    @php
-                                        $groupPermissionKeys = collect($permissions)
-                                            ->keys()
-                                            ->flatMap(function ($moduleKey) use ($authorizationPermissions) {
-                                                return collect([$moduleKey])->merge(
-                                                    $authorizationPermissions
-                                                        ->keys()
-                                                        ->filter(
-                                                            fn($actionKey) => str_starts_with(
-                                                                $actionKey,
-                                                                $moduleKey . '.',
-                                                            ),
-                                                        ),
-                                                );
-                                            });
-                                        $groupSelectedCount = $groupPermissionKeys
-                                            ->filter(fn($key) => in_array($key, $selectedPermissions, true))
-                                            ->count();
-                                    @endphp
-
-                                    <section
-                                        class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-zinc-700 dark:bg-zinc-800">
-                                        <div
-                                            class="flex items-center justify-between gap-3 border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900">
-                                            <div>
-                                                <h5 class="text-sm font-semibold text-gray-800 dark:text-white">
-                                                    {{ $group }}</h5>
-
-                                            </div>
-                                            <span
-                                                class="shrink-0 rounded-full bg-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 dark:bg-zinc-700 dark:text-gray-300">
-                                                {{ $groupSelectedCount }} dari {{ $groupPermissionKeys->count() }}
-                                                izin
-                                            </span>
+                                class="{{ in_array('*', $selectedPermissions, true) ? 'opacity-40 pointer-events-none' : '' }} space-y-4">
+                                @foreach ($permissionGroups as $group => $permissions)
+                                    <div
+                                        class="rounded-lg border border-gray-200 dark:border-zinc-700 overflow-hidden">
+                                        <div class="px-4 py-2 bg-gray-100 dark:bg-zinc-900">
+                                            <p class="text-sm font-semibold text-gray-700 dark:text-white">
+                                                {{ $group }}
+                                            </p>
                                         </div>
 
-                                        <div class="divide-y divide-gray-100 dark:divide-zinc-700">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-4">
                                             @foreach ($permissions as $key => $label)
-                                                @php
-                                                    $actions = $authorizationPermissions->filter(
-                                                        fn($actionLabel, $actionKey) => str_starts_with(
-                                                            $actionKey,
-                                                            $key . '.',
-                                                        ),
-                                                    );
-                                                    $moduleSelected = in_array($key, $selectedPermissions, true);
-                                                @endphp
+                                                <label
+                                                    class="flex items-center gap-2 text-sm dark:text-gray-300 cursor-pointer">
+                                                    <input type="checkbox" wire:model="selectedPermissions"
+                                                        value="{{ $key }}"
+                                                        class="w-4 h-4 rounded border-gray-600 dark:bg-zinc-800 text-blue-600">
 
-                                                <div
-                                                    class="grid gap-3 px-4 py-3 md:grid-cols-[minmax(13rem,0.9fr)_minmax(0,1.6fr)] md:items-center">
-                                                    <label
-                                                        class="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition hover:bg-gray-50 dark:hover:bg-zinc-700/50">
-                                                        <input type="checkbox"
-                                                            wire:click="togglePermission('{{ $key }}')"
-                                                            @checked($moduleSelected)
-                                                            class="h-4 w-4 rounded border-gray-400 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-zinc-800">
-                                                        <span>
-                                                            <span
-                                                                class="block text-sm font-medium text-gray-800 dark:text-gray-200">{{ $label }}</span>
-                                                            <span
-                                                                class="block text-xs text-gray-500 dark:text-gray-400">Akses
-                                                                modul</span>
-                                                        </span>
-                                                    </label>
-
-                                                    @if ($actions->isNotEmpty())
-                                                        <div class="flex flex-wrap gap-2 md:justify-end">
-                                                            @foreach ($actions as $actionKey => $actionLabel)
-                                                                @php $isDeleteAction = str_ends_with($actionKey, '.delete'); @endphp
-                                                                <label
-                                                                    class="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition {{ $isDeleteAction ? 'border-red-200 text-red-700 hover:bg-red-50 dark:border-red-900/70 dark:text-red-300 dark:hover:bg-red-950/30' : 'border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-900/70 dark:text-blue-300 dark:hover:bg-blue-950/30' }}">
-                                                                    <input type="checkbox"
-                                                                        wire:click="togglePermission('{{ $actionKey }}')"
-                                                                        @checked(in_array($actionKey, $selectedPermissions, true))
-                                                                        class="h-4 w-4 rounded border-gray-400 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-zinc-800">
-                                                                    <span>{{ $actionLabel }}</span>
-                                                                </label>
-                                                            @endforeach
-                                                        </div>
-                                                    @endif
-                                                </div>
+                                                    <span>{{ $label }}</span>
+                                                </label>
                                             @endforeach
                                         </div>
-                                    </section>
+                                    </div>
                                 @endforeach
                             </div>
+
                             @error('selectedPermissions')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
@@ -395,7 +319,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="delete" wire:loading.attr="disabled" @disabled(!auth()->user()->isSuperAdmin())
+                    <button wire:click="delete" wire:loading.attr="disabled"
                         class="px-4 py-2 text-sm rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-50">
                         <span wire:loading.remove wire:target="delete">Hapus</span>
                         <span wire:loading wire:target="delete">Menghapus...</span>

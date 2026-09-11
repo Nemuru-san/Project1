@@ -8,20 +8,47 @@
     </div>
 
     {{-- FILTER BAR --}}
-            <section class="my-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-            <div class="flex flex-col gap-4 border-b border-gray-100 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between dark:border-zinc-700"><div><h2 class="text-base font-semibold text-gray-900 dark:text-white">Filter Goods Receive</h2><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Temukan penerimaan barang berdasarkan kata kunci, status, atau rentang tanggal.</p></div><button wire:click="openCreate" type="button" class="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:w-auto"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>Tambah Goods Receive</button></div>
-            <div class="grid gap-4 p-4 sm:grid-cols-2 sm:px-5 xl:grid-cols-[minmax(18rem,1fr)_auto_auto_auto] xl:items-end">
-                <div class="sm:col-span-2 xl:col-span-1"><label for="goods-receive-search" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Pencarian</label><div class="relative"><svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg><input id="goods-receive-search" wire:model.live.debounce.300ms="search" type="search" placeholder="Cari nomor GR, PO, atau supplier..." class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 pl-10 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"></div></div>
-                <fieldset class="sm:col-span-2 xl:col-span-1"><legend class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Rentang tanggal</legend><div class="flex items-center gap-2"><input wire:model.live="dateFrom" type="date" aria-label="Tanggal mulai" class="min-w-0 w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><span class="shrink-0 text-sm text-gray-400">s.d.</span><input wire:model.live="dateTo" type="date" aria-label="Tanggal akhir" class="min-w-0 w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"></div></fieldset>
-                <div class="flex items-end gap-2"><div class="min-w-0 flex-1 xl:w-32 xl:flex-none"><label for="goods-receive-per-page" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Tampilkan</label><select id="goods-receive-per-page" wire:model.live="perPage" class="block w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><option value="10">10 / hal</option><option value="25">25 / hal</option><option value="50">50 / hal</option></select></div>@if ($search || $dateFrom || $dateTo)<button wire:click="resetFilters" type="button" title="Reset filter" aria-label="Reset filter" class="mb-0.5 inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-gray-300 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:border-zinc-600 dark:text-gray-300 dark:hover:bg-zinc-800 dark:hover:text-white"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.001 8.001 0 01-15.357-2M15 20h4" /></svg></button>@endif</div>
-                <label class="flex cursor-pointer items-center gap-2 self-end rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-zinc-800 dark:text-gray-300 xl:col-start-4"><input type="checkbox" wire:model.live="showTrashed" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-zinc-800"> Tampilkan Terhapus</label>
+    <div
+        class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
+        <p class="dark:text-white text-base font-semibold">Tabel Data Satuan</p>
+        <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            <div class="relative w-full sm:w-72">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg aria-hidden="true" class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <input wire:model.live.debounce.300ms="search" type="text"
+                    class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg block w-full pl-10 p-2.5 placeholder-gray-400"
+                    placeholder="Cari kode, nama..." />
             </div>
-        </section>
+            <select wire:model.live="perPage"
+                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 w-full sm:w-auto">
+                <option value="10">10 / hal</option>
+                <option value="25">25 / hal</option>
+                <option value="50">50 / hal</option>
+            </select>
+            <label class="flex items-center gap-2 text-sm dark:text-gray-300 cursor-pointer whitespace-nowrap">
+                <input type="checkbox" wire:model.live="showTrashed"
+                    class="w-4 h-4 rounded border-gray-600 dark:bg-zinc-800 text-blue-600">
+                Tampilkan Terhapus
+            </label>
+            <button wire:click="openCreate"
+                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Tambah Data
+            </button>
+        </div>
+    </div>
 
     {{-- ═══════════════════════ TABLE ═══════════════════════ --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-sm font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
+            <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 w-12">No.</th>
 
@@ -50,7 +77,7 @@
                 </tr>
             </thead>
 
-            <tbody class="dark:bg-zinc-950 text-sm">
+            <tbody class="dark:bg-zinc-950 text-base">
                 @forelse($adjustments as $index => $adjustment)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $adjustment->trashed() ? 'opacity-50' : '' }}">
@@ -67,7 +94,7 @@
                         </td>
 
                         <td class="px-4 py-4">
-                            {{ $adjustment->warehouse?->desc ?? '-' }}
+                            {{ $adjustment->warehouse?->name ?? '-' }}
                         </td>
 
                         <td class="px-4 py-4">
@@ -123,7 +150,7 @@
                                         <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
                                             @if ($adjustment->status === 'draft')
                                                 <li>
-                                                    <button wire:click="confirmApprove({{ $adjustment->id }})" @disabled(! auth()->user()?->hasPermission('inventory.transaction.adjustment-out.approve'))
+                                                    <button wire:click="confirmApprove({{ $adjustment->id }})"
                                                         @click="open = false"
                                                         class="flex items-center gap-2 w-full py-2 px-4 text-blue-700 hover:bg-blue-600 hover:text-white dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white cursor-pointer">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -180,7 +207,7 @@
 
                                         <div class="py-1">
                                             @if ($adjustment->status === 'draft')
-                                                <button wire:click="confirmDelete({{ $adjustment->id }})" @disabled(! auth()->user()?->hasPermission('inventory.transaction.adjustment-out.delete'))
+                                                <button wire:click="confirmDelete({{ $adjustment->id }})"
                                                     @click="open = false"
                                                     class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -224,9 +251,9 @@
 
     {{-- CREATE / EDIT MODAL --}}
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
+        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-7xl mx-auto max-h-[min(80vh,calc(100dvh-2rem))] flex flex-col overflow-hidden">
+                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-7xl mx-auto max-h-[80vh] flex flex-col overflow-hidden">
 
                 <div
                     class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
@@ -266,7 +293,7 @@
                                 class="bg-gray-50 border text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white border-gray-300">
                                 <option value="">Pilih Gudang</option>
                                 @foreach ($warehouses as $warehouse)
-                                    <option value="{{ $warehouse->id }}">{{ $warehouse->desc }}</option>
+                                    <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
                                 @endforeach
                             </select>
                             @error('warehouse_id')
@@ -284,7 +311,7 @@
 
                     <div class="overflow-x-auto mt-6">
                         <table
-                            class="w-full text-sm text-left text-gray-900 dark:text-white border-collapse border border-gray-300 dark:border-zinc-600 min-w-max whitespace-nowrap">
+                            class="w-full text-base text-left text-gray-900 dark:text-white border-collapse border border-gray-300 dark:border-zinc-600 min-w-max whitespace-nowrap">
                             <thead
                                 class="text-sm font-bold text-gray-900 uppercase bg-gray-200 dark:bg-zinc-700 dark:text-white">
                                 <tr>
@@ -375,9 +402,9 @@
 
                     {{-- ADD PRODUCT MODAL --}}
                     <div x-show="showAddProductModal" x-cloak
-                        class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
+                        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                         <div
-                            class="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-4xl mx-auto max-h-[min(80vh,calc(100dvh-2rem))] overflow-hidden">
+                            class="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl w-full max-w-4xl mx-auto max-h-[85vh] overflow-hidden">
                             <div
                                 class="flex items-start justify-between px-6 py-4 border-b border-gray-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900">
                                 <div>
@@ -415,7 +442,7 @@
                                             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-3 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
                                             <option value="">Semua Kategori</option>
                                             @foreach ($categories as $category)
-                                                <option value="{{ $category->id }}">{{ $category->desc }}</option>
+                                                <option value="{{ $category->id }}">{{ $category->name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -441,22 +468,21 @@
 
                                         <tbody>
                                             @forelse ($products as $product)
-                                                <tr @click="$event.currentTarget.querySelector('input[type=checkbox]')?.click()"
-                                                    class="cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800">
+                                                <tr class="hover:bg-gray-50 dark:hover:bg-zinc-800">
                                                     <td
                                                         class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-center">
-                                                        <input wire:model.live="selectedProductIds" type="checkbox" @click.stop
+                                                        <input wire:model.live="selectedProductIds" type="checkbox"
                                                             value="{{ $product->id }}"
                                                             class="h-4 w-4 rounded border-gray-300 text-blue-600" />
                                                     </td>
                                                     <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                        {{ $product->name ?? '-' }}
+                                                        {{ $product->sku ?? '-' }}
                                                     </td>
                                                     <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                        {{ $product->sku }}
+                                                        {{ $product->name }}
                                                     </td>
                                                     <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                        {{ $product->category?->desc ?? '-' }}
+                                                        {{ $product->category?->name ?? '-' }}
                                                     </td>
                                                 </tr>
                                             @empty
@@ -534,7 +560,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="approve" wire:loading.attr="disabled" @disabled(! auth()->user()?->hasPermission('inventory.transaction.adjustment-out.approve'))
+                    <button wire:click="approve" wire:loading.attr="disabled"
                         class="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
                         <span wire:loading.remove wire:target="approve">Ya, Setujui</span>
                         <span wire:loading wire:target="approve">Menyetujui...</span>
@@ -545,9 +571,9 @@
     @endif
 
     @if ($showDetail && $selectedAdjustment)
-        <div class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 backdrop-blur-sm p-4">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
             <div
-                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[min(80vh,calc(100dvh-2rem))] overflow-y-auto">
+                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
 
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
                     <div>
@@ -710,7 +736,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="delete" @disabled(! auth()->user()?->hasPermission('inventory.transaction.adjustment-out.delete'))
+                    <button wire:click="delete"
                         class="px-4 py-2 text-sm rounded-lg bg-red-600 hover:bg-red-700 text-white">
                         Hapus
                     </button>

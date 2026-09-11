@@ -8,20 +8,84 @@
     </div>
 
     {{-- FILTER BAR --}}
-    <section class="my-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-            <div class="flex flex-col gap-4 border-b border-gray-100 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between dark:border-zinc-700"><div><h2 class="text-base font-semibold text-gray-900 dark:text-white">Filter Goods Receive</h2><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Temukan penerimaan barang berdasarkan kata kunci, status, atau rentang tanggal.</p></div><button wire:click="openCreate" type="button" class="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:w-auto"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>Tambah Goods Receive</button></div>
-            <div class="grid gap-4 p-4 sm:grid-cols-2 sm:px-5 xl:grid-cols-[minmax(18rem,1fr)_auto_auto_auto] xl:items-end">
-                <div class="sm:col-span-2 xl:col-span-1"><label for="goods-receive-search" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Pencarian</label><div class="relative"><svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg><input id="goods-receive-search" wire:model.live.debounce.300ms="search" type="search" placeholder="Cari nomor GR, PO, atau supplier..." class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 pl-10 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"></div></div>
-                <fieldset class="sm:col-span-2 xl:col-span-1"><legend class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Rentang tanggal</legend><div class="flex items-center gap-2"><input wire:model.live="dateFrom" type="date" aria-label="Tanggal mulai" class="min-w-0 w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><span class="shrink-0 text-sm text-gray-400">s.d.</span><input wire:model.live="dateTo" type="date" aria-label="Tanggal akhir" class="min-w-0 w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"></div></fieldset>
-                <div class="flex items-end gap-2"><div class="min-w-0 flex-1 xl:w-32 xl:flex-none"><label for="goods-receive-per-page" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Tampilkan</label><select id="goods-receive-per-page" wire:model.live="perPage" class="block w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><option value="10">10 / hal</option><option value="25">25 / hal</option><option value="50">50 / hal</option></select></div>@if ($search || $dateFrom || $dateTo || $statusFilter)<button wire:click="resetFilters" type="button" title="Reset filter" aria-label="Reset filter" class="mb-0.5 inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-gray-300 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:border-zinc-600 dark:text-gray-300 dark:hover:bg-zinc-800 dark:hover:text-white"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.001 8.001 0 01-15.357-2M15 20h4" /></svg></button>@endif</div>
-                <label class="flex cursor-pointer items-center gap-2 self-end rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 dark:border-gray-600 dark:bg-zinc-800 dark:text-gray-300 xl:col-start-4"><input type="checkbox" wire:model.live="showTrashed" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-zinc-800"> Tampilkan Terhapus</label>
+    <div
+        class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
+        <p class="dark:text-white text-base font-semibold">Data Tabel Faktur Pembelian</p>
+        <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            {{-- Search --}}
+            <div class="relative w-full sm:w-72">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg aria-hidden="true" class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <input wire:model.live.debounce.300ms="search" type="text"
+                    class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2.5 placeholder-gray-400"
+                    placeholder="Cari kode, nama, kontak..." />
             </div>
-        </section>
+            {{-- Status Filter --}}
+            {{-- <select wire:model.live="statusFilter"
+                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
+                <option value="">Semua Status</option>
+                <option value="1">Draf</option>
+                <option value="0">Disetujui</option>
+                <option value="0">Lunas</option>
+                <option value="0">Dibayar Sebagian</option>
+                <option value="0">Canceled</option>
+            </select> --}}
+            <select wire:model.live="statusFilter"
+                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
+                <option value="">Semua Status</option>
+                <option value="Draft">Draf</option>
+                <option value="Posted">Diposting</option>
+            </select>
+
+            <select wire:model.live="paymentStatusFilter"
+                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
+                <option value="">Semua Pembayaran</option>
+                <option value="Unpaid">Belum Lunas</option>
+                <option value="Partial Paid">Dibayar Sebagian</option>
+                <option value="Paid">Lunas</option>
+            </select>
+            {{-- Per Page --}}
+            <select wire:model.live="perPage"
+                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 w-full sm:w-auto">
+                <option value="10">10 / hal</option>
+                <option value="25">25 / hal</option>
+                <option value="50">50 / hal</option>
+            </select>
+            {{-- Show Trashed --}}
+            <label class="flex items-center gap-2 text-sm dark:text-gray-300 cursor-pointer whitespace-nowrap">
+                <input type="checkbox" wire:model.live="showTrashed"
+                    class="w-4 h-4 rounded border-gray-600 dark:bg-zinc-800 text-blue-600">
+                Tampilkan Terhapus
+            </label>
+            {{-- Export --}}
+            {{-- <button wire:click="export"
+                class="inline-flex items-center gap-2 text-white bg-indigo-600 hover:bg-indigo-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v6m0 0l-3-3m3 3l3-3M12 3v9" />
+                </svg>
+                Export CSV
+            </button> --}}
+            {{-- Tambah --}}
+            <button wire:click="openCreate"
+                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Tambah Transaksi
+            </button>
+        </div>
+    </div>
 
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-sm font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
+            <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('code')">
                         <div class="flex items-center gap-1">
@@ -49,7 +113,7 @@
                 </tr>
             </thead>
 
-            <tbody class="dark:bg-zinc-950 text-sm">
+            <tbody class="dark:bg-zinc-950 text-base">
                 @forelse ($invoices as $invoice)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $invoice->trashed() ? 'opacity-60' : '' }}">
@@ -84,8 +148,7 @@
                             @if ($invoice->payment_status === 'Paid')
                                 <span class="text-sm px-2.5 py-0.5 rounded bg-green-700 text-white">Lunas</span>
                             @elseif ($invoice->payment_status === 'Partial Paid')
-                                <span class="text-sm px-2.5 py-0.5 rounded bg-yellow-600 text-white">Dibayar
-                                    Sebagian</span>
+                                <span class="text-sm px-2.5 py-0.5 rounded bg-yellow-600 text-white">Dibayar Sebagian</span>
                             @else
                                 <span class="text-sm px-2.5 py-0.5 rounded bg-red-700 text-white">Belum Lunas</span>
                             @endif
@@ -120,11 +183,15 @@
                                             Data sudah terhapus
                                         </div>
                                     @else
+                                        @php
+                                            $locked = $invoice->status !== 'Draft';
+                                        @endphp
+
                                         <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
                                             @if ($invoice->status === 'Draft')
                                                 <li>
                                                     <button wire:click="confirmPost({{ $invoice->id }})"
-                                                        @disabled(!auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.post')) @click="open = false"
+                                                        @click="open = false"
                                                         class="flex items-center gap-2 w-full py-2 px-4 text-blue-700 hover:bg-blue-600 hover:text-white dark:text-blue-300 dark:hover:bg-blue-600 dark:hover:text-white cursor-pointer">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                             viewBox="0 0 24 24">
@@ -166,9 +233,10 @@
                                             </li>
 
                                             <li>
-                                                <button wire:click="openEdit({{ $invoice->id }})"
-                                                    @click="open = false"
-                                                    class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
+                                                <button
+                                                    @if (!$locked) wire:click="openEdit({{ $invoice->id }})" @endif
+                                                    @click="open = false" @disabled($locked)
+                                                    class="flex items-center gap-2 w-full py-2 px-4 {{ $locked ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer' }}">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -180,9 +248,10 @@
                                         </ul>
 
                                         <div class="py-1">
-                                            <button wire:click="confirmDelete({{ $invoice->id }})"
-                                                @disabled(!auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.delete')) @click="open = false"
-                                                class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-40">
+                                            <button
+                                                @if (!$locked) wire:click="confirmDelete({{ $invoice->id }})" @endif
+                                                @click="open = false" @disabled($locked)
+                                                class="flex items-center gap-2 w-full py-2 px-4 text-base {{ $locked ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer' }}">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -213,429 +282,402 @@
 
     {{-- SHOW MODAL --}}
     @if ($showModal)
-        <div
-            class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
-            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-full mx-auto h-[80vh] max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden"
-                @click.outside="$wire.showModal = false">
-                <div
-                    class="flex items-center justify-between px-8 py-6 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
-                    <h3 class="text-lg font-semibold dark:text-white">
-                        Tambah Faktur Pembelian
-                    </h3>
-                    <button wire:click="$set('showModal', false)"
-                        class="text-gray-400 hover:text-white cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
+        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-full mx-auto h-[90vh] flex flex-col overflow-hidden"
+                    @click.outside="$wire.showModal = false">
+                    <div
+                        class="flex items-center justify-between px-8 py-6 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
+                        <h3 class="text-lg font-semibold dark:text-white">
+                            Tambah Faktur Pembelian
+                        </h3>
+                        <button wire:click="$set('showModal', false)"
+                            class="text-gray-400 hover:text-white cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
 
-                <div class="flex-1 overflow-y-auto px-8 py-6">
-                    <form action="#"
-                        x-on:keydown.enter="if ($event.target.tagName === 'INPUT') $event.preventDefault()">
-                        <div class="grid gap-5 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-6">
-                            <div class="w-full">
-                                <label for="piv_no"
-                                    class="block mb-3 text-base font-medium text-gray-900 dark:text-white">PIV
-                                    No</label>
-                                <input type="text" value="{{ $code ?: 'Auto Generated' }}"
-                                    class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 cursor-not-allowed"
-                                    placeholder="Auto Generated" disabled>
-                            </div>
-
-                            <div class="w-full">
-                                <label for="supplier_invoice_number"
-                                    class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                    No. Faktur Pemasok
-                                </label>
-                                <input wire:model="supplier_invoice_number" type="text"
-                                    id="supplier_invoice_number"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                    placeholder="Input nomor invoice dari supplier">
-                                @error('supplier_invoice_number')
-                                    <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div class="w-full">
-                                <label for="po_no"
-                                    class="block mb-3 text-base font-medium text-gray-900 dark:text-white">PO
-                                    No</label>
-                                <select wire:model.live="purchase_order_id"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                                    <option value="">-- Pilih PO --</option>
-                                    @foreach ($purchaseOrders as $po)
-                                        <option value="{{ $po->id }}">
-                                            {{ $po->code }} - {{ $po->supplier?->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('purchase_order_id')
-                                    <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div class="w-full">
-                                <label for="supplier"
-                                    class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Pemasok</label>
-                                <select disabled
-                                    class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:text-gray-400 cursor-not-allowed">
-                                    <option value="">-- Pemasok otomatis dari PO --</option>
-                                    @foreach ($purchaseOrders as $po)
-                                        @if ($supplier_id === $po->supplier_id)
-                                            <option selected>{{ $po->supplier?->name }}</option>
-                                        @endif
-                                    @endforeach
-                                </select>
-                                @error('supplier_id')
-                                    <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div class="w-full sm:col-span-2">
-                                <label class="mb-3 block text-base font-medium text-gray-900 dark:text-white">Goods
-                                    Receive</label>
-                                <div
-                                    class="grid max-h-44 gap-2 overflow-y-auto rounded-lg border border-gray-300 bg-gray-50 p-3 dark:border-gray-600 dark:bg-zinc-800 sm:grid-cols-2">
-                                    @forelse ($goodsReceives as $goodsReceive)
-                                        <label wire:key="pi-gr-{{ $goodsReceive->id }}"
-                                            class="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900">
-                                            <input wire:model.live="selectedGoodsReceiveIds" type="checkbox"
-                                                value="{{ $goodsReceive->id }}" @disabled($invoiceId)
-                                                class="h-4 w-4 rounded border-gray-300 text-blue-600 disabled:cursor-not-allowed disabled:opacity-50">
-                                            <span><span
-                                                    class="block font-mono font-medium">{{ $goodsReceive->code }}</span><span
-                                                    class="text-xs text-gray-400">{{ $goodsReceive->date?->format('d/m/Y') }}</span></span>
-                                        </label>
-                                    @empty
-                                        <p class="text-sm text-gray-400 sm:col-span-2">
-                                            {{ $purchase_order_id ? 'Tidak ada Goods Receive berstatus Received yang tersedia.' : 'Pilih PO terlebih dahulu.' }}
-                                        </p>
-                                    @endforelse
-                                </div>
-                                @error('selectedGoodsReceiveIds')
-                                    <p class="mt-1 text-xs text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-
-                            <div class="w-full">
-                                <label for="date"
-                                    class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Tanggal</label>
-                                <input wire:model.live="date" type="date"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                                @error('date')
-                                    <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div class="w-full">
-                                <label for="top_term"
-                                    class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                    TOP / Termin Pembayaran
-                                </label>
-                                <select wire:model.live="top_term" id="top_term"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                                    <option value="">-- Pilih Termin Pembayaran --</option>
-                                    <option value="7">7 Hari</option>
-                                    <option value="30">1 Bulan</option>
-                                    <option value="90">3 Bulan</option>
-                                    <option value="custom">Kustom</option>
-                                </select>
-                            </div>
-
-                            @if ($top_term === 'custom')
+                    <div class="flex-1 overflow-y-auto px-8 py-6">
+                        <form action="#">
+                            <div class="grid gap-5 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-6">
                                 <div class="w-full">
-                                    <label for="custom_top"
-                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                        Tanggal Jatuh Tempo Khusus
-                                    </label>
-                                    <input wire:model.live="custom_top" type="date" id="custom_top"
-                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                    <label for="piv_no"
+                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">PIV
+                                        No</label>
+                                    <input type="text" value="{{ $code ?: 'Auto Generated' }}"
+                                        class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 cursor-not-allowed"
+                                        placeholder="Auto Generated" disabled>
                                 </div>
-                            @endif
 
-                            <div class="w-full">
-                                <label for="due_date"
-                                    class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                    Tanggal Jatuh Tempo / Tanggal Jatuh Tempo
-                                </label>
-                                <input type="date" id="due_date" value="{{ $due_date }}"
-                                    class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:text-gray-400 cursor-not-allowed"
-                                    disabled>
-                                @error('due_date')
-                                    <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
+                                <div class="w-full">
+                                    <label for="supplier_invoice_number"
+                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
+                                        No. Faktur Pemasok
+                                    </label>
+                                    <input wire:model="supplier_invoice_number" type="text"
+                                        id="supplier_invoice_number"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                        placeholder="Input nomor invoice dari supplier">
+                                    @error('supplier_invoice_number')
+                                        <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
 
-                            <div class="w-full">
-                                <label for="tax"
-                                    class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Pajak</label>
-                                <label class="inline-flex items-center cursor-pointer">
-                                    <span
-                                        class="select-none text-base font-medium text-gray-600 dark:text-gray-400">Tidak</span>
-                                    <div class="relative mx-3">
-                                        <input type="checkbox" wire:model.live="tax" class="sr-only peer">
-                                        <div
-                                            class="w-9 h-5 bg-red-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-red-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-red-500 after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-red-500 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600">
-                                        </div>
+                                <div class="w-full">
+                                    <label for="po_no"
+                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">PO
+                                        No</label>
+                                    <select wire:model.live="purchase_order_id"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                        <option value="">-- Pilih PO --</option>
+                                        @foreach ($purchaseOrders as $po)
+                                            <option value="{{ $po->id }}">
+                                                {{ $po->code }} - {{ $po->supplier?->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('purchase_order_id')
+                                        <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="w-full">
+                                    <label for="supplier"
+                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Pemasok</label>
+                                    <select disabled
+                                        class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:text-gray-400 cursor-not-allowed">
+                                        <option value="">-- Pemasok otomatis dari PO --</option>
+                                        @foreach ($purchaseOrders as $po)
+                                            @if ($supplier_id === $po->supplier_id)
+                                                <option selected>{{ $po->supplier?->name }}</option>
+                                            @endif
+                                        @endforeach
+                                    </select>
+                                    @error('supplier_id')
+                                        <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="w-full">
+                                    <label for="date"
+                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Tanggal</label>
+                                    <input wire:model.live="date" type="date"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                    @error('date')
+                                        <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="w-full">
+                                    <label for="top_term"
+                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
+                                        TOP / Termin Pembayaran
+                                    </label>
+                                    <select wire:model.live="top_term" id="top_term"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                        <option value="">-- Pilih Termin Pembayaran --</option>
+                                        <option value="7">7 Hari</option>
+                                        <option value="30">1 Bulan</option>
+                                        <option value="90">3 Bulan</option>
+                                        <option value="custom">Kustom</option>
+                                    </select>
+                                </div>
+
+                                @if ($top_term === 'custom')
+                                    <div class="w-full">
+                                        <label for="custom_top"
+                                            class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
+                                            Tanggal Jatuh Tempo Khusus
+                                        </label>
+                                        <input wire:model.live="custom_top" type="date" id="custom_top"
+                                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
                                     </div>
-                                    <span
-                                        class="select-none text-base font-medium text-gray-600 dark:text-gray-400">Ya</span>
-                                </label>
+                                @endif
+
+                                <div class="w-full">
+                                    <label for="due_date"
+                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
+                                        Tanggal Jatuh Tempo / Tanggal Jatuh Tempo
+                                    </label>
+                                    <input type="date" id="due_date" value="{{ $due_date }}"
+                                        class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:text-gray-400 cursor-not-allowed"
+                                        disabled>
+                                    @error('due_date')
+                                        <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="w-full">
+                                    <label for="tax"
+                                        class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Pajak</label>
+                                    <label class="inline-flex items-center cursor-pointer">
+                                        <span
+                                            class="select-none text-base font-medium text-gray-600 dark:text-gray-400">Tidak</span>
+                                        <div class="relative mx-3">
+                                            <input type="checkbox" wire:model.live="tax" class="sr-only peer">
+                                            <div
+                                                class="w-9 h-5 bg-red-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 dark:peer-focus:ring-red-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-red-500 after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-red-500 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600">
+                                            </div>
+                                        </div>
+                                        <span
+                                            class="select-none text-base font-medium text-gray-600 dark:text-gray-400">Ya</span>
+                                    </label>
+                                </div>
+
+                                <div class="w-full sm:col-span-2 mt-2">
+                                    <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
+                                        Note
+                                    </label>
+                                    <textarea wire:model="note" rows="3"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white"
+                                        placeholder="Masukkan catatan atau keterangan tambahan..."></textarea>
+                                    @error('note')
+                                        <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+                        </form>
+
+                        {{-- tabel --}}
+                        <div class="mt-12">
+                            <div class="w-full grid grid-cols-1 sm:grid-cols-2  gap-6 mb-4 items-center">
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">Detail Produk</h3>
+                                </div>
                             </div>
 
-                            <div class="w-full sm:col-span-2 mt-2">
-                                <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">
-                                    Note
-                                </label>
-                                <textarea wire:model="note" rows="3"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white"
-                                    placeholder="Masukkan catatan atau keterangan tambahan..."></textarea>
-                                @error('note')
-                                    <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
-                    </form>
-
-                    {{-- tabel --}}
-                    <div class="mt-12">
-                        <div class="w-full grid grid-cols-1 sm:grid-cols-2  gap-6 mb-4 items-center">
-                            <div>
-                                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Detail Produk</h3>
-                            </div>
-                        </div>
-
-                        <div class="overflow-x-auto">
-                            <table
-                                class="w-full text-sm text-left text-gray-900 dark:text-white my-2 min-w-425 whitespace-nowrap border-collapse border border-gray-300 dark:border-zinc-600">
-                                <thead
-                                    class="text-sm font-bold text-gray-900 uppercase bg-gray-200 dark:bg-zinc-700 dark:text-white">
-                                    <tr>
-                                        <th scope="col"
-                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">No.
-                                        </th>
-                                        <th scope="col"
-                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                            PO No</th>
-                                        <th scope="col"
-                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                            GR No</th>
-                                        <th scope="col"
-                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                            Kode Produk</th>
-                                        <th scope="col"
-                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                            Nama Produk</th>
-                                        <th scope="col"
-                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                            Kategori</th>
-                                        <th scope="col"
-                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                            Satuan</th>
-                                        <th scope="col"
-                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                            Jumlah Pesanan</th>
-                                        <th scope="col"
-                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Harga
-                                        </th>
-                                        <th scope="col"
-                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                            Disc Amount</th>
-                                        <th scope="col"
-                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                            Sub Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse ($visibleItemRows as $index => $row)
-                                        @php
-                                            $realIndex = $row['_index'];
-                                        @endphp
-                                        <tr class="hover:bg-gray-100 dark:hover:bg-zinc-800 text-sm">
-                                            <td
-                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 font-medium text-gray-900 dark:text-white">
-                                                {{ $itemRowsFrom + $index }}
-                                            </td>
-                                            <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                {{ $row['po_code'] ?? '-' }}
-                                            </td>
-                                            <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                {{ $row['gr_codes'] ?? '-' }}
-                                            </td>
-                                            <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                {{ $row['product_code'] ?? '-' }}
-                                            </td>
-                                            <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                {{ $row['product_name'] ?? '-' }}
-                                            </td>
-                                            <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                {{ $row['category_name'] ?? '-' }}
-                                            </td>
-                                            <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                {{ $row['unit_name'] ?? '-' }}
-                                            </td>
-                                            <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                {{ number_format($row['qty'] ?? 0, 0, ',', '.') }}
-                                            </td>
-                                            {{-- PRICE --}}
-                                            <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                <input type="text" inputmode="numeric" autocomplete="off"
-                                                    x-data="{
-                                                        display: '{{ number_format($row['price'] ?? 0, 0, ',', '.') }}'
-                                                    }" x-model="display"
-                                                    @input="
+                            <div class="overflow-x-auto">
+                                <table
+                                    class="w-full text-base text-left text-gray-900 dark:text-white my-2 min-w-425 whitespace-nowrap border-collapse border border-gray-300 dark:border-zinc-600">
+                                    <thead
+                                        class="text-base font-bold text-gray-900 uppercase bg-gray-200 dark:bg-zinc-700 dark:text-white">
+                                        <tr>
+                                            <th scope="col"
+                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">No.</th>
+                                            <th scope="col"
+                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
+                                                PO No</th>
+                                            <th scope="col"
+                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
+                                                GR No</th>
+                                            <th scope="col"
+                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
+                                                Kode Produk</th>
+                                            <th scope="col"
+                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
+                                                Nama Produk</th>
+                                            <th scope="col"
+                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
+                                                Kategori</th>
+                                            <th scope="col"
+                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
+                                                Satuan</th>
+                                            <th scope="col"
+                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
+                                                Jumlah Pesanan</th>
+                                            <th scope="col"
+                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Harga</th>
+                                            <th scope="col"
+                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
+                                                Disc Amount</th>
+                                            <th scope="col"
+                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
+                                                Sub Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse ($visibleItemRows as $index => $row)
+                                            @php
+                                                $realIndex = $row['_index'];
+                                            @endphp
+                                            <tr class="hover:bg-gray-100 dark:hover:bg-zinc-800 text-sm">
+                                                <td
+                                                    class="border border-gray-300 dark:border-zinc-600 px-4 py-3 font-medium text-gray-900 dark:text-white">
+                                                    {{ $itemRowsFrom + $index }}
+                                                </td>
+                                                <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
+                                                    {{ $row['po_code'] ?? '-' }}
+                                                </td>
+                                                <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
+                                                    -
+                                                </td>
+                                                <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
+                                                    {{ $row['product_code'] ?? '-' }}
+                                                </td>
+                                                <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
+                                                    {{ $row['product_name'] ?? '-' }}
+                                                </td>
+                                                <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
+                                                    {{ $row['category_name'] ?? '-' }}
+                                                </td>
+                                                <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
+                                                    {{ $row['unit_name'] ?? '-' }}
+                                                </td>
+                                                <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
+                                                    {{ number_format($row['qty'] ?? 0, 0, ',', '.') }}
+                                                </td>
+                                                {{-- PRICE --}}
+                                                <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
+                                                    <input type="text" inputmode="numeric" autocomplete="off"
+                                                        x-data="{
+                                                            display: '{{ number_format($row['price'] ?? 0, 0, ',', '.') }}'
+                                                        }" x-model="display"
+                                                        @input="
                                                             let raw = display.replace(/\./g, '').replace(/\D/g, '');
                                                             display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
                                                             $wire.set('itemRows.{{ $row['_index'] }}.price', raw === '' ? 0 : Number(raw));
                                                         "
-                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-32 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
-                                            </td>
+                                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-32 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
+                                                </td>
 
-                                            {{-- DISCOUNT --}}
-                                            <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                <input type="text" inputmode="numeric" autocomplete="off"
-                                                    x-data="{
-                                                        display: '{{ number_format($row['discount'] ?? 0, 0, ',', '.') }}'
-                                                    }" x-model="display"
-                                                    @input="
+                                                {{-- DISCOUNT --}}
+                                                <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
+                                                    <input type="text" inputmode="numeric" autocomplete="off"
+                                                        x-data="{
+                                                            display: '{{ number_format($row['discount'] ?? 0, 0, ',', '.') }}'
+                                                        }" x-model="display"
+                                                        @input="
                                                             let raw = display.replace(/\./g, '').replace(/\D/g, '');
                                                             display = raw === '' ? '' : Number(raw).toLocaleString('id-ID');
                                                             $wire.set('itemRows.{{ $row['_index'] }}.discount', raw === '' ? 0 : Number(raw));
                                                         "
-                                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-32 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
-                                            </td>
-                                            <td
-                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-right text-gray-900 dark:text-white">
-                                                Rp {{ number_format($row['total'] ?? 0, 0, ',', '.') }}
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="11"
-                                                class="border border-gray-300 dark:border-zinc-600 px-4 py-8 text-center text-gray-400">
-                                                Pilih Pesanan Pembelian terlebih dahulu.
-                                            </td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
+                                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg block w-32 p-2 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
+                                                </td>
+                                                <td
+                                                    class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-right text-gray-900 dark:text-white">
+                                                    Rp {{ number_format($row['total'] ?? 0, 0, ',', '.') }}
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="11"
+                                                    class="border border-gray-300 dark:border-zinc-600 px-4 py-8 text-center text-gray-400">
+                                                    Pilih Pesanan Pembelian terlebih dahulu.
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
-                    <nav class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4 mt-4 dark:border-zinc-700 dark:bg-zinc-900"
-                        aria-label="Navigasi tabel produk">
-                        <span class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            Showing
-                            <span class="font-semibold text-gray-900 dark:text-white">
-                                {{ $itemRowsFrom }}-{{ $itemRowsTo }}
+                        <nav class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4 mt-4 dark:border-zinc-700 dark:bg-zinc-900"
+                            aria-label="Navigasi tabel produk">
+                            <span class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                Showing
+                                <span class="font-semibold text-gray-900 dark:text-white">
+                                    {{ $itemRowsFrom }}-{{ $itemRowsTo }}
+                                </span>
+                                of
+                                <span class="font-semibold text-gray-900 dark:text-white">
+                                    {{ $itemRowsTotal }}
+                                </span>
                             </span>
-                            of
-                            <span class="font-semibold text-gray-900 dark:text-white">
-                                {{ $itemRowsTotal }}
-                            </span>
-                        </span>
 
-                        <ul class="inline-flex items-stretch -space-x-px">
-                            <li>
-                                <button type="button" wire:click="previousItemPage" @disabled($itemPage <= 1)
-                                    class="flex items-center justify-center h-full py-1.5 px-3 ml-0 text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
-                                    <span class="sr-only">Sebelumnya</span>
-                                    <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                </button>
-                            </li>
-
-                            @for ($page = 1; $page <= $itemRowsLastPage; $page++)
+                            <ul class="inline-flex items-stretch -space-x-px">
                                 <li>
-                                    <button type="button" wire:click="goToItemPage({{ $page }})"
-                                        class="flex items-center justify-center text-base py-2 px-3 leading-tight border border-gray-300 dark:border-gray-700
+                                    <button type="button" wire:click="previousItemPage" @disabled($itemPage <= 1)
+                                        class="flex items-center justify-center h-full py-1.5 px-3 ml-0 text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                        <span class="sr-only">Sebelumnya</span>
+                                        <svg class="w-5 h-5" aria-hidden="true" fill="currentColor"
+                                            viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd"
+                                                d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </li>
+
+                                @for ($page = 1; $page <= $itemRowsLastPage; $page++)
+                                    <li>
+                                        <button type="button" wire:click="goToItemPage({{ $page }})"
+                                            class="flex items-center justify-center text-base py-2 px-3 leading-tight border border-gray-300 dark:border-gray-700
                     {{ $itemPage === $page
                         ? 'z-10 text-primary-600 bg-primary-50 border-primary-300 dark:bg-gray-700 dark:text-white'
                         : 'text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white' }}">
-                                        {{ $page }}
+                                            {{ $page }}
+                                        </button>
+                                    </li>
+                                @endfor
+
+                                <li>
+                                    <button type="button" wire:click="nextItemPage" @disabled($itemPage >= $itemRowsLastPage)
+                                        class="flex items-center justify-center h-full py-1.5 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                                        <span class="sr-only">Berikutnya</span>
+                                        <svg class="w-5 h-5" aria-hidden="true" fill="currentColor"
+                                            viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd"
+                                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                                clip-rule="evenodd" />
+                                        </svg>
                                     </button>
                                 </li>
-                            @endfor
+                            </ul>
+                        </nav>
 
-                            <li>
-                                <button type="button" wire:click="nextItemPage" @disabled($itemPage >= $itemRowsLastPage)
-                                    class="flex items-center justify-center h-full py-1.5 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
-                                    <span class="sr-only">Berikutnya</span>
-                                    <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                </button>
-                            </li>
-                        </ul>
-                    </nav>
+                        <div
+                            class="mt-6 p-4 bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <h4 class="mb-4 text-base font-bold text-gray-900 dark:text-white">Detail Harga</h4>
+                            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                <div>
+                                    <label for="gross"
+                                        class="block mb-4 text-base font-medium text-gray-900 dark:text-white">Bruto</label>
+                                    <input type="text" id="gross"
+                                        value="Rp {{ number_format($sub_total, 0, ',', '.') }}" disabled
+                                        class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 cursor-not-allowed">
+                                </div>
 
-                    <div
-                        class="mt-6 p-4 bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                        <h4 class="mb-4 text-base font-bold text-gray-900 dark:text-white">Detail Harga</h4>
-                        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                            <div>
-                                <label for="gross"
-                                    class="block mb-4 text-base font-medium text-gray-900 dark:text-white">Bruto</label>
-                                <input type="text" id="gross"
-                                    value="Rp {{ number_format($sub_total, 0, ',', '.') }}" disabled
-                                    class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 cursor-not-allowed">
-                            </div>
+                                <div>
+                                    <label for="total_disc"
+                                        class="block mb-4 text-base font-medium text-gray-900 dark:text-white">Total
+                                        Diskon</label>
+                                    <input type="text" id="total_disc"
+                                        value="Rp {{ number_format($discount_total, 0, ',', '.') }}" disabled
+                                        class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 cursor-not-allowed">
+                                </div>
 
-                            <div>
-                                <label for="total_disc"
-                                    class="block mb-4 text-base font-medium text-gray-900 dark:text-white">Total
-                                    Diskon</label>
-                                <input type="text" id="total_disc"
-                                    value="Rp {{ number_format($discount_total, 0, ',', '.') }}" disabled
-                                    class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 cursor-not-allowed">
-                            </div>
+                                <div>
+                                    <label for="ppn"
+                                        class="block mb-4 text-base font-medium text-gray-900 dark:text-white">PPN
+                                        (11%)</label>
+                                    <input type="text" id="ppn"
+                                        value="Rp {{ number_format($tax_amount, 0, ',', '.') }}" disabled
+                                        class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 cursor-not-allowed">
+                                </div>
 
-                            <div>
-                                <label for="ppn"
-                                    class="block mb-4 text-base font-medium text-gray-900 dark:text-white">PPN
-                                    (11%)</label>
-                                <input type="text" id="ppn"
-                                    value="Rp {{ number_format($tax_amount, 0, ',', '.') }}" disabled
-                                    class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 cursor-not-allowed">
-                            </div>
-
-                            <div>
-                                <label for="nett"
-                                    class="block mb-4 text-base font-medium text-gray-900 dark:text-white">Neto</label>
-                                <input type="text" id="nett"
-                                    value="Rp {{ number_format($grand_total, 0, ',', '.') }}" disabled
-                                    class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 cursor-not-allowed">
+                                <div>
+                                    <label for="nett"
+                                        class="block mb-4 text-base font-medium text-gray-900 dark:text-white">Neto</label>
+                                    <input type="text" id="nett"
+                                        value="Rp {{ number_format($grand_total, 0, ',', '.') }}" disabled
+                                        class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-400 cursor-not-allowed">
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div
-                    class="flex justify-end gap-2 p-6 border-t border-gray-200 dark:border-zinc-700 shrink-0 bg-white dark:bg-zinc-900">
-                    <button wire:click="$set('showModal', false)"
-                        class="px-4 py-2 text-sm rounded-lg border border-gray-600 dark:text-gray-300 hover:bg-zinc-700">
-                        Batal
-                    </button>
-                    <button wire:click="save" wire:loading.attr="disabled"
-                        class="px-4 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 cursor-pointer">
-                        <span wire:loading.remove wire:target="save">Simpan</span>
-                        <span wire:loading wire:target="save">Menyimpan...</span>
-                    </button>
+                    <div
+                        class="flex justify-end gap-2 p-6 border-t border-gray-200 dark:border-zinc-700 shrink-0 bg-white dark:bg-zinc-900">
+                        <button wire:click="$set('showModal', false)"
+                            class="px-4 py-2 text-sm rounded-lg border border-gray-600 dark:text-gray-300 hover:bg-zinc-700">
+                            Batal
+                        </button>
+                        <button wire:click="save" wire:loading.attr="disabled"
+                            class="px-4 py-2 text-sm rounded-lg bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 cursor-pointer">
+                            <span wire:loading.remove wire:target="save">Simpan</span>
+                            <span wire:loading wire:target="save">Menyimpan...</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     @endif
 
     @if ($showDetail && $selectedInvoice)
-        <div
-            class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 backdrop-blur-sm p-4">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
             <div
-                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[min(80vh,calc(100dvh-2rem))] overflow-y-auto">
+                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
 
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
                     <div>
@@ -694,13 +736,6 @@
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <div class="flex justify-between gap-4 text-sm">
-                                    <span class="text-gray-400">Goods Receive</span>
-                                    <span class="text-right font-mono text-gray-800 dark:text-white">
-                                        {{ $selectedInvoice->goodsReceives->pluck('code')->implode(', ') ?: '-' }}
-                                    </span>
-                                </div>
-
                                 <span class="text-gray-400">Pemasok</span>
                                 <span class="text-gray-800 dark:text-white">
                                     {{ $selectedInvoice->supplier?->name ?? '-' }}
@@ -846,7 +881,7 @@
                         <div class="border-t dark:border-zinc-700 pt-5">
                             <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Ubah Status</h4>
 
-                            <button wire:click="confirmPost({{ $selectedInvoice->id }})" @disabled(!auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.post'))
+                            <button wire:click="confirmPost({{ $selectedInvoice->id }})"
                                 class="px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium cursor-pointer">
                                 Posting Faktur
                             </button>
@@ -881,8 +916,8 @@
                 </div>
 
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">
-                    Setelah invoice diposting, jurnal akan dibuat dan faktur siap digunakan untuk proses pembayaran.
-                    Faktur tetap dapat diedit atau dihapus selama belum memiliki pembayaran atau retur.
+                    Setelah invoice diposting, data tidak bisa diedit atau dihapus. Faktur akan dikunci dan siap
+                    digunakan untuk proses pembayaran.
                 </p>
 
                 <div class="flex justify-end gap-2">
@@ -891,7 +926,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="postInvoice" wire:loading.attr="disabled" @disabled(!auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.post'))
+                    <button wire:click="postInvoice" wire:loading.attr="disabled"
                         class="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
                         <span wire:loading.remove wire:target="postInvoice">
                             Ya, Posting Faktur
@@ -918,15 +953,14 @@
                     <h3 class="text-base font-semibold dark:text-white">Hapus Faktur Pembelian?</h3>
                 </div>
                 <p class="text-sm text-gray-400 mb-5">
-                    Data dan jurnal terkait akan dipindahkan ke tempat sampah. Faktur dengan pembayaran atau retur tidak
-                    dapat dihapus.
+                    Data akan dipindahkan ke tempat sampah. Faktur yang sudah diposting tidak bisa dihapus.
                 </p>
                 <div class="flex justify-end gap-2">
                     <button wire:click="$set('showDeleteModal', false)"
                         class="px-4 py-2 text-sm rounded-lg border border-gray-600 dark:text-gray-300 hover:bg-zinc-700">
                         Batal
                     </button>
-                    <button wire:click="delete" @disabled(!auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.delete'))
+                    <button wire:click="delete"
                         class="px-4 py-2 text-sm rounded-lg bg-red-700 text-white hover:bg-red-800 cursor-pointer">
                         Ya, Hapus
                     </button>

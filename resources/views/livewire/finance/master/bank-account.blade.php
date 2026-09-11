@@ -10,6 +10,7 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
+        <p class="dark:text-white text-lg font-semibold">Tabel Data Rekening Bank</p>
 
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             {{-- Search --}}
@@ -43,19 +44,19 @@
 
             {{-- Tambah --}}
             <button wire:click="openCreate"
-                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:ml-auto sm:w-auto w-full justify-center">
+                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                Tambah Bank / Cash
+                Tambah Rekening Bank
             </button>
         </div>
     </div>
 
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-sm font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
+            <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
                         <div class="flex items-center gap-1">
@@ -65,8 +66,6 @@
                             @endif
                         </div>
                     </th>
-
-                    <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('account_type')">Tipe</th>
 
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('bank_name')">
                         <div class="flex items-center gap-1">
@@ -85,18 +84,12 @@
                 </tr>
             </thead>
 
-            <tbody class="dark:bg-zinc-950 text-sm">
+            <tbody class="dark:bg-zinc-950 text-base">
                 @forelse ($bankAccounts as $bank)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $bank->trashed() ? 'opacity-60' : '' }}">
                         <td class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                             {{ $bank->name }}
-                        </td>
-
-                        <td class="px-4 py-4">
-                            <span class="rounded px-2 py-1 text-xs {{ $bank->account_type === 'cash' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200' : 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200' }}">
-                                {{ $bank->account_type === 'cash' ? 'Cash' : 'Bank' }}
-                            </span>
                         </td>
 
                         <td class="px-4 py-4">
@@ -182,7 +175,7 @@
                                         </ul>
 
                                         <div class="py-1">
-                                            <button wire:click="confirmDelete({{ $bank->id }})" @disabled(! auth()->user()->isSuperAdmin())
+                                            <button wire:click="confirmDelete({{ $bank->id }})"
                                                 @click="open = false"
                                                 class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -200,8 +193,8 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center py-8 text-gray-400 dark:text-gray-500">
-                            Tidak ada data bank atau cash.
+                        <td colspan="7" class="text-center py-8 text-gray-400 dark:text-gray-500">
+                            Tidak ada data bank account.
                         </td>
                     </tr>
                 @endforelse
@@ -216,13 +209,13 @@
 
     {{-- MODAL CREATE/EDIT --}}
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 p-4 backdrop-blur-sm" x-data>
-            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-2xl mx-auto p-6 max-h-[min(80vh,calc(100dvh-2rem))] overflow-y-auto"
+        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm" x-data>
+            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-2xl mx-4 p-6"
                 @click.outside="$wire.showModal = false">
 
                 <div class="flex items-center justify-between mb-5">
                     <h3 class="text-lg font-semibold dark:text-white">
-                        {{ $bankAccountId ? 'Ubah Bank / Cash' : 'Tambah Bank / Cash' }}
+                        {{ $bankAccountId ? 'Edit Bank Account' : 'Tambah Bank Account' }}
                     </h3>
                     <button wire:click="$set('showModal', false)"
                         class="text-gray-400 hover:text-white cursor-pointer">
@@ -234,17 +227,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium dark:text-gray-300 mb-1">
-                            Tipe Akun <span class="text-red-500">*</span>
-                        </label>
-                        <select wire:model.live="account_type"
-                            class="w-full text-sm dark:bg-zinc-700 border border-gray-600 dark:text-white rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="bank">Bank</option>
-                            <option value="cash">Cash / Kas</option>
-                        </select>
-                    </div>
-
                     {{-- Name --}}
                     <div>
                         <label class="block text-sm font-medium dark:text-gray-300 mb-1">
@@ -260,7 +242,7 @@
                     {{-- CoA --}}
                     <div>
                         <label class="block text-sm font-medium dark:text-gray-300 mb-1">
-                            Daftar Akun <span class="text-red-500">*</span>
+                            Chart of Account <span class="text-red-500">*</span>
                         </label>
                         <select wire:model="chart_of_account_id"
                             class="w-full text-sm dark:bg-zinc-700 border border-gray-600 dark:text-white rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500 @error('chart_of_account_id') border-red-500 @enderror">
@@ -276,7 +258,6 @@
                         @enderror
                     </div>
 
-                    @if ($account_type === 'bank')
                     {{-- Bank Name --}}
                     <div>
                         <label class="block text-sm font-medium dark:text-gray-300 mb-1">
@@ -312,11 +293,6 @@
                             <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
-                    @else
-                        <div class="md:col-span-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200">
-                            Akun Cash tidak memerlukan nama bank, nomor rekening, atau pemilik rekening.
-                        </div>
-                    @endif
 
                     {{-- Is Active --}}
                     <div class="flex items-center">
@@ -354,7 +330,7 @@
                                 d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                         </svg>
                     </div>
-                    <h3 class="text-base font-semibold dark:text-white">Hapus Rekening Bank?</h3>
+                    <h3 class="text-base font-semibold dark:text-white">Hapus Bank Account?</h3>
                 </div>
                 <p class="text-sm text-gray-400 mb-5">
                     Data akan dipindahkan ke tempat sampah. Data yang sudah dipakai Pembayaran Utang tidak bisa dihapus.
@@ -364,7 +340,7 @@
                         class="px-4 py-2 text-sm rounded-lg border border-gray-600 dark:text-gray-300 hover:bg-zinc-700">
                         Batal
                     </button>
-                    <button wire:click="delete" @disabled(! auth()->user()->isSuperAdmin())
+                    <button wire:click="delete"
                         class="px-4 py-2 text-sm rounded-lg bg-red-700 text-white hover:bg-red-800 cursor-pointer">
                         Ya, Hapus
                     </button>
