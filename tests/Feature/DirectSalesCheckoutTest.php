@@ -94,7 +94,7 @@ it('scans products and completes a fully paid direct sale in one checkout', func
         ->and($order->status)->toBe('completed')
         ->and($order->grand_total)->toBe(40000)
         ->and($order->amount_due)->toBe(0)
-        ->and($delivery->status)->toBe(DeliveryOrder::STATUS_SHIPPED)
+        ->and($delivery->status)->toBe(DeliveryOrder::STATUS_INVOICED)
         ->and($delivery->items)->toHaveCount(2)
         ->and($invoice->status)->toBe(SalesInvoice::STATUS_CONFIRMED)
         ->and($invoice->items)->toHaveCount(2)

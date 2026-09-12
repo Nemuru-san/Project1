@@ -1,34 +1,20 @@
 <div>
-    <div class="flex flex-col gap-3 mb-4">
-        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <select wire:model.live="productFilter"
-                class="rounded-lg border border-gray-600 bg-white px-3 py-2.5 text-sm dark:bg-zinc-800 dark:text-white xl:col-span-2">
-                <option value="">-- Pilih produk --</option>
-                @foreach ($products as $product)
-                    <option value="{{ $product->id }}">{{ $product->sku }} - {{ $product->name }}</option>
-                @endforeach
-            </select>
-            <select wire:model.live="warehouseFilter"
-                class="rounded-lg border border-gray-600 bg-white px-3 py-2.5 text-sm dark:bg-zinc-800 dark:text-white">
-                <option value="">Semua gudang</option>
-                @foreach ($warehouses as $warehouse)<option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>@endforeach
-            </select>
-            <select wire:model.live="perPage"
-                class="rounded-lg border border-gray-600 bg-white px-3 py-2.5 text-sm dark:bg-zinc-800 dark:text-white">
-                <option value="25">25 / hal</option><option value="50">50 / hal</option><option value="100">100 / hal</option>
-            </select>
-        </div>
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <span class="text-sm font-medium text-gray-600 dark:text-gray-300 sm:min-w-28">Rentang tanggal</span>
-            <input wire:model.live="dateFrom" type="date" aria-label="Tanggal mulai"
-                class="rounded-lg border border-gray-600 bg-white px-3 py-2.5 text-sm dark:bg-zinc-800 dark:text-white">
-            <span class="hidden sm:inline text-gray-400">s.d.</span>
-            <input wire:model.live="dateTo" type="date" aria-label="Tanggal akhir"
-                class="rounded-lg border border-gray-600 bg-white px-3 py-2.5 text-sm dark:bg-zinc-800 dark:text-white">
-            <button wire:click="resetFilters" type="button"
-                class="rounded-lg border border-gray-600 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-zinc-800 cursor-pointer">Bersihkan Filter</button>
-        </div>
-    </div>
+    <x-filter.card title="Filter Kartu Stok" description="Pilih produk, gudang, dan rentang tanggal untuk menampilkan kartu stok.">
+        <x-filter.select model="productFilter" label="Produk" class="sm:col-span-2 xl:min-w-[18rem] xl:w-auto xl:flex-1">
+            <option value="">-- Pilih produk --</option>
+            @foreach ($products as $product)
+                <option value="{{ $product->id }}">{{ $product->sku }} - {{ $product->name }}</option>
+            @endforeach
+        </x-filter.select>
+        <x-filter.select model="warehouseFilter" label="Gudang">
+            <option value="">Semua gudang</option>
+            @foreach ($warehouses as $warehouse)
+                <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
+            @endforeach
+        </x-filter.select>
+        <x-filter.date-range />
+        <x-filter.per-page :options="[25, 50, 100]" :show-reset="filled($productFilter) || filled($warehouseFilter) || filled($dateFrom) || filled($dateTo)" />
+    </x-filter.card>
 
     @if (! $productFilter)
         <div class="rounded-lg border border-blue-300 bg-blue-50 px-4 py-8 text-center text-sm text-blue-700 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-300">

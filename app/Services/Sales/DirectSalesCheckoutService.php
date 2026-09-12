@@ -140,7 +140,9 @@ class DirectSalesCheckoutService
                 ]);
             }
             $invoice->deliveryOrders()->attach($deliveryOrder->id);
+            $deliveryOrder->update(['status' => DeliveryOrder::STATUS_INVOICED]);
             $this->postInvoiceJournal($invoice, $userId);
+            app(SalesmanFeeService::class)->recordForInvoice($invoice->fresh(['customer']));
 
             $payment = $paidAmount > 0
                 ? $this->postPayment($invoice, $order, $bankAccount, $paidAmount, $paymentMethod, $userId)
@@ -223,7 +225,8 @@ class DirectSalesCheckoutService
 
     private function invoiceCode(): string
     {
-        return $this->nextCode(SalesInvoice::class, 'invoice_no', 'FP-'.now()->format('ymd').'-');
+        // Nomor faktur di-reset per bulan, 4 digit (sama dengan modul Faktur Penjualan).
+        return $this->nextCode(SalesInvoice::class, 'invoice_no', 'FP-'.now()->format('ym').'-', 4);
     }
 
     private function paymentCode(): string
@@ -236,11 +239,11 @@ class DirectSalesCheckoutService
         return $this->nextCode(JournalEntry::class, 'code', 'JE-'.now()->format('dmy').'-');
     }
 
-    private function nextCode(string $model, string $column, string $prefix): string
+    private function nextCode(string $model, string $column, string $prefix, int $pad = 3): string
     {
         $last = $model::withTrashed()->where($column, 'like', $prefix.'%')->orderByDesc($column)->lockForUpdate()->value($column);
         $next = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
 
-        return $prefix.str_pad((string) $next, 3, '0', STR_PAD_LEFT);
+        return $prefix.str_pad((string) $next, $pad, '0', STR_PAD_LEFT);
     }
 }

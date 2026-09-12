@@ -159,6 +159,12 @@ class ProductCategory extends Component
         $this->resetValidation();
     }
 
+    public function resetFilters(): void
+    {
+        $this->reset(['search']);
+        $this->resetPage();
+    }
+
     public function render()
     {
         $query = ProductCategoryModel::query();

@@ -10,50 +10,27 @@
         @endforeach
     </div>
 
-    <div class="mt-5 flex flex-col gap-4">
-        <div>
-            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Faktur Pembelian Belum Lunas</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Faktur berstatus Posted dengan sisa utang lebih dari nol.
-            </p>
-        </div>
-        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-6"><input wire:model.live.debounce.300ms="search"
-                type="search" placeholder="Cari faktur / PO / supplier"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white xl:col-span-2"><select
-                wire:model.live="supplierFilter"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
-                <option value="">Semua supplier</option>
-                @foreach ($suppliers as $supplier)
-                    <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                @endforeach
-            </select>
-            <select wire:model.live="paymentStatusFilter"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
-                <option value="">Semua status bayar</option>
-                <option value="Unpaid">Belum Dibayar</option>
-                <option value="Partial Paid">Dibayar Sebagian</option>
-            </select><select wire:model.live="dueFilter"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
-                <option value="">Semua jatuh tempo</option>
-                <option value="overdue">Sudah lewat tempo</option>
-                <option value="not_due">Belum lewat tempo</option>
-            </select><select wire:model.live="perPage"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
-                <option value="10">10 / hal</option>
-                <option value="25">25 / hal</option>
-                <option value="50">50 / hal</option>
-            </select>
-        </div>
-        <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center"><span
-                class="text-sm font-medium text-gray-600 dark:text-gray-300">Rentang tanggal faktur</span><input
-                wire:model.live="dateFrom" type="date" aria-label="Tanggal mulai"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><span
-                class="hidden text-gray-400 sm:inline">s.d.</span><input wire:model.live="dateTo" type="date"
-                aria-label="Tanggal akhir"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><button
-                wire:click="resetFilters" type="button"
-                class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2.5 text-sm hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200">Bersihkan
-                Filter</button></div>
-    </div>
+    <x-filter.card title="Faktur Pembelian Belum Lunas" description="Faktur berstatus Posted dengan sisa utang lebih dari nol.">
+        <x-filter.search placeholder="Cari faktur / PO / supplier" />
+        <x-filter.select model="supplierFilter" label="Supplier">
+            <option value="">Semua supplier</option>
+            @foreach ($suppliers as $supplier)
+                <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+            @endforeach
+        </x-filter.select>
+        <x-filter.select model="paymentStatusFilter" label="Status bayar">
+            <option value="">Semua status bayar</option>
+            <option value="Unpaid">Belum Dibayar</option>
+            <option value="Partial Paid">Dibayar Sebagian</option>
+        </x-filter.select>
+        <x-filter.select model="dueFilter" label="Jatuh tempo">
+            <option value="">Semua jatuh tempo</option>
+            <option value="overdue">Sudah lewat tempo</option>
+            <option value="not_due">Belum lewat tempo</option>
+        </x-filter.select>
+        <x-filter.date-range label="Rentang tanggal faktur" />
+        <x-filter.per-page :show-reset="filled($search) || filled($supplierFilter) || filled($paymentStatusFilter) || filled($dueFilter) || filled($dateFrom) || filled($dateTo)" />
+    </x-filter.card>
 
     <div class="mt-5 overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700">
         <table class="w-full min-w-[1350px] text-left text-sm text-gray-600 dark:text-gray-300">

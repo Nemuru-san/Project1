@@ -135,7 +135,7 @@ class AvailableForSalesService
             ->selectRaw('delivery_order_items.sales_order_item_id, SUM(delivery_order_items.qty_base) as shipped_base')
             ->join('delivery_orders', 'delivery_orders.id', '=', 'delivery_order_items.delivery_order_id')
             ->whereNull('delivery_orders.deleted_at')
-            ->where('delivery_orders.status', DeliveryOrder::STATUS_SHIPPED)
+            ->whereIn('delivery_orders.status', DeliveryOrder::STOCK_STATUSES)
             ->groupBy('delivery_order_items.sales_order_item_id');
 
         return SalesOrderItem::query()

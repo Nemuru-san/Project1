@@ -208,6 +208,12 @@ class BankAccount extends Component
         $this->resetErrorBag();
     }
 
+    public function resetFilters(): void
+    {
+        $this->reset(['search']);
+        $this->resetPage();
+    }
+
     public function render()
     {
         $query = ModelsBankAccount::query()

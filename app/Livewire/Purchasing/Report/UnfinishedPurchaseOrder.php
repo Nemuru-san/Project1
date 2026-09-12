@@ -60,11 +60,12 @@ class UnfinishedPurchaseOrder extends Component
                 'items' => fn ($query) => $query->withSum([
                     'goodsReceiveItems as received_qty' => fn ($query) => $query->whereHas(
                         'goodsReceive',
-                        fn ($query) => $query->where('status', GoodsReceive::STATUS_RECEIVED)
+                        fn ($query) => $query->whereIn('status', GoodsReceive::STOCK_STATUSES)
                     ),
                 ], 'qty_received'),
             ])
             ->whereIn('status', [PurchaseOrder::STATUS_APPROVED, PurchaseOrder::STATUS_PARTIALLY_RECEIVED])
+            ->whereNull('closed_at')
             ->when($this->search, function ($query) {
                 $search = '%'.$this->search.'%';
                 $query->where(fn ($query) => $query->where('code', 'like', $search)

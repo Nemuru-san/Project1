@@ -23,6 +23,9 @@ class PurchaseOrder extends Model
         'gross',
         'nett',
         'status',
+        'closed_at',
+        'closed_by',
+        'close_note',
     ];
 
     protected $casts = [
@@ -31,6 +34,7 @@ class PurchaseOrder extends Model
         'total_price' => 'integer',
         'gross' => 'integer',
         'nett' => 'integer',
+        'closed_at' => 'datetime',
     ];
 
     const STATUS_DRAFT = 'Draft';
@@ -72,6 +76,42 @@ class PurchaseOrder extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function closer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'closed_by');
+    }
+
+    public function isClosed(): bool
+    {
+        return $this->closed_at !== null;
+    }
+
+    /**
+     * Total qty yang sudah diterima (GR Received / Invoiced) untuk seluruh item PO.
+     */
+    public function receivedQty(): int
+    {
+        return (int) GoodsReceiveItem::query()
+            ->whereIn('purchase_order_item_id', $this->items()->select('id'))
+            ->whereHas('goodsReceive', fn ($query) => $query->whereIn('status', GoodsReceive::STOCK_STATUSES))
+            ->sum('qty_received');
+    }
+
+    public function orderedQty(): int
+    {
+        return (int) $this->items()->sum('qty');
+    }
+
+    /**
+     * PO yang sudah disetujui, belum ditutup, dan masih punya sisa barang belum diterima.
+     */
+    public function canBeClosed(): bool
+    {
+        return ! $this->isClosed()
+            && $this->status !== self::STATUS_DRAFT
+            && $this->receivedQty() < $this->orderedQty();
     }
 
     public function purchaseInvoices(): HasMany

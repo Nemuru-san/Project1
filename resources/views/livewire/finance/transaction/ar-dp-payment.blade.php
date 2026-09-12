@@ -3,50 +3,20 @@
     <div x-cloak x-show="toastMsg" :class="toastType === 'success' ? 'bg-green-600' : 'bg-red-600'"
         class="fixed right-5 top-5 z-[80] rounded-lg px-4 py-2 text-sm text-white shadow"><span x-text="toastMsg"></span>
     </div>
-    <div class="my-4 flex flex-col gap-3">
-        <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <div class="relative w-full sm:w-80">
-                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><svg
-                        class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                            clip-rule="evenodd" />
-                    </svg></div><input wire:model.live.debounce.300ms="search" type="search"
-                    placeholder="Cari nomor DP, pre order, customer..."
-                    class="w-full rounded-lg border border-gray-600 p-2.5 pl-10 text-sm dark:bg-zinc-800 dark:text-white">
-            </div>
-            <select wire:model.live="statusFilter"
-                class="rounded-lg border border-gray-600 px-8 py-2.5 text-sm dark:bg-zinc-800 dark:text-white">
-                <option value="">Semua Status</option>
-                <option value="Draft">Draf</option>
-                <option value="Posted">Posted</option>
-            </select>
-            <select wire:model.live="perPage"
-                class="rounded-lg border border-gray-600 px-8 py-2.5 text-sm dark:bg-zinc-800 dark:text-white">
-                <option value="10">10 / hal</option>
-                <option value="25">25 / hal</option>
-                <option value="50">50 / hal</option>
-            </select>
-            <label
-                class="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg border border-gray-600 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300"><input
-                    wire:model.live="showTrashed" type="checkbox"
-                    class="h-4 w-4 rounded border-gray-600 text-blue-600 dark:bg-zinc-800"> Tampilkan Terhapus</label>
-            <button wire:click="openCreate"
-                class="inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 sm:ml-auto"><svg
-                    class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>Tambah Transaksi</button>
-        </div>
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center"><span
-                class="text-sm font-medium dark:text-gray-300">Rentang tanggal</span><input wire:model.live="dateFrom"
-                type="date"
-                class="rounded-lg border border-gray-600 px-3 py-2.5 text-sm dark:bg-zinc-800 dark:text-white"><span
-                class="hidden sm:inline">s.d.</span><input wire:model.live="dateTo" type="date"
-                class="rounded-lg border border-gray-600 px-3 py-2.5 text-sm dark:bg-zinc-800 dark:text-white"><button
-                wire:click="resetFilters"
-                class="rounded-lg border border-gray-600 px-4 py-2.5 text-sm dark:text-white">Bersihkan Filter</button>
-        </div>
-    </div>
+    <x-filter.card title="Filter Pembayaran DP" description="Temukan pembayaran uang muka berdasarkan kata kunci, status, atau rentang tanggal.">
+        <x-slot:actions>
+            <x-filter.add-button wire:click="openCreate">Tambah Transaksi</x-filter.add-button>
+        </x-slot:actions>
+        <x-filter.search placeholder="Cari nomor DP, pre order, customer..." />
+        <x-filter.select model="statusFilter" label="Status">
+            <option value="">Semua Status</option>
+            <option value="Draft">Draf</option>
+            <option value="Posted">Diposting</option>
+        </x-filter.select>
+        <x-filter.date-range />
+        <x-filter.per-page :show-reset="filled($search) || filled($statusFilter) || filled($dateFrom) || filled($dateTo)" />
+        <x-filter.checkbox model="showTrashed" />
+    </x-filter.card>
 
     <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700">
         <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">

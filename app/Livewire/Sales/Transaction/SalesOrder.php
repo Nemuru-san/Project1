@@ -803,6 +803,36 @@ class SalesOrder extends Component
         return $prefix.str_pad((string) $sequence, 3, '0', STR_PAD_LEFT);
     }
 
+    /**
+     * Ringkasan plafon customer yang sedang dipilih di form (untuk info sebelum konfirmasi).
+     */
+    private function creditSummaryFor(?int $customerId): ?array
+    {
+        if (! $customerId) {
+            return null;
+        }
+
+        $customer = Customer::find($customerId);
+
+        return $customer ? app(CustomerCreditService::class)->summary($customer) : null;
+    }
+
+    /**
+     * Ringkasan plafon + nilai pesanan yang akan dikonfirmasi (ditampilkan di modal konfirmasi).
+     */
+    private function confirmCreditSummary(): ?array
+    {
+        if (! $this->showConfirmModal || ! $this->confirmTargetId) {
+            return null;
+        }
+
+        $order = SalesOrderModel::with('customer')->find($this->confirmTargetId);
+
+        return $order?->customer
+            ? app(CustomerCreditService::class)->summary($order->customer, (int) $order->amount_due)
+            : null;
+    }
+
     public function render()
     {
         $currentSalesmanId = auth()->user()?->salesman()->where('is_active', true)->value('id');
@@ -860,6 +890,8 @@ class SalesOrder extends Component
                 ->latest('id')
                 ->get(),
             'customers' => Customer::where('is_active', true)->orderBy('name')->get(),
+            'creditSummary' => $this->creditSummaryFor($this->customerId),
+            'confirmCreditSummary' => $this->confirmCreditSummary(),
             'customerAddresses' => CustomerAddress::where('customer_id', $this->customerId)->orderByDesc('is_primary')->orderBy('label')->get(),
             'warehouses' => Warehouse::orderBy('name')->get(),
             'products' => Product::with('category')

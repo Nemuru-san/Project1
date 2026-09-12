@@ -42,7 +42,7 @@
                 <label for="purchase-order-status" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Status</label>
                 <select id="purchase-order-status" wire:model.live="statusFilter" class="block w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
                     <option value="">Semua Status</option>
-                    <option value="Draft">Draf</option><option value="Approved">Disetujui</option><option value="Partially Received">Diterima Sebagian</option><option value="Received">Diterima</option><option value="Partial Paid">Dibayar Sebagian</option><option value="Paid">Lunas</option>
+                    <option value="Draft">Draf</option><option value="Approved">Disetujui</option><option value="Partially Received">Diterima Sebagian</option><option value="Received">Diterima</option><option value="Partial Paid">Dibayar Sebagian</option><option value="Paid">Lunas</option><option value="Closed">Ditutup</option>
                 </select>
             </div> --}}
 
@@ -112,6 +112,11 @@
                                 <span class="text-sm font-normal px-2.5 py-0.5 rounded dark:bg-red-700 dark:text-white">
                                     Terhapus
                                 </span>
+                            @elseif ($po->isClosed())
+                                <span title="{{ $po->status }}"
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-white">
+                                    Ditutup
+                                </span>
                             @elseif ($po->status === 'Draft')
                                 <span
                                     class="text-sm font-normal px-2.5 py-0.5 rounded bg-gray-200 text-gray-700 dark:bg-zinc-600 dark:text-white">Draf
@@ -167,7 +172,7 @@
                                 <div x-show="open" x-cloak :style="`position: fixed; top: ${top}px; left: ${left}px;`"
                                     class="z-50 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
 
-                                    @php $locked = in_array($po->status, ['Approved', 'Received', 'Partially Received']); @endphp
+                                    @php $locked = $po->status !== 'Draft'; @endphp
 
                                     @if ($po->trashed())
                                         <div class="px-4 py-2 text-sm text-gray-400">
@@ -187,6 +192,22 @@
                                                                 d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
                                                         Setujui PO
+                                                    </button>
+                                                </li>
+                                            @endif
+
+                                            @if ($po->canBeClosed())
+                                                <li>
+                                                    <button wire:click="confirmClose({{ $po->id }})"
+                                                        @disabled(!auth()->user()?->hasPermission('purchases.transaction.purchase-order.approve')) @click="open = false"
+                                                        class="flex items-center gap-2 w-full py-2 px-4 text-orange-600 hover:bg-orange-600 hover:text-white dark:text-orange-300 dark:hover:bg-orange-600 dark:hover:text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-40">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                        </svg>
+                                                        Tutup PO
                                                     </button>
                                                 </li>
                                             @endif
@@ -762,8 +783,26 @@
                                     <span class="text-sm px-2.5 py-0.5 rounded {{ $statusClass }}">
                                         {{ $selectedPO->status }}
                                     </span>
+                                    @if ($selectedPO->isClosed())
+                                        <span class="ml-1 text-sm px-2.5 py-0.5 rounded bg-zinc-600 text-white">Ditutup</span>
+                                    @endif
                                 </span>
                             </div>
+                            @if ($selectedPO->isClosed())
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-400">Ditutup pada</span>
+                                    <span class="text-gray-800 dark:text-white text-right">
+                                        {{ $selectedPO->closed_at?->format('d/m/Y H:i') }}
+                                        <span class="text-gray-400">oleh</span> {{ $selectedPO->closer?->name ?? '-' }}
+                                    </span>
+                                </div>
+                                @if ($selectedPO->close_note)
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-400">Alasan ditutup</span>
+                                        <span class="text-gray-800 dark:text-white text-right max-w-xs">{{ $selectedPO->close_note }}</span>
+                                    </div>
+                                @endif
+                            @endif
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-400">Pajak</span>
                                 <span
@@ -854,7 +893,7 @@
                             </div>
                         </div>
                     </div>
-                    @if (in_array($selectedPO->status, ['Draft', 'Approved']))
+                    @if (in_array($selectedPO->status, ['Draft', 'Approved']) && ! $selectedPO->isClosed())
                         <div class="border-t dark:border-zinc-700 pt-5">
                             <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Ubah Status</h4>
                             <div class="flex items-center gap-3">
@@ -921,6 +960,59 @@
                         </span>
                         <span wire:loading wire:target="approve">
                             Menyetujui...
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if ($showCloseModal)
+        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-sm mx-4 p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="p-2 bg-orange-900 rounded-full">
+                        <svg class="w-5 h-5 text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                        </svg>
+                    </div>
+
+                    <h3 class="text-base font-semibold dark:text-white">
+                        Tutup Pesanan Pembelian?
+                    </h3>
+                </div>
+
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                    Sisa barang yang belum diterima dianggap batal. PO tidak bisa dibuatkan Penerimaan Barang lagi,
+                    tetapi Penerimaan Barang yang sudah ada tetap bisa difakturkan.
+                </p>
+
+                <div class="mb-5">
+                    <label for="close_note" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Alasan (opsional)
+                    </label>
+                    <textarea wire:model="closeNote" id="close_note" rows="2"
+                        placeholder="Contoh: pemasok hanya bisa kirim 40 pcs"
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"></textarea>
+                    @error('closeNote')
+                        <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <button wire:click="cancelClose"
+                        class="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 cursor-pointer">
+                        Batal
+                    </button>
+
+                    <button wire:click="closeOrder" wire:loading.attr="disabled" @disabled(!auth()->user()?->hasPermission('purchases.transaction.purchase-order.approve'))
+                        class="px-4 py-2 text-sm rounded-lg bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 cursor-pointer">
+                        <span wire:loading.remove wire:target="closeOrder">
+                            Ya, Tutup PO
+                        </span>
+                        <span wire:loading wire:target="closeOrder">
+                            Menutup...
                         </span>
                     </button>
                 </div>

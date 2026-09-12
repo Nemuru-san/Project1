@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Purchasing\Transaction;
 
+use App\Models\GoodsReceive;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\PurchaseOrder as PurchaseOrderModel;
@@ -42,6 +43,12 @@ class PurchaseOrder extends Component
     public bool $showApproveModal = false;
 
     public ?int $approveTargetId = null;
+
+    public bool $showCloseModal = false;
+
+    public ?int $closeTargetId = null;
+
+    public string $closeNote = '';
 
     // ─── Create form ──────────────────────────────────────────────────────────
     public string $date = '';
@@ -491,6 +498,84 @@ class PurchaseOrder extends Component
         $this->dispatch('toast', message: 'Pesanan Pembelian berhasil disetujui.', type: 'success');
     }
 
+    public function confirmClose(int $id): void
+    {
+        if (! auth()->user()?->hasPermission('purchases.transaction.purchase-order.approve')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menutup Pesanan Pembelian.', type: 'error');
+
+            return;
+        }
+
+        $purchaseOrder = PurchaseOrderModel::findOrFail($id);
+
+        if (! $purchaseOrder->canBeClosed()) {
+            $this->dispatch('toast', message: 'Pesanan Pembelian hanya dapat ditutup jika sudah disetujui dan masih ada sisa barang yang belum diterima.', type: 'error');
+
+            return;
+        }
+
+        $this->closeTargetId = $id;
+        $this->closeNote = '';
+        $this->showCloseModal = true;
+    }
+
+    public function cancelClose(): void
+    {
+        $this->showCloseModal = false;
+        $this->closeTargetId = null;
+        $this->closeNote = '';
+    }
+
+    /**
+     * Tutup PO yang tidak akan dikirim penuh oleh pemasok (mis. pesan 50, hanya dikirim 40).
+     * Sisa qty dianggap batal: PO tidak bisa dibuatkan Penerimaan Barang lagi,
+     * tetapi Penerimaan Barang yang sudah ada tetap bisa difakturkan.
+     */
+    public function closeOrder(): void
+    {
+        if (! auth()->user()?->hasPermission('purchases.transaction.purchase-order.approve')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk menutup Pesanan Pembelian.', type: 'error');
+
+            return;
+        }
+
+        if (! $this->closeTargetId) {
+            return;
+        }
+
+        $this->validate(['closeNote' => 'nullable|string|max:500']);
+
+        $purchaseOrder = PurchaseOrderModel::findOrFail($this->closeTargetId);
+
+        if (! $purchaseOrder->canBeClosed()) {
+            $this->cancelClose();
+            $this->dispatch('toast', message: 'Pesanan Pembelian hanya dapat ditutup jika sudah disetujui dan masih ada sisa barang yang belum diterima.', type: 'error');
+
+            return;
+        }
+
+        if ($purchaseOrder->goodsReceives()->where('status', GoodsReceive::STATUS_DRAFT)->exists()) {
+            $this->cancelClose();
+            $this->dispatch('toast', message: 'Masih ada Penerimaan Barang berstatus Draf. Terima atau batalkan dulu sebelum menutup PO.', type: 'error');
+
+            return;
+        }
+
+        $purchaseOrder->update([
+            'closed_at' => now(),
+            'closed_by' => auth()->id(),
+            'close_note' => $this->closeNote ?: null,
+        ]);
+
+        $this->cancelClose();
+
+        if ($this->selectedPO?->id === $purchaseOrder->id) {
+            $this->selectedPO = $purchaseOrder->fresh(['supplier', 'user', 'closer', 'items.product']);
+        }
+
+        $this->dispatch('toast', message: 'Pesanan Pembelian berhasil ditutup.', type: 'success');
+    }
+
     public function openEdit(int $id): void
     {
         $po = PurchaseOrderModel::with(['items.product.prices.unit', 'items.unit'])->findOrFail($id);
@@ -665,7 +750,7 @@ class PurchaseOrder extends Component
 
     public function openDetail(int $id): void
     {
-        $this->selectedPO = PurchaseOrderModel::with(['supplier', 'user', 'items.product'])->findOrFail($id);
+        $this->selectedPO = PurchaseOrderModel::with(['supplier', 'user', 'closer', 'items.product'])->findOrFail($id);
         $this->selectedStatus = $this->selectedPO->status;
         $this->showDetail = true;
     }
@@ -698,7 +783,7 @@ class PurchaseOrder extends Component
             'purchaseInvoices',
         ])->findOrFail($this->selectedPO->id);
 
-        if (! in_array($purchaseOrder->status, [
+        if ($purchaseOrder->isClosed() || ! in_array($purchaseOrder->status, [
             PurchaseOrderModel::STATUS_DRAFT,
             PurchaseOrderModel::STATUS_APPROVED,
         ])) {
@@ -826,7 +911,10 @@ class PurchaseOrder extends Component
             )
             ->when(
                 $this->statusFilter,
-                fn ($q) => $q->where('status', $this->statusFilter)
+                // "Closed" bukan nilai kolom status, melainkan penanda closed_at.
+                fn ($q) => $this->statusFilter === 'Closed'
+                    ? $q->whereNotNull('closed_at')
+                    : $q->where('status', $this->statusFilter)->whereNull('closed_at')
             )
             ->when($this->dateFrom, fn ($q) => $q->whereDate('date', '>=', $this->dateFrom))
             ->when($this->dateTo, fn ($q) => $q->whereDate('date', '<=', $this->dateTo))

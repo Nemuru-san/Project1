@@ -32,13 +32,23 @@ class GoodsReceive extends Model
 
     const STATUS_RECEIVED = 'Received';
 
+    /** Sudah masuk ke Faktur Pembelian. Barang tetap dihitung sebagai diterima. */
+    const STATUS_INVOICED = 'Invoiced';
+
     const STATUS_CANCELLED = 'Cancelled';
+
+    /** Status yang berarti barang sudah benar-benar masuk stok. */
+    const STOCK_STATUSES = [
+        self::STATUS_RECEIVED,
+        self::STATUS_INVOICED,
+    ];
 
     public static function statusOptions(): array
     {
         return [
             self::STATUS_DRAFT,
             self::STATUS_RECEIVED,
+            self::STATUS_INVOICED,
             self::STATUS_CANCELLED,
         ];
     }

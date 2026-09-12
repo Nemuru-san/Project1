@@ -376,6 +376,12 @@ class RoleUser extends Component
             ->all();
     }
 
+    public function resetFilters(): void
+    {
+        $this->reset(['search']);
+        $this->resetPage();
+    }
+
     public function render()
     {
         $query = Role::withCount('users');

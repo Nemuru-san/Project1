@@ -180,6 +180,10 @@
 
         <flux:spacer />
 
+        <div class="hidden lg:block px-1">
+            <livewire:notifications.notification-bell />
+        </div>
+
         <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
     </flux:sidebar>
 
@@ -189,6 +193,10 @@
         <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
         <flux:spacer />
+
+        <div class="mr-2 w-auto">
+            <livewire:notifications.notification-bell />
+        </div>
 
         <flux:dropdown position="top" align="end">
             <flux:profile :initials="auth()->user()->initials()" icon-trailing="chevron-down" />

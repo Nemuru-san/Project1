@@ -7,56 +7,23 @@
         <span x-text="toastMsg"></span>
     </div>
 
-    {{-- FILTER BAR --}}
-    <div
-        class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Data Entri Jurnal</p>
-
-        <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-            <div class="relative w-full sm:w-72">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg aria-hidden="true" class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-
-                <input wire:model.live.debounce.300ms="search" type="text"
-                    class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2.5 placeholder-gray-400"
-                    placeholder="Cari kode, sumber, deskripsi..." />
-            </div>
-
-            <select wire:model.live="statusFilter"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
-                <option value="">Semua Status</option>
-                @foreach ($statusOptions as $status => $label)
-                    <option value="{{ $status }}">{{ $label }}</option>
-                @endforeach
-            </select>
-
-            <select wire:model.live="sourceFilter"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
-                <option value="">Semua Sumber</option>
-                @foreach ($sourceOptions as $source => $label)
-                    <option value="{{ $source }}">{{ $label }}</option>
-                @endforeach
-            </select>
-
-            <select wire:model.live="perPage"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 w-full sm:w-auto">
-                <option value="10">10 / hal</option>
-                <option value="25">25 / hal</option>
-                <option value="50">50 / hal</option>
-            </select>
-
-            <label class="flex items-center gap-2 text-sm dark:text-gray-300 cursor-pointer whitespace-nowrap">
-                <input type="checkbox" wire:model.live="showTrashed"
-                    class="w-4 h-4 rounded border-gray-600 dark:bg-zinc-800 text-blue-600">
-                Tampilkan Terhapus
-            </label>
-        </div>
-    </div>
+    <x-filter.card title="Filter Entri Jurnal" description="Temukan jurnal berdasarkan kata kunci, status, atau sumber transaksi.">
+        <x-filter.search placeholder="Cari kode, sumber, deskripsi..." />
+        <x-filter.select model="statusFilter" label="Status">
+            <option value="">Semua Status</option>
+            @foreach ($statusOptions as $status => $label)
+                <option value="{{ $status }}">{{ $label }}</option>
+            @endforeach
+        </x-filter.select>
+        <x-filter.select model="sourceFilter" label="Sumber">
+            <option value="">Semua Sumber</option>
+            @foreach ($sourceOptions as $source => $label)
+                <option value="{{ $source }}">{{ $label }}</option>
+            @endforeach
+        </x-filter.select>
+        <x-filter.per-page :show-reset="filled($search) || filled($statusFilter) || filled($sourceFilter)" />
+        <x-filter.checkbox model="showTrashed" />
+    </x-filter.card>
 
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">

@@ -16,7 +16,16 @@ class DeliveryOrder extends Model
 
     public const STATUS_SHIPPED = 'shipped';
 
+    /** Sudah masuk ke Faktur Penjualan. Barang tetap dihitung sebagai terkirim. */
+    public const STATUS_INVOICED = 'invoiced';
+
     public const STATUS_CANCELLED = 'cancelled';
+
+    /** Status yang berarti barang sudah benar-benar keluar dari stok. */
+    public const STOCK_STATUSES = [
+        self::STATUS_SHIPPED,
+        self::STATUS_INVOICED,
+    ];
 
     /** @deprecated Status lama, dipertahankan agar data/kode lama tetap terbaca. */
     public const STATUS_ISSUED = self::STATUS_DRAFT;

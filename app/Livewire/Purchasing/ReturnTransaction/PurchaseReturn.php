@@ -87,7 +87,7 @@ class PurchaseReturn extends Component
         }
 
         $goodsReceive = GoodsReceive::with(['items.product.category', 'items.warehouse', 'items.unit', 'items.purchaseOrderItem'])
-            ->where('status', GoodsReceive::STATUS_RECEIVED)
+            ->whereIn('status', GoodsReceive::STOCK_STATUSES)
             ->find($this->goodsReceiveId);
 
         if (! $goodsReceive) {
@@ -136,7 +136,7 @@ class PurchaseReturn extends Component
 
         $purchaseReturn = DB::transaction(function () {
             $goodsReceive = GoodsReceive::with(['items.purchaseOrderItem'])->lockForUpdate()
-                ->where('status', GoodsReceive::STATUS_RECEIVED)->findOrFail($this->goodsReceiveId);
+                ->whereIn('status', GoodsReceive::STOCK_STATUSES)->findOrFail($this->goodsReceiveId);
             $inputRows = collect($this->items)->keyBy('goods_receive_item_id');
             $rows = [];
 
@@ -303,7 +303,7 @@ class PurchaseReturn extends Component
 
         return view('livewire.purchasing.return-transaction.purchase-return', [
             'returns' => $returns,
-            'goodsReceives' => GoodsReceive::with('supplier')->where('status', GoodsReceive::STATUS_RECEIVED)->whereHas('items', fn ($query) => $query->whereRaw('qty_received > 0'))->latest('date')->get(),
+            'goodsReceives' => GoodsReceive::with('supplier')->whereIn('status', GoodsReceive::STOCK_STATUSES)->whereHas('items', fn ($query) => $query->whereRaw('qty_received > 0'))->latest('date')->get(),
         ]);
     }
 }

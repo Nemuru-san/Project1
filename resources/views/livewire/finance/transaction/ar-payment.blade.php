@@ -2,17 +2,14 @@
     @toast.window="toastMsg=$event.detail.message;toastType=$event.detail.type;setTimeout(()=>toastMsg='',3500)">
     <div x-cloak x-show="toastMsg" :class="toastType === 'success' ? 'bg-green-600' : 'bg-red-600'"
         class="fixed right-5 top-5 z-[80] rounded-lg px-4 py-2 text-sm text-white"><span x-text="toastMsg"></span></div>
-    <div class="my-4 flex flex-col gap-3 sm:flex-row"><input wire:model.live.debounce.300ms="search"
-            placeholder="Cari nomor pembayaran atau faktur..."
-            class="w-full rounded-lg border p-2.5 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white sm:w-80"><select
-            wire:model.live="perPage"
-            class="rounded-lg border p-2.5 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
-            <option>10</option>
-            <option>25</option>
-            <option>50</option>
-        </select><button wire:click="openCreate"
-            class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm text-white sm:ml-auto">+ Tambah Pembayaran
-            Piutang</button></div>
+    <x-filter.card title="Filter Pembayaran Piutang" description="Temukan pembayaran berdasarkan nomor pembayaran atau faktur.">
+        <x-slot:actions>
+            <x-filter.add-button wire:click="openCreate">Tambah Pembayaran Piutang</x-filter.add-button>
+        </x-slot:actions>
+        <x-filter.search placeholder="Cari nomor pembayaran atau faktur..." />
+        <x-filter.per-page :show-reset="filled($search)" />
+    </x-filter.card>
+
     <div class="overflow-x-auto rounded-xl border dark:border-zinc-700">
         <table class="w-full text-left text-sm">
             <thead class="bg-gray-50 text-xs uppercase dark:bg-zinc-800">

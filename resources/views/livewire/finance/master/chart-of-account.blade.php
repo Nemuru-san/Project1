@@ -7,50 +7,14 @@
         <span x-text="toastMsg"></span>
     </div>
 
-    {{-- FILTER BAR --}}
-    <div
-        class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-
-        <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-            {{-- Search --}}
-            <div class="relative w-full sm:w-72">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg aria-hidden="true" class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <input wire:model.live.debounce.300ms="search" type="text"
-                    class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2.5 placeholder-gray-400"
-                    placeholder="Cari kode, nama, tipe akun..." />
-            </div>
-
-            {{-- Per Page --}}
-            <select wire:model.live="perPage"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 w-full sm:w-auto">
-                <option value="10">10 / hal</option>
-                <option value="25">25 / hal</option>
-                <option value="50">50 / hal</option>
-            </select>
-
-            {{-- Show Trashed --}}
-            <label class="flex items-center gap-2 text-sm dark:text-gray-300 cursor-pointer whitespace-nowrap">
-                <input type="checkbox" wire:model.live="showTrashed"
-                    class="w-4 h-4 rounded border-gray-600 dark:bg-zinc-800 text-blue-600">
-                Tampilkan Terhapus
-            </label>
-
-            {{-- Tambah --}}
-            <button wire:click="openCreate"
-                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:ml-auto sm:w-auto w-full justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Tambah Akun
-            </button>
-        </div>
-    </div>
+    <x-filter.card title="Filter Akun" description="Temukan akun berdasarkan kode, nama, atau tipe akun.">
+        <x-slot:actions>
+            <x-filter.add-button wire:click="openCreate">Tambah Akun</x-filter.add-button>
+        </x-slot:actions>
+        <x-filter.search placeholder="Cari kode, nama, tipe akun..." />
+        <x-filter.per-page :show-reset="filled($search)" />
+        <x-filter.checkbox model="showTrashed" />
+    </x-filter.card>
 
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">

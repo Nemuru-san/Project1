@@ -68,11 +68,11 @@ class UnfinishedSalesOrder extends Component
             ->join('sales_order_items as shipped_so_items', 'shipped_so_items.id', '=', 'delivery_order_items.sales_order_item_id')
             ->whereColumn('shipped_so_items.sales_order_id', 'sales_orders.id')
             ->whereNull('delivery_orders.deleted_at')
-            ->where('delivery_orders.status', DeliveryOrder::STATUS_SHIPPED);
+            ->whereIn('delivery_orders.status', DeliveryOrder::STOCK_STATUSES);
 
         return SalesOrder::query()
             ->with(['customer', 'preOrder', 'salesCanvas'])
-            ->withCount(['deliveryOrders as delivery_orders_count' => fn (Builder $query) => $query->where('status', DeliveryOrder::STATUS_SHIPPED)])
+            ->withCount(['deliveryOrders as delivery_orders_count' => fn (Builder $query) => $query->whereIn('status', DeliveryOrder::STOCK_STATUSES)])
             ->addSelect(['ordered_qty' => clone $ordered, 'shipped_qty' => clone $shipped])
             ->whereNotNull('verified_at')
             ->whereNotIn('status', ['cancelled', 'Cancelled'])

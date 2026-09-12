@@ -9,7 +9,7 @@
 
         {{-- FILTER BAR --}}
         <section class="my-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-            <div class="flex flex-col gap-4 border-b border-gray-100 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between dark:border-zinc-700"><div><h2 class="text-base font-semibold text-gray-900 dark:text-white">Filter Goods Receive</h2><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Temukan penerimaan barang berdasarkan kata kunci, status, atau rentang tanggal.</p></div><button wire:click="openCreate" type="button" class="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:w-auto"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>Tambah Goods Receive</button></div>
+            <div class="flex flex-col gap-4 border-b border-gray-100 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between dark:border-zinc-700"><div><h2 class="text-base font-semibold text-gray-900 dark:text-white">Filter Penerimaan Barang</h2><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Temukan penerimaan barang berdasarkan kata kunci, status, atau rentang tanggal.</p></div><button wire:click="openCreate" type="button" class="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:w-auto"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>Tambah Penerimaan Barang</button></div>
             <div class="grid gap-4 p-4 sm:grid-cols-2 sm:px-5 xl:grid-cols-[minmax(18rem,1fr)_auto_auto_auto] xl:items-end">
                 <div class="sm:col-span-2 xl:col-span-1"><label for="goods-receive-search" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Pencarian</label><div class="relative"><svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg><input id="goods-receive-search" wire:model.live.debounce.300ms="search" type="search" placeholder="Cari nomor GR, PO, atau supplier..." class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 pl-10 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"></div></div>
                 <fieldset class="sm:col-span-2 xl:col-span-1"><legend class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Rentang tanggal</legend><div class="flex items-center gap-2"><input wire:model.live="dateFrom" type="date" aria-label="Tanggal mulai" class="min-w-0 w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><span class="shrink-0 text-sm text-gray-400">s.d.</span><input wire:model.live="dateTo" type="date" aria-label="Tanggal akhir" class="min-w-0 w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"></div></fieldset>
@@ -81,6 +81,11 @@
                                     <span
                                         class="text-sm font-normal px-2.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-700 dark:text-white">
                                         Diterima
+                                    </span>
+                                @elseif ($gr->status === 'Invoiced')
+                                    <span
+                                        class="text-sm font-normal px-2.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-700 dark:text-white">
+                                        Difakturkan
                                     </span>
                                 @elseif ($gr->status === 'Cancelled')
                                     <span
@@ -531,6 +536,7 @@
                                             $statusClass = match ($selectedGR->status) {
                                                 'Draft' => 'bg-zinc-600 text-white',
                                                 'Received' => 'bg-green-700 text-white',
+                                                'Invoiced' => 'bg-blue-700 text-white',
                                                 'Cancelled' => 'bg-red-700 text-white',
                                                 default => 'bg-zinc-600 text-white',
                                             };

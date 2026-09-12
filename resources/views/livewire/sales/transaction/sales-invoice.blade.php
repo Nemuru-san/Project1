@@ -470,8 +470,11 @@
                             d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0Z" />
                     </svg></div>
                 <h3 class="mb-2 text-lg font-semibold">Konfirmasi Faktur Penjualan?</h3>
-                <p class="mb-6 text-sm text-gray-400">Konfirmasi akan membuat jurnal piutang dan mengizinkan Pembayaran
+                <p class="mb-4 text-sm text-gray-400">Konfirmasi akan membuat jurnal piutang dan mengizinkan Pembayaran
                     Piutang untuk faktur ini. Faktur tetap dapat diubah atau dihapus setelah dikonfirmasi.</p>
+                @if ($confirmCreditSummary)
+                    <x-credit-summary :summary="$confirmCreditSummary" class="mb-6" />
+                @endif
                 <div class="flex justify-end gap-3"><button wire:click="$set('showConfirmModal',false)"
                         class="rounded-lg border px-4 py-2">Batal</button><button wire:click="confirmInvoice"
                         class="rounded-lg bg-green-600 px-4 py-2 text-white">Konfirmasi</button></div>

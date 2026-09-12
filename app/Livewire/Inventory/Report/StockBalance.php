@@ -131,6 +131,12 @@ class StockBalance extends Component
         $this->stockBookings = [];
     }
 
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'warehouseFilter', 'categoryFilter']);
+        $this->resetPage();
+    }
+
     public function render(AvailableForSalesService $availabilityService)
     {
         $warehouses = Warehouse::query()

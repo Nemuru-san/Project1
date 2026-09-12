@@ -399,6 +399,12 @@ class ProductMaster extends Component
 
     // ── Render ─────────────────────────────────────────────────────────────────
 
+    public function resetFilters(): void
+    {
+        $this->reset(['search']);
+        $this->resetPage();
+    }
+
     public function render()
     {
         $query = Product::with(['category', 'baseUnit']);

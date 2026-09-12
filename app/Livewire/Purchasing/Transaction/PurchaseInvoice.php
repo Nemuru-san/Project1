@@ -67,8 +67,6 @@ class PurchaseInvoice extends Component
 
     public string $code = '';
 
-    public string $supplier_invoice_number = '';
-
     public string $date = '';
 
     public ?int $supplier_id = null;
@@ -82,8 +80,6 @@ class PurchaseInvoice extends Component
     public string $note = '';
 
     public string $top_term = '';
-
-    public string $custom_top = '';
 
     public string $due_date = '';
 
@@ -110,7 +106,6 @@ class PurchaseInvoice extends Component
     protected function rules(): array
     {
         return [
-            'supplier_invoice_number' => 'nullable|string|max:255',
             'date' => 'required|date',
             'due_date' => 'nullable|date',
             'purchase_order_id' => 'required|exists:purchase_orders,id',
@@ -186,7 +181,7 @@ class PurchaseInvoice extends Component
 
     public function sortBy(string $field): void
     {
-        if (! in_array($field, ['code', 'date', 'supplier_invoice_number', 'grand_total', 'status', 'payment_status', 'created_at'], true)) {
+        if (! in_array($field, ['code', 'date', 'grand_total', 'status', 'payment_status', 'created_at'], true)) {
             return;
         }
 
@@ -218,7 +213,6 @@ class PurchaseInvoice extends Component
 
         $this->invoiceId = $invoice->id;
         $this->code = $invoice->code;
-        $this->supplier_invoice_number = $invoice->supplier_invoice_number ?? '';
         $this->date = $invoice->date?->format('Y-m-d') ?? now()->format('Y-m-d');
         $this->due_date = $invoice->due_date?->format('Y-m-d') ?? '';
         $this->supplier_id = $invoice->supplier_id;
@@ -308,32 +302,16 @@ class PurchaseInvoice extends Component
 
     public function updatedTopTerm($value): void
     {
-        if (! $value || ! $this->date) {
+        // Termin kustom: tanggal jatuh tempo diisi manual lewat field due_date.
+        if (! $value || ! $this->date || $value === 'custom') {
             $this->due_date = '';
-            $this->custom_top = '';
 
             return;
         }
-
-        if ($value === 'custom') {
-            $this->due_date = '';
-            $this->custom_top = '';
-
-            return;
-        }
-
-        $this->custom_top = '';
 
         $this->due_date = Carbon::parse($this->date)
             ->addDays((int) $value)
             ->format('Y-m-d');
-    }
-
-    public function updatedCustomTop($value): void
-    {
-        if ($this->top_term === 'custom') {
-            $this->due_date = $value ?: '';
-        }
     }
 
     public function updatedDate(): void
@@ -417,7 +395,7 @@ class PurchaseInvoice extends Component
         ])
             ->whereIn('id', $ids)
             ->where('purchase_order_id', $this->purchase_order_id)
-            ->where('status', GoodsReceive::STATUS_RECEIVED)
+            ->whereIn('status', GoodsReceive::STOCK_STATUSES)
             ->get();
 
         if ($receives->count() !== count($ids)) {
@@ -530,19 +508,19 @@ class PurchaseInvoice extends Component
                     ->whereHas('purchaseInvoices', fn ($query) => $query->where('purchase_invoices.id', '<>', $this->invoiceId ?? 0))
                     ->exists();
 
+                // GR yang sudah Invoiced hanya boleh kalau memang milik faktur ini (mode ubah).
                 if ($goodsReceives->count() !== count($goodsReceiveIds)
-                    || $goodsReceives->contains(fn (GoodsReceive $receive) => $receive->status !== GoodsReceive::STATUS_RECEIVED
+                    || $goodsReceives->contains(fn (GoodsReceive $receive) => ! in_array($receive->status, GoodsReceive::STOCK_STATUSES, true)
                         || $receive->purchase_order_id !== $this->purchase_order_id
                         || $receive->supplier_id !== $this->supplier_id)
                     || $alreadyUsed) {
                     throw ValidationException::withMessages([
-                        'selectedGoodsReceiveIds' => 'Goods Receive harus Received, berasal dari PO yang dipilih, dan belum digunakan pada invoice lain.',
+                        'selectedGoodsReceiveIds' => 'Penerimaan Barang harus berstatus Diterima, berasal dari PO yang dipilih, dan belum digunakan pada faktur lain.',
                     ]);
                 }
             }
             $data = [
                 'code' => $this->code ?: $this->generateCode(),
-                'supplier_invoice_number' => $this->supplier_invoice_number ?: null,
                 'date' => $this->date,
                 'due_date' => $this->due_date ?: null,
                 'supplier_id' => $this->supplier_id,
@@ -588,6 +566,12 @@ class PurchaseInvoice extends Component
 
             if ($goodsReceiveIds !== []) {
                 $invoice->goodsReceives()->sync($goodsReceiveIds);
+
+                // Penerimaan Barang yang sudah difakturkan berpindah status ke Invoiced.
+                GoodsReceive::query()
+                    ->whereIn('id', $goodsReceiveIds)
+                    ->where('status', GoodsReceive::STATUS_RECEIVED)
+                    ->update(['status' => GoodsReceive::STATUS_INVOICED]);
             }
 
             if ($invoice->status === ModelsPurchaseInvoice::STATUS_POSTED) {
@@ -844,6 +828,7 @@ class PurchaseInvoice extends Component
         }
 
         $invoice = ModelsPurchaseInvoice::withCount(['apPaymentDetails', 'purchaseReturnInvoices'])
+            ->with('goodsReceives')
             ->findOrFail($this->deleteTargetId);
 
         if ($invoice->ap_payment_details_count > 0 || $invoice->purchase_return_invoices_count > 0) {
@@ -857,8 +842,17 @@ class PurchaseInvoice extends Component
                 ->where('source_id', $invoice->id)
                 ->get()
                 ->each->delete();
+
+            // Lepas Penerimaan Barang supaya bisa difakturkan ulang.
+            $goodsReceiveIds = $invoice->goodsReceives->pluck('id')->all();
+            $invoice->goodsReceives()->detach();
+            GoodsReceive::query()
+                ->whereIn('id', $goodsReceiveIds)
+                ->where('status', GoodsReceive::STATUS_INVOICED)
+                ->update(['status' => GoodsReceive::STATUS_RECEIVED]);
+
             $invoice->delete();
-            $invoice->purchaseOrder?->update(['payment_status' => ModelsPurchaseInvoice::PAYMENT_UNPAID]);
+            $invoice->purchaseOrder?->refreshPaymentStatus();
         });
 
         $this->showDeleteModal = false;
@@ -869,8 +863,9 @@ class PurchaseInvoice extends Component
 
     private function generateCode(): string
     {
-        $date = now()->format('dmy');
-        $prefix = "PIV-{$date}-";
+        // Nomor urut di-reset per bulan, bukan per hari.
+        $period = now()->format('my');
+        $prefix = "PIV-{$period}-";
 
         $last = ModelsPurchaseInvoice::withTrashed()
             ->where('code', 'like', $prefix.'%')
@@ -879,14 +874,13 @@ class PurchaseInvoice extends Component
 
         $seq = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
 
-        return $prefix.str_pad($seq, 3, '0', STR_PAD_LEFT);
+        return $prefix.str_pad($seq, 4, '0', STR_PAD_LEFT);
     }
 
     private function resetForm(): void
     {
         $this->invoiceId = null;
         $this->code = '';
-        $this->supplier_invoice_number = '';
         $this->date = now()->format('Y-m-d');
         $this->due_date = '';
         $this->supplier_id = null;
@@ -895,7 +889,6 @@ class PurchaseInvoice extends Component
         $this->tax = false;
         $this->note = '';
         $this->top_term = '';
-        $this->custom_top = '';
 
         $this->itemRows = [];
 
@@ -970,7 +963,6 @@ class PurchaseInvoice extends Component
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('code', 'like', '%'.$this->search.'%')
-                    ->orWhere('supplier_invoice_number', 'like', '%'.$this->search.'%')
                     ->orWhereHas('supplier', function ($supplier) {
                         $supplier->where('name', 'like', '%'.$this->search.'%')
                             ->orWhere('code', 'like', '%'.$this->search.'%');
@@ -1037,7 +1029,7 @@ class PurchaseInvoice extends Component
 
         $goodsReceives = GoodsReceive::query()
             ->where('purchase_order_id', $this->purchase_order_id)
-            ->where('status', GoodsReceive::STATUS_RECEIVED)
+            ->whereIn('status', GoodsReceive::STOCK_STATUSES)
             ->where(function ($query) {
                 $query->whereDoesntHave('purchaseInvoices');
 

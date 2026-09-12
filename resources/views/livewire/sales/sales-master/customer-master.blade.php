@@ -7,44 +7,14 @@
         <span x-text="toastMsg"></span>
     </div>
 
-    <div class="my-4 flex flex-col items-center justify-between gap-3 md:flex-row dark:bg-zinc-900">
-        <h1 class="text-lg">Data Tabel Master Customer</h1>
-        <div class="flex w-full flex-col items-center gap-3 sm:flex-row md:w-auto">
-            <div class="relative w-full sm:w-72">
-                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                    <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <input wire:model.live.debounce.300ms="search" type="text"
-                    class="block w-full rounded-lg border border-gray-300 p-2.5 pl-10 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
-                    placeholder="Cari kode, nama, telepon, email...">
-            </div>
-
-            <select wire:model.live="perPage"
-                class="w-full rounded-lg border border-gray-300 px-8 py-2.5 text-sm sm:w-auto dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
-                <option value="10">10 / hal</option>
-                <option value="25">25 / hal</option>
-                <option value="50">50 / hal</option>
-            </select>
-
-            <label class="flex cursor-pointer items-center gap-2 whitespace-nowrap text-sm dark:text-gray-300">
-                <input type="checkbox" wire:model.live="showTrashed"
-                    class="h-4 w-4 rounded border-gray-600 text-blue-600 dark:bg-zinc-800">
-                Tampilkan terhapus
-            </label>
-
-            <button type="button" wire:click="openCreate"
-                class="inline-flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 sm:w-auto">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Tambah Pelanggan
-            </button>
-        </div>
-    </div>
+    <x-filter.card title="Filter Pelanggan" description="Temukan pelanggan berdasarkan kode, nama, telepon, atau email.">
+        <x-slot:actions>
+            <x-filter.add-button wire:click="openCreate">Tambah Pelanggan</x-filter.add-button>
+        </x-slot:actions>
+        <x-filter.search placeholder="Cari kode, nama, telepon, email..." />
+        <x-filter.per-page :show-reset="filled($search)" />
+        <x-filter.checkbox model="showTrashed" />
+    </x-filter.card>
 
     <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-zinc-700">
         <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
@@ -54,7 +24,9 @@
                     <th class="cursor-pointer px-4 py-3" wire:click="sortBy('name')">Pelanggan</th>
                     <th class="px-4 py-3">Telepon & Email</th>
                     <th class="px-4 py-3">Salesman Default</th>
+                    <th class="px-4 py-3">Perekrut</th>
                     <th class="px-4 py-3 text-right">Plafon</th>
+                    <th class="px-4 py-3 text-right">Sisa Plafon</th>
                     <th class="px-4 py-3 text-center">Termin</th>
                     <th class="px-4 py-3 text-center">Kontak</th>
                     <th class="px-4 py-3 text-center">Alamat</th>
@@ -77,8 +49,18 @@
                             <div class="text-xs text-gray-500">{{ $customer->email ?: '-' }}</div>
                         </td>
                         <td class="px-4 py-3">{{ $customer->defaultSalesman?->name ?? '-' }}</td>
+                        <td class="px-4 py-3">{{ $customer->acquiredBySalesman?->name ?? '-' }}</td>
                         <td class="whitespace-nowrap px-4 py-3 text-right">
                             {{ $customer->credit_limit === null ? 'Tanpa batas' : 'Rp '.number_format($customer->credit_limit, 0, ',', '.') }}
+                        </td>
+                        <td class="whitespace-nowrap px-4 py-3 text-right">
+                            @php $remaining = $customer->credit_limit === null ? null : $customer->credit_limit - (int) $customer->outstanding_receivable; @endphp
+                            @if ($remaining === null)
+                                <span class="text-gray-400">Tanpa batas</span>
+                            @else
+                                <span class="{{ $remaining < 0 ? 'font-semibold text-red-600' : ($remaining === 0 ? 'text-amber-600' : '') }}">Rp {{ number_format($remaining, 0, ',', '.') }}</span>
+                            @endif
+                            <div class="text-xs text-gray-500">Piutang: Rp {{ number_format((int) $customer->outstanding_receivable, 0, ',', '.') }}</div>
                         </td>
                         <td class="whitespace-nowrap px-4 py-3 text-center">{{ $customer->payment_terms_days }} hari</td>
                         <td class="px-4 py-3 text-center">{{ $customer->pics_count }}</td>
@@ -162,7 +144,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="10" class="px-4 py-10 text-center text-gray-500">Belum ada data pelanggan.</td>
+                        <td colspan="12" class="px-4 py-10 text-center text-gray-500">Belum ada data pelanggan.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -212,9 +194,34 @@
                                         <option value="{{ $salesman->id }}">{{ $salesman->code }} - {{ $salesman->name }}</option>
                                     @endforeach
                                 </select>
-                                <p class="mt-1 text-xs text-gray-500">Fee order langsung ke toko akan diatribusikan ke salesman ini.</p>
+                                <p class="mt-1 text-xs text-gray-500">Salesman yang otomatis dipilih saat membuat order untuk customer ini.</p>
                                 @error('default_salesman_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                             </div>
+                            <div>
+                                <label class="mb-1 block text-sm font-medium dark:text-white">Salesman Perekrut</label>
+                                <select wire:model="acquired_by_salesman_id" @disabled($isSalesmanUser)
+                                    class="w-full rounded-lg border p-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                                    <option value="">Tidak ada</option>
+                                    @foreach ($allSalesmen as $salesman)
+                                        <option value="{{ $salesman->id }}">{{ $salesman->code }} - {{ $salesman->name }}{{ $salesman->is_active ? '' : ' (nonaktif)' }}</option>
+                                    @endforeach
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">Berhak fee dari semua faktur customer ini (termasuk order manual) selama salesman aktif.</p>
+                                @error('acquired_by_salesman_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                            </div>
+                            @unless ($isSalesmanUser)
+                                <div>
+                                    <label class="mb-1 block text-sm font-medium dark:text-white">Fee Perekrut</label>
+                                    <div class="relative">
+                                        <input wire:model="acquisition_fee_percent" type="number" min="0" max="100" step="0.01"
+                                            class="w-full rounded-lg border p-2.5 pr-10 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white"
+                                            placeholder="Default {{ number_format($defaultFeePercent, 2, ',', '.') }}">
+                                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">%</span>
+                                    </div>
+                                    <p class="mt-1 text-xs text-gray-500">Kosongkan untuk memakai fee default ({{ number_format($defaultFeePercent, 2, ',', '.') }}%) dari Master Salesman.</p>
+                                    @error('acquisition_fee_percent') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                </div>
+                            @endunless
                             <div>
                                 <label class="mb-1 block text-sm font-medium dark:text-white">Plafon Kredit</label>
                                 <div class="relative">
@@ -442,9 +449,31 @@
                                 <dd class="mt-1 text-gray-700 dark:text-gray-200">{{ $detailCustomer['default_salesman'] ?: '-' }}</dd>
                             </div>
                             <div>
+                                <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Salesman Perekrut</dt>
+                                <dd class="mt-1 text-gray-700 dark:text-gray-200">{{ $detailCustomer['acquired_by_salesman'] ?: '-' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Fee Perekrut</dt>
+                                <dd class="mt-1 text-gray-700 dark:text-gray-200">
+                                    {{ number_format($detailCustomer['effective_fee_percent'] ?? 0, 2, ',', '.') }}%
+                                    <span class="text-xs text-gray-400">{{ ($detailCustomer['acquisition_fee_percent'] ?? null) === null ? '(default)' : '(khusus)' }}</span>
+                                </dd>
+                            </div>
+                            <div>
                                 <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Plafon Kredit</dt>
                                 <dd class="mt-1 text-gray-700 dark:text-gray-200">
                                     {{ $detailCustomer['credit_limit'] === null ? 'Tanpa batas' : 'Rp '.number_format($detailCustomer['credit_limit'], 0, ',', '.') }}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Piutang Berjalan</dt>
+                                <dd class="mt-1 text-gray-700 dark:text-gray-200">Rp {{ number_format($detailCustomer['credit_summary']['outstanding'] ?? 0, 0, ',', '.') }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs font-semibold uppercase tracking-wider text-gray-400">Sisa Plafon</dt>
+                                @php $sisa = $detailCustomer['credit_summary']['remaining'] ?? null; @endphp
+                                <dd class="mt-1 font-semibold {{ $sisa !== null && $sisa < 0 ? 'text-red-600' : 'text-gray-700 dark:text-gray-200' }}">
+                                    {{ $sisa === null ? 'Tanpa batas' : 'Rp '.number_format($sisa, 0, ',', '.') }}
                                 </dd>
                             </div>
                             <div>

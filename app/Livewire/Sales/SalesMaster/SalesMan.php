@@ -5,8 +5,10 @@ namespace App\Livewire\Sales\SalesMaster;
 use App\Models\Role;
 use App\Models\SalesInvoice;
 use App\Models\Salesman as SalesmanModel;
+use App\Models\SalesmanFee;
 use App\Models\SalesmanTarget;
 use App\Models\User;
+use App\Services\Sales\SalesmanFeeService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -61,6 +63,21 @@ class SalesMan extends Component
     public string $targetSalesmanName = '';
 
     public int $targetAmount = 0;
+
+    public bool $showFeeSettingModal = false;
+
+    public string $defaultFeePercent = '0';
+
+    public bool $showFeeDetailModal = false;
+
+    public ?int $feeSalesmanId = null;
+
+    public string $feeSalesmanName = '';
+
+    /** @var array<int, array<string, mixed>> */
+    public array $feeRows = [];
+
+    public int $feeTotal = 0;
 
     public function mount(): void
     {
@@ -203,6 +220,64 @@ class SalesMan extends Component
         $this->dispatch('toast', message: 'Target bulanan salesman berhasil dihapus.', type: 'success');
     }
 
+    public function openFeeSetting(): void
+    {
+        $this->defaultFeePercent = number_format(app(SalesmanFeeService::class)->defaultPercent(), 2, '.', '');
+        $this->resetErrorBag('defaultFeePercent');
+        $this->showFeeSettingModal = true;
+    }
+
+    public function saveFeeSetting(): void
+    {
+        $this->validate(
+            ['defaultFeePercent' => ['required', 'numeric', 'min:0', 'max:100']],
+            ['defaultFeePercent.required' => 'Persentase fee wajib diisi.', 'defaultFeePercent.max' => 'Maksimal 100%.'],
+        );
+
+        app(SalesmanFeeService::class)->setDefaultPercent((float) $this->defaultFeePercent, Auth::id());
+
+        $this->showFeeSettingModal = false;
+        $this->dispatch('toast', message: 'Fee default perekrutan customer berhasil disimpan.', type: 'success');
+    }
+
+    public function openFeeDetail(int $id): void
+    {
+        $salesman = SalesmanModel::withTrashed()->findOrFail($id);
+        [$start, $end] = $this->targetPeriod();
+
+        $rows = SalesmanFee::query()
+            ->with(['customer', 'salesInvoice'])
+            ->where('salesman_id', $salesman->id)
+            ->whereBetween('invoice_date', [$start->toDateString(), $end->toDateString()])
+            ->orderBy('invoice_date')
+            ->get();
+
+        $this->feeSalesmanId = $salesman->id;
+        $this->feeSalesmanName = $salesman->name;
+        $this->feeRows = $rows->map(fn (SalesmanFee $fee) => [
+            'date' => $fee->invoice_date->format('d/m/Y'),
+            'invoice_no' => $fee->salesInvoice?->invoice_no ?? '-',
+            'customer' => $fee->customer?->name ?? '-',
+            'base_amount' => $fee->base_amount,
+            'fee_percent' => (float) $fee->fee_percent,
+            'fee_amount' => $fee->fee_amount,
+        ])->all();
+        $this->feeTotal = (int) $rows->sum('fee_amount');
+        $this->showFeeDetailModal = true;
+    }
+
+    /**
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    private function targetPeriod(): array
+    {
+        $period = preg_match('/^\d{4}-\d{2}$/', $this->targetMonth)
+            ? Carbon::createFromFormat('Y-m', $this->targetMonth)->startOfMonth()
+            : now()->startOfMonth();
+
+        return [$period, $period->copy()->endOfMonth()];
+    }
+
     public function save(): void
     {
         $this->code = strtoupper(trim($this->code));
@@ -242,12 +317,22 @@ class SalesMan extends Component
             ];
 
             if ($this->salesmanId) {
-                SalesmanModel::findOrFail($this->salesmanId)->update($data);
+                $salesman = SalesmanModel::findOrFail($this->salesmanId);
+
+                // Diaktifkan kembali: reset hitungan inaktivitas agar tidak langsung dinonaktifkan lagi.
+                if ($this->isActive && ! $salesman->is_active) {
+                    $data['activity_checkpoint_at'] = now();
+                    $data['inactivity_warned_at'] = null;
+                    $data['deactivated_at'] = null;
+                }
+
+                $salesman->update($data);
 
                 return 'Salesman dan akun loginnya berhasil diperbarui.';
             }
 
             $data['created_by'] = Auth::id();
+            $data['activity_checkpoint_at'] = now();
             SalesmanModel::create($data);
 
             return 'Salesman dan akun login ERP berhasil dibuat.';
@@ -317,12 +402,15 @@ class SalesMan extends Component
         $this->resetErrorBag();
     }
 
+    public function resetFilters(): void
+    {
+        $this->reset(['search']);
+        $this->resetPage();
+    }
+
     public function render()
     {
-        $period = preg_match('/^\d{4}-\d{2}$/', $this->targetMonth)
-            ? Carbon::createFromFormat('Y-m', $this->targetMonth)->startOfMonth()
-            : now()->startOfMonth();
-        $periodEnd = $period->copy()->endOfMonth();
+        [$period, $periodEnd] = $this->targetPeriod();
 
         $salesmen = SalesmanModel::query()
             ->with([
@@ -338,6 +426,10 @@ class SalesMan extends Component
                         ->whereBetween('invoice_date', [$period->toDateString(), $periodEnd->toDateString()]),
                 ),
             ], 'grand_total')
+            ->withSum([
+                'fees as monthly_fee_total' => fn ($query) => $query->whereBetween('invoice_date', [$period->toDateString(), $periodEnd->toDateString()]),
+            ], 'fee_amount')
+            ->withCount('acquiredCustomers')
             ->when($this->showTrashed, fn (Builder $query) => $query->withTrashed())
             ->when($this->search !== '', function (Builder $query) {
                 $query->where(function (Builder $query) {
@@ -349,7 +441,10 @@ class SalesMan extends Component
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 
-        return view('livewire.sales.sales-master.sales-man', compact('salesmen'));
+        return view('livewire.sales.sales-master.sales-man', [
+            'salesmen' => $salesmen,
+            'currentDefaultFeePercent' => app(SalesmanFeeService::class)->defaultPercent(),
+        ]);
     }
 
     private function salesmanRole(): Role

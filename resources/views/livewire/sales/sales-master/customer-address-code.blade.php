@@ -7,37 +7,14 @@
         <span x-text="toastMsg"></span>
     </div>
 
-    <div class="my-4 flex flex-col gap-3 dark:bg-zinc-900">
-        <div class="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <div class="relative w-full sm:w-80">
-                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                    <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8A4 4 0 008 4zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <input wire:model.live.debounce.300ms="search" type="search"
-                    class="block w-full rounded-lg border border-gray-600 p-2.5 pl-10 text-sm dark:bg-zinc-800 dark:text-white"
-                    placeholder="Cari kode atau keterangan...">
-            </div>
-            <select wire:model.live="perPage"
-                class="w-full rounded-lg border border-gray-600 px-8 py-2.5 text-sm sm:w-auto dark:bg-zinc-800 dark:text-white">
-                <option value="10">10 / hal</option>
-                <option value="25">25 / hal</option>
-                <option value="50">50 / hal</option>
-            </select>
-            <label class="flex cursor-pointer items-center gap-2 whitespace-nowrap text-sm dark:text-gray-300">
-                <input type="checkbox" wire:model.live="showTrashed" class="h-4 w-4 rounded">
-                Tampilkan terhapus
-            </label>
-            <button wire:click="openCreate" type="button"
-                class="order-last inline-flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 sm:ml-auto sm:w-auto">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Tambah Kode Alamat
-            </button>
-        </div>
-    </div>
+    <x-filter.card title="Filter Kode Alamat" description="Temukan kode alamat berdasarkan kode atau keterangan.">
+        <x-slot:actions>
+            <x-filter.add-button wire:click="openCreate">Tambah Kode Alamat</x-filter.add-button>
+        </x-slot:actions>
+        <x-filter.search placeholder="Cari kode atau keterangan..." />
+        <x-filter.per-page :show-reset="filled($search)" />
+        <x-filter.checkbox model="showTrashed" />
+    </x-filter.card>
 
     <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700">
         <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">

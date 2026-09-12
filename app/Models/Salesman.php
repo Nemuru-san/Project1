@@ -17,6 +17,9 @@ class Salesman extends Model
         'name',
         'user_id',
         'is_active',
+        'activity_checkpoint_at',
+        'inactivity_warned_at',
+        'deactivated_at',
         'created_by',
     ];
 
@@ -24,6 +27,9 @@ class Salesman extends Model
     {
         return [
             'is_active' => 'boolean',
+            'activity_checkpoint_at' => 'datetime',
+            'inactivity_warned_at' => 'datetime',
+            'deactivated_at' => 'datetime',
         ];
     }
 
@@ -55,5 +61,29 @@ class Salesman extends Model
     public function monthlyTargets(): HasMany
     {
         return $this->hasMany(SalesmanTarget::class);
+    }
+
+    public function fees(): HasMany
+    {
+        return $this->hasMany(SalesmanFee::class);
+    }
+
+    /**
+     * Customer yang direkrut salesman ini.
+     */
+    public function acquiredCustomers(): HasMany
+    {
+        return $this->hasMany(Customer::class, 'acquired_by_salesman_id');
+    }
+
+    /**
+     * Sales canvas yang sudah diverifikasi (dikonfirmasi atau sudah menjadi sales order).
+     */
+    public function verifiedSalesCanvases(): HasMany
+    {
+        return $this->salesCanvases()->whereIn('status', [
+            SalesCanvas::STATUS_CONFIRMED,
+            SalesCanvas::STATUS_SALES_ORDER,
+        ]);
     }
 }

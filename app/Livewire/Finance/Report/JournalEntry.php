@@ -155,6 +155,12 @@ class JournalEntry extends Component
         return $this->selectedJournalDebitTotal === $this->selectedJournalCreditTotal;
     }
 
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'statusFilter', 'sourceFilter']);
+        $this->resetPage();
+    }
+
     public function render()
     {
         $journals = ModelsJournalEntry::query()

@@ -9,6 +9,7 @@ use App\Models\JournalEntry;
 use App\Models\SalesInvoice as SalesInvoiceModel;
 use App\Models\SalesOrder;
 use App\Services\Sales\CustomerCreditService;
+use App\Services\Sales\SalesmanFeeService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -240,7 +241,7 @@ class SalesInvoice extends Component
         ])
             ->whereIn('id', $ids)
             ->where('sales_order_id', $this->salesOrderId)
-            ->where('status', DeliveryOrder::STATUS_SHIPPED)
+            ->whereIn('status', DeliveryOrder::STOCK_STATUSES)
             ->get();
 
         if ($deliveryOrders->count() !== count($ids)) {
@@ -338,6 +339,7 @@ class SalesInvoice extends Component
                             'date' => $invoice->invoice_date,
                             'description' => 'Faktur Penjualan '.$invoice->invoice_no,
                         ]);
+                    app(SalesmanFeeService::class)->syncInvoiceDate($invoice);
                 }
 
                 return $invoice;
@@ -426,6 +428,12 @@ class SalesInvoice extends Component
 
             $invoice->deliveryOrders()->sync($deliveryOrderIds);
 
+            // Surat Jalan yang sudah difakturkan berpindah status ke Invoiced.
+            DeliveryOrder::query()
+                ->whereIn('id', $deliveryOrderIds)
+                ->where('status', DeliveryOrder::STATUS_SHIPPED)
+                ->update(['status' => DeliveryOrder::STATUS_INVOICED]);
+
             return $invoice;
         });
 
@@ -506,6 +514,9 @@ class SalesInvoice extends Component
                 if ($invoice->tax_amount > 0) {
                     $journal->lines()->create(['chart_of_account_id' => $taxOutId, 'debit' => 0, 'credit' => $invoice->tax_amount, 'description' => 'PPN keluaran']);
                 }
+
+                // Fee perekrutan customer untuk salesman perekrut (hanya bila masih aktif).
+                app(SalesmanFeeService::class)->recordForInvoice($invoice->fresh(['customer']));
             });
 
             $this->showConfirmModal = false;
@@ -544,6 +555,16 @@ class SalesInvoice extends Component
                 ->where('source_id', $invoice->id)
                 ->get()
                 ->each->delete();
+
+            // Lepas Surat Jalan supaya bisa difakturkan ulang.
+            $deliveryOrderIds = $invoice->deliveryOrders()->pluck('delivery_orders.id')->all();
+            app(SalesmanFeeService::class)->removeForInvoice($invoice);
+            $invoice->deliveryOrders()->detach();
+            DeliveryOrder::query()
+                ->whereIn('id', $deliveryOrderIds)
+                ->where('status', DeliveryOrder::STATUS_INVOICED)
+                ->update(['status' => DeliveryOrder::STATUS_SHIPPED]);
+
             $invoice->delete();
         });
         $this->showDeleteModal = false;
@@ -627,10 +648,11 @@ class SalesInvoice extends Component
 
     private function generateCode(): string
     {
-        $prefix = 'FP-'.now()->format('ymd').'-';
+        // Nomor urut di-reset per bulan, bukan per hari.
+        $prefix = 'FP-'.now()->format('ym').'-';
         $last = SalesInvoiceModel::withTrashed()->where('invoice_no', 'like', $prefix.'%')->orderByDesc('invoice_no')->value('invoice_no');
 
-        return $prefix.str_pad((string) ($last ? (int) substr($last, strlen($prefix)) + 1 : 1), 3, '0', STR_PAD_LEFT);
+        return $prefix.str_pad((string) ($last ? (int) substr($last, strlen($prefix)) + 1 : 1), 4, '0', STR_PAD_LEFT);
     }
 
     private function generateJournalCode(): string
@@ -649,7 +671,7 @@ class SalesInvoice extends Component
     {
         return DeliveryOrder::query()
             ->where('sales_order_id', $salesOrderId)
-            ->where('status', DeliveryOrder::STATUS_SHIPPED)
+            ->whereIn('status', DeliveryOrder::STOCK_STATUSES)
             ->where(function (Builder $query) {
                 $query->whereDoesntHave('salesInvoices');
 
@@ -673,7 +695,7 @@ class SalesInvoice extends Component
                     ->where('status', DeliveryOrder::STATUS_SHIPPED)
                     ->whereDoesntHave('salesInvoices')
                 )->orWhere(fn (Builder $query) => $query
-                    ->whereDoesntHave('deliveryOrders', fn (Builder $deliveryOrder) => $deliveryOrder->where('status', DeliveryOrder::STATUS_SHIPPED))
+                    ->whereDoesntHave('deliveryOrders', fn (Builder $deliveryOrder) => $deliveryOrder->whereIn('status', DeliveryOrder::STOCK_STATUSES))
                     ->whereDoesntHave('salesInvoices')
                 );
             })
@@ -682,6 +704,22 @@ class SalesInvoice extends Component
                     ->orWhere('salesman_id', $salesmanId ?? 0)
                     ->orWhereHas('salesCanvas', fn (Builder $canvas) => $canvas->where('salesman_id', $salesmanId ?? 0));
             }));
+    }
+
+    /**
+     * Ringkasan plafon + nilai faktur yang akan dikonfirmasi (ditampilkan di modal konfirmasi).
+     */
+    private function confirmCreditSummary(): ?array
+    {
+        if (! $this->showConfirmModal || ! $this->confirmTargetId) {
+            return null;
+        }
+
+        $invoice = SalesInvoiceModel::with('customer')->find($this->confirmTargetId);
+
+        return $invoice?->customer
+            ? app(CustomerCreditService::class)->summary($invoice->customer, (int) $invoice->amount_due)
+            : null;
     }
 
     public function render()
@@ -718,6 +756,7 @@ class SalesInvoice extends Component
 
         return view('livewire.sales.transaction.sales-invoice', [
             'invoices' => $invoices,
+            'confirmCreditSummary' => $this->confirmCreditSummary(),
             'salesOrders' => $salesOrders,
             'deliveryOrders' => $deliveryOrders,
         ]);

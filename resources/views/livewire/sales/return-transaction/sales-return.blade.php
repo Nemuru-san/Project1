@@ -3,26 +3,21 @@
     <div x-show="toastMsg" x-cloak :class="toastType === 'success' ? 'bg-green-600' : 'bg-red-600'"
         class="fixed right-5 top-5 z-[70] rounded-lg px-4 py-2 text-sm text-white shadow"><span x-text="toastMsg"></span>
     </div>
-    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div class="flex flex-1 flex-wrap gap-3"><input wire:model.live.debounce.300ms="search" type="search"
-                placeholder="Cari nomor retur / surat jalan / pelanggan"
-                class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 sm:w-72"><select
-                wire:model.live="statusFilter"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800">
-                <option value="">Semua status</option>
-                <option>Draft</option>
-                <option>Confirmed</option>
-                <option>Cancelled</option>
-            </select><input wire:model.live="dateFrom" type="date" aria-label="Tanggal mulai"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800"><input
-                wire:model.live="dateTo" type="date" aria-label="Tanggal akhir"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800"><button
-                wire:click="resetFilters" class="cursor-pointer rounded-lg border px-4 py-2 text-sm">Bersihkan</button>
-        </div>
-        <button wire:click="openCreate" @disabled(!auth()->user()?->hasPermission('sales.return.sales-return'))
-            class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">+
-            Tambah Retur</button>
-    </div>
+    <x-filter.card title="Filter Retur Penjualan" description="Temukan retur berdasarkan kata kunci, status, atau rentang tanggal.">
+        <x-slot:actions>
+            <x-filter.add-button wire:click="openCreate" :disabled="! auth()->user()?->hasPermission('sales.return.sales-return')">Tambah Retur</x-filter.add-button>
+        </x-slot:actions>
+        <x-filter.search placeholder="Cari nomor retur / surat jalan / pelanggan" />
+        <x-filter.select model="statusFilter" label="Status">
+            <option value="">Semua status</option>
+            <option value="Draft">Draf</option>
+            <option value="Confirmed">Dikonfirmasi</option>
+            <option value="Cancelled">Dibatalkan</option>
+        </x-filter.select>
+        <x-filter.date-range />
+        <x-filter.per-page :show-reset="filled($search) || filled($statusFilter) || filled($dateFrom) || filled($dateTo)" />
+    </x-filter.card>
+
     <div class="mt-5 overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700">
         <table class="w-full min-w-[1050px] text-left text-sm text-gray-600 dark:text-gray-300">
             <thead class="bg-gray-100 text-xs uppercase dark:bg-zinc-800">

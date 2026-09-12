@@ -7,66 +7,20 @@
         <span x-text="toastMsg"></span>
     </div>
 
-    {{-- FILTER BAR --}}
-    <div class="flex flex-col gap-3 my-4 dark:bg-zinc-900">
-        <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 w-full">
-            <div class="relative w-full sm:w-72">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg aria-hidden="true" class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                            clip-rule="evenodd" />
-                    </svg>
-                </div>
-
-                <input wire:model.live.debounce.300ms="search" type="text"
-                    class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2.5 placeholder-gray-400"
-                    placeholder="Cari kode, supplier, metode..." />
-            </div>
-
-            <select wire:model.live="statusFilter"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
-                <option value="">Semua Status</option>
-                <option value="Draft">Draf</option>
-                <option value="Posted">Diposting</option>
-            </select>
-
-            <select wire:model.live="perPage"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 w-full sm:w-auto">
-                <option value="10">10 / hal</option>
-                <option value="25">25 / hal</option>
-                <option value="50">50 / hal</option>
-            </select>
-
-            <label
-                class="flex items-center gap-2 rounded-lg border border-gray-600 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer whitespace-nowrap">
-                <input type="checkbox" wire:model.live="showTrashed"
-                    class="w-4 h-4 rounded border-gray-600 dark:bg-zinc-800 text-blue-600">
-                Tampilkan Terhapus
-            </label>
-
-            <button wire:click="openCreate"
-                class="order-last sm:ml-auto inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Tambah Pembayaran
-            </button>
-        </div>
-
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <span class="text-sm font-medium text-gray-600 dark:text-gray-300 sm:min-w-28">Rentang tanggal</span>
-            <input wire:model.live="dateFrom" type="date" title="Tanggal mulai" aria-label="Tanggal mulai"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-3 py-2.5 w-full sm:w-auto">
-            <span class="hidden sm:inline text-gray-400">s.d.</span>
-            <input wire:model.live="dateTo" type="date" title="Tanggal akhir" aria-label="Tanggal akhir"
-                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-3 py-2.5 w-full sm:w-auto">
-            <button wire:click="resetFilters" type="button"
-                class="rounded-lg border border-gray-600 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-zinc-800 cursor-pointer">
-                Bersihkan Filter
-            </button>
-        </div>
-    </div>
+    <x-filter.card title="Filter Pembayaran Utang" description="Temukan pembayaran berdasarkan kata kunci, status, atau rentang tanggal.">
+        <x-slot:actions>
+            <x-filter.add-button wire:click="openCreate">Tambah Pembayaran</x-filter.add-button>
+        </x-slot:actions>
+        <x-filter.search placeholder="Cari kode, supplier, metode..." />
+        <x-filter.select model="statusFilter" label="Status">
+            <option value="">Semua Status</option>
+            <option value="Draft">Draf</option>
+            <option value="Posted">Diposting</option>
+        </x-filter.select>
+        <x-filter.date-range />
+        <x-filter.per-page :show-reset="filled($search) || filled($statusFilter) || filled($dateFrom) || filled($dateTo)" />
+        <x-filter.checkbox model="showTrashed" />
+    </x-filter.card>
 
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">

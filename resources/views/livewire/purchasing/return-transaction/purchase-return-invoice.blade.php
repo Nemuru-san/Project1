@@ -3,22 +3,20 @@
     <div x-show="toastMsg" x-cloak :class="toastType === 'success' ? 'bg-green-600' : 'bg-red-600'"
         class="fixed right-5 top-5 z-[70] rounded-lg px-4 py-2 text-sm text-white shadow"><span x-text="toastMsg"></span>
     </div>
-    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div class="flex flex-1 flex-wrap gap-3"><input wire:model.live.debounce.300ms="search" type="search"
-                placeholder="Cari faktur retur / supplier"
-                class="w-full rounded-lg border px-3 py-2.5 text-sm dark:bg-zinc-800 sm:w-72"><select
-                wire:model.live="statusFilter" class="rounded-lg border px-3 py-2.5 text-sm dark:bg-zinc-800">
-                <option value="">Semua status</option>
-                <option>Draft</option>
-                <option>Posted</option>
-            </select><input wire:model.live="dateFrom" type="date"
-                class="rounded-lg border px-3 py-2.5 text-sm dark:bg-zinc-800"><input wire:model.live="dateTo"
-                type="date" class="rounded-lg border px-3 py-2.5 text-sm dark:bg-zinc-800"><button
-                wire:click="resetFilters" class="cursor-pointer rounded-lg border px-4 py-2">Bersihkan</button></div>
-        <button wire:click="openCreate"
-            class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white">+ Tambah Faktur
-            Retur</button>
-    </div>
+    <x-filter.card title="Filter Faktur Retur Pembelian" description="Temukan faktur retur berdasarkan kata kunci, status, atau rentang tanggal.">
+        <x-slot:actions>
+            <x-filter.add-button wire:click="openCreate">Tambah Faktur Retur</x-filter.add-button>
+        </x-slot:actions>
+        <x-filter.search placeholder="Cari faktur retur / supplier" />
+        <x-filter.select model="statusFilter" label="Status">
+            <option value="">Semua status</option>
+            <option value="Draft">Draf</option>
+            <option value="Posted">Diposting</option>
+        </x-filter.select>
+        <x-filter.date-range />
+        <x-filter.per-page :show-reset="filled($search) || filled($statusFilter) || filled($dateFrom) || filled($dateTo)" />
+    </x-filter.card>
+
     <div class="mt-5 overflow-x-auto rounded-xl border">
         <table class="w-full min-w-[1050px] text-left text-sm">
             <thead class="bg-gray-100 text-xs uppercase dark:bg-zinc-800">

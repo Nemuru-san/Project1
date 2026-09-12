@@ -62,7 +62,7 @@ class StockMovementService
             ->when($productId, fn ($query) => $query->where('product_id', $productId))
             ->when($warehouseId, fn ($query) => $query->where('warehouse_id', $warehouseId))
             ->whereHas('goodsReceive', function ($query) use ($dateFrom, $dateTo) {
-                $query->where('status', GoodsReceive::STATUS_RECEIVED)
+                $query->whereIn('status', GoodsReceive::STOCK_STATUSES)
                     ->when($dateFrom, fn ($query) => $query->whereDate('date', '>=', $dateFrom))
                     ->when($dateTo, fn ($query) => $query->whereDate('date', '<=', $dateTo));
             })
@@ -118,7 +118,7 @@ class StockMovementService
             ->when($productId, fn ($query) => $query->where('product_id', $productId))
             ->when($warehouseId, fn ($query) => $query->where('warehouse_id', $warehouseId))
             ->whereHas('deliveryOrder', function ($query) use ($dateFrom, $dateTo) {
-                $query->where('status', DeliveryOrder::STATUS_SHIPPED)
+                $query->whereIn('status', DeliveryOrder::STOCK_STATUSES)
                     ->when($dateFrom, fn ($query) => $query->whereDate('delivery_date', '>=', $dateFrom))
                     ->when($dateTo, fn ($query) => $query->whereDate('delivery_date', '<=', $dateTo));
             })

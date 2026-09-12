@@ -89,6 +89,7 @@ class GoodsReceive extends Component
 
         $purchaseOrder = PurchaseOrder::query()
             ->whereIn('status', self::RECEIVABLE_PURCHASE_ORDER_STATUSES)
+            ->whereNull('closed_at')
             ->find($orderId);
 
         if ($purchaseOrder) {
@@ -274,6 +275,7 @@ class GoodsReceive extends Component
                 'items.goodsReceiveItems',
             ])
             ->whereIn('status', self::RECEIVABLE_PURCHASE_ORDER_STATUSES)
+            ->whereNull('closed_at')
             ->find($this->purchase_order_id);
 
         if (! $purchaseOrder) {
@@ -294,7 +296,7 @@ class GoodsReceive extends Component
         foreach ($purchaseOrder->items as $poItem) {
             $totalReceived = (int) $poItem->goodsReceiveItems()
                 ->whereHas('goodsReceive', function ($query) {
-                    $query->where('status', 'Received');
+                    $query->whereIn('status', GoodsReceiveModel::STOCK_STATUSES);
                 })
                 ->sum('qty_received');
 
@@ -448,7 +450,7 @@ class GoodsReceive extends Component
 
             $receivedForItem = $item->goodsReceiveItems
                 ->filter(function ($grItem) {
-                    return $grItem->goodsReceive?->status === 'Received';
+                    return in_array($grItem->goodsReceive?->status, GoodsReceiveModel::STOCK_STATUSES, true);
                 })
                 ->sum('qty_received');
 
@@ -876,6 +878,7 @@ class GoodsReceive extends Component
         $purchaseOrders = PurchaseOrder::query()
             ->with('supplier')
             ->whereIn('status', self::RECEIVABLE_PURCHASE_ORDER_STATUSES)
+            ->whereNull('closed_at')
             ->whereDoesntHave('goodsReceives', function ($q) {
                 $q->where('status', GoodsReceiveModel::STATUS_DRAFT)
                     ->when($this->editingId, fn ($q) => $q->where('id', '!=', $this->editingId));

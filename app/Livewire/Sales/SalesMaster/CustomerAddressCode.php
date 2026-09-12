@@ -183,6 +183,12 @@ class CustomerAddressCode extends Component
         $this->resetValidation();
     }
 
+    public function resetFilters(): void
+    {
+        $this->reset(['search']);
+        $this->resetPage();
+    }
+
     public function render()
     {
         $query = AddressCode::query()

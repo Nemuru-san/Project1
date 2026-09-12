@@ -16,6 +16,26 @@ class CustomerCreditService
             ->sum('amount_due');
     }
 
+    /**
+     * Ringkasan plafon untuk ditampilkan di UI.
+     *
+     * @return array{limit: ?int, outstanding: int, additional: int, remaining: ?int, exceeded: bool}
+     */
+    public function summary(Customer $customer, int $additionalReceivable = 0): array
+    {
+        $outstanding = $this->outstandingReceivable($customer->id);
+        $limit = $customer->credit_limit;
+        $remaining = $limit === null ? null : $limit - $outstanding;
+
+        return [
+            'limit' => $limit,
+            'outstanding' => $outstanding,
+            'additional' => max(0, $additionalReceivable),
+            'remaining' => $remaining,
+            'exceeded' => $limit !== null && $outstanding + max(0, $additionalReceivable) > $limit,
+        ];
+    }
+
     public function assertAvailable(Customer $customer, int $additionalReceivable): void
     {
         if ($customer->credit_limit === null || $additionalReceivable <= 0) {

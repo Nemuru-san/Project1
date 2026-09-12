@@ -1,5 +1,5 @@
 <div x-data="{ toastMsg: '', toastType: '' }"
-    x-effect="document.body.style.overflow = ($wire.showModal || $wire.showDeleteModal || $wire.showTargetModal) ? 'hidden' : ''"
+    x-effect="document.body.style.overflow = ($wire.showModal || $wire.showDeleteModal || $wire.showTargetModal || $wire.showFeeSettingModal || $wire.showFeeDetailModal) ? 'hidden' : ''"
     @toast.window="toastMsg = $event.detail.message; toastType = $event.detail.type; setTimeout(() => toastMsg = '', 3000)">
     <div x-cloak x-show="toastMsg" x-transition
         :class="toastType === 'success' ? 'bg-green-600' : 'bg-red-600'"
@@ -7,43 +7,22 @@
         <span x-text="toastMsg"></span>
     </div>
 
-    <div class="my-4 flex flex-col items-center justify-between gap-3 md:flex-row">
-        <h1 class="text-lg font-semibold dark:text-white">Data Tenaga Penjualan</h1>
-
-        <div class="flex w-full flex-col items-center gap-3 sm:flex-row md:w-auto">
-            <div class="relative w-full sm:w-72">
-                <svg class="pointer-events-none absolute left-3 top-3 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+    <x-filter.card title="Filter Salesman" description="Temukan salesman berdasarkan kode, nama, atau email; pilih bulan untuk melihat target.">
+        <x-slot:actions>
+            <button type="button" wire:click="openFeeSetting"
+                class="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-zinc-600 dark:text-gray-200 dark:hover:bg-zinc-800 sm:w-auto">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <input wire:model.live.debounce.300ms="search" type="search"
-                    class="block w-full rounded-lg border border-gray-300 p-2.5 pl-10 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"
-                    placeholder="Cari kode, nama, atau email...">
-            </div>
-
-            <select wire:model.live="perPage"
-                class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white sm:w-auto">
-                <option value="10">10 / hal</option>
-                <option value="25">25 / hal</option>
-                <option value="50">50 / hal</option>
-            </select>
-
-            <label class="flex cursor-pointer items-center gap-2 whitespace-nowrap text-sm dark:text-gray-300">
-                <input type="checkbox" wire:model.live="showTrashed" class="h-4 w-4 rounded">
-                Tampilkan terhapus
-            </label>
-
-            <label class="flex w-full items-center gap-2 whitespace-nowrap text-sm dark:text-gray-300 sm:w-auto">
-                Bulan Target
-                <input type="month" wire:model.live="targetMonth"
-                    class="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
-            </label>
-
-            <button wire:click="openCreate"
-                class="inline-flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 sm:w-auto">
-                <span class="text-lg leading-none">+</span> Tambah Salesman
+                Fee Default: {{ number_format($currentDefaultFeePercent, 2, ',', '.') }}%
             </button>
-        </div>
-    </div>
+            <x-filter.add-button wire:click="openCreate">Tambah Salesman</x-filter.add-button>
+        </x-slot:actions>
+        <x-filter.search placeholder="Cari kode, nama, atau email..." />
+        <x-filter.input model="targetMonth" type="month" label="Bulan Target" />
+        <x-filter.per-page :show-reset="filled($search)" />
+        <x-filter.checkbox model="showTrashed" />
+    </x-filter.card>
 
     <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700">
         <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
@@ -55,6 +34,7 @@
                     <th class="px-4 py-3 text-right">Target</th>
                     <th class="px-4 py-3 text-right">Realisasi</th>
                     <th class="min-w-40 px-4 py-3">Pencapaian</th>
+                    <th class="px-4 py-3 text-right">Fee Perekrut</th>
                     <th class="px-4 py-3">Status</th>
                     <th class="px-4 py-3">Aksi</th>
                 </tr>
@@ -91,6 +71,13 @@
                                 <div class="h-full rounded-full {{ $achievement >= 100 ? 'bg-green-500' : 'bg-blue-500' }}"
                                     style="width: {{ min(100, $achievement) }}%"></div>
                             </div>
+                        </td>
+                        <td class="whitespace-nowrap px-4 py-3 text-right">
+                            <button type="button" wire:click="openFeeDetail({{ $salesman->id }})" title="Lihat rincian fee"
+                                class="cursor-pointer font-medium text-blue-600 hover:underline dark:text-blue-400">
+                                Rp {{ number_format((int) ($salesman->monthly_fee_total ?? 0), 0, ',', '.') }}
+                            </button>
+                            <div class="text-xs text-gray-400">{{ $salesman->acquired_customers_count }} customer direkrut</div>
                         </td>
                         <td class="px-4 py-3">
                             @if ($salesman->trashed())
@@ -170,13 +157,95 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="8" class="px-4 py-10 text-center text-gray-400">Belum ada data salesman.</td></tr>
+                    <tr><td colspan="9" class="px-4 py-10 text-center text-gray-400">Belum ada data salesman.</td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 
     <div class="mt-4">{{ $salesmen->links() }}</div>
+
+    @if ($showFeeSettingModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-zinc-800">
+                <div class="mb-5 flex items-start justify-between">
+                    <div>
+                        <h3 class="font-semibold dark:text-white">Fee Default Perekrutan Customer</h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Berlaku untuk customer yang tidak diberi fee khusus.</p>
+                    </div>
+                    <button type="button" wire:click="$set('showFeeSettingModal', false)" class="cursor-pointer text-gray-400 hover:text-gray-700 dark:hover:text-white">✕</button>
+                </div>
+                <div>
+                    <label class="mb-1 block text-sm font-medium dark:text-white">Persentase Fee <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <input wire:model="defaultFeePercent" type="number" min="0" max="100" step="0.01" autofocus
+                            class="w-full rounded-lg border border-gray-300 p-2.5 pr-10 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">%</span>
+                    </div>
+                    @error('defaultFeePercent') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Fee dihitung dari DPP (total tanpa PPN) setiap Faktur Penjualan yang dikonfirmasi untuk customer yang direkrut salesman, selama salesman masih aktif. Perubahan hanya berlaku untuk faktur berikutnya.</p>
+                </div>
+                <div class="mt-6 flex justify-end gap-2">
+                    <button type="button" wire:click="$set('showFeeSettingModal', false)" class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2 text-sm dark:border-gray-600 dark:text-gray-200">Batal</button>
+                    <button type="button" wire:click="saveFeeSetting" wire:loading.attr="disabled" wire:target="saveFeeSetting"
+                        class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50">Simpan</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if ($showFeeDetailModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <div class="flex max-h-[calc(100dvh-2rem)] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-xl dark:bg-zinc-800">
+                <div class="flex shrink-0 items-start justify-between border-b border-gray-200 px-6 py-5 dark:border-zinc-700">
+                    <div>
+                        <h3 class="font-semibold dark:text-white">Rincian Fee Perekrutan</h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $feeSalesmanName }} · {{ \Carbon\Carbon::createFromFormat('Y-m', $targetMonth)->translatedFormat('F Y') }}</p>
+                    </div>
+                    <button type="button" wire:click="$set('showFeeDetailModal', false)" class="cursor-pointer text-gray-400 hover:text-gray-700 dark:hover:text-white">✕</button>
+                </div>
+                <div class="overflow-auto">
+                    <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
+                        <thead class="sticky top-0 bg-gray-50 text-xs uppercase text-gray-700 dark:bg-zinc-800 dark:text-gray-200">
+                            <tr>
+                                <th class="px-4 py-3">Tanggal</th>
+                                <th class="px-4 py-3">Faktur</th>
+                                <th class="px-4 py-3">Customer</th>
+                                <th class="px-4 py-3 text-right">DPP</th>
+                                <th class="px-4 py-3 text-right">%</th>
+                                <th class="px-4 py-3 text-right">Fee</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-zinc-700">
+                            @forelse ($feeRows as $row)
+                                <tr>
+                                    <td class="whitespace-nowrap px-4 py-2">{{ $row['date'] }}</td>
+                                    <td class="whitespace-nowrap px-4 py-2">{{ $row['invoice_no'] }}</td>
+                                    <td class="px-4 py-2">{{ $row['customer'] }}</td>
+                                    <td class="whitespace-nowrap px-4 py-2 text-right">Rp {{ number_format($row['base_amount'], 0, ',', '.') }}</td>
+                                    <td class="whitespace-nowrap px-4 py-2 text-right">{{ number_format($row['fee_percent'], 2, ',', '.') }}%</td>
+                                    <td class="whitespace-nowrap px-4 py-2 text-right font-medium">Rp {{ number_format($row['fee_amount'], 0, ',', '.') }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">Belum ada fee pada bulan ini.</td></tr>
+                            @endforelse
+                        </tbody>
+                        @if ($feeRows)
+                            <tfoot class="bg-gray-50 font-semibold text-gray-900 dark:bg-zinc-900 dark:text-white">
+                                <tr>
+                                    <td colspan="5" class="px-4 py-3 text-right">Total Fee</td>
+                                    <td class="whitespace-nowrap px-4 py-3 text-right">Rp {{ number_format($feeTotal, 0, ',', '.') }}</td>
+                                </tr>
+                            </tfoot>
+                        @endif
+                    </table>
+                </div>
+                <div class="flex shrink-0 justify-end border-t border-gray-200 px-6 py-4 dark:border-zinc-700">
+                    <button type="button" wire:click="$set('showFeeDetailModal', false)" class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2 text-sm dark:border-gray-600 dark:text-gray-200">Tutup</button>
+                </div>
+            </div>
+        </div>
+    @endif
 
     @if ($showTargetModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">

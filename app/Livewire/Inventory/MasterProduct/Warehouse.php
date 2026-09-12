@@ -169,6 +169,12 @@ class Warehouse extends Component
         $this->resetValidation();
     }
 
+    public function resetFilters(): void
+    {
+        $this->reset(['search']);
+        $this->resetPage();
+    }
+
     public function render()
     {
         $query = WarehouseModel::query();

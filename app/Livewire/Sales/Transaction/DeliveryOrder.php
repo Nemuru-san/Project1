@@ -392,7 +392,7 @@ class DeliveryOrder extends Component
             ->where('sales_order_item_id', $salesOrderItemId)
             ->whereHas('deliveryOrder', fn (Builder $query) => $query->whereIn('status', [
                 DeliveryOrderModel::STATUS_DRAFT,
-                DeliveryOrderModel::STATUS_SHIPPED,
+                ...DeliveryOrderModel::STOCK_STATUSES,
             ]))
             ->sum('qty_delivered');
     }
@@ -403,7 +403,7 @@ class DeliveryOrder extends Component
         $ordered = (int) $salesOrder->items->sum('qty');
         $delivered = (int) DeliveryOrderItem::query()
             ->whereIn('sales_order_item_id', $salesOrder->items->pluck('id'))
-            ->whereHas('deliveryOrder', fn (Builder $query) => $query->where('status', DeliveryOrderModel::STATUS_SHIPPED))
+            ->whereHas('deliveryOrder', fn (Builder $query) => $query->whereIn('status', DeliveryOrderModel::STOCK_STATUSES))
             ->sum('qty_delivered');
 
         $salesOrder->update([

@@ -7,6 +7,8 @@ use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\CustomerPic;
 use App\Models\Salesman;
+use App\Services\Sales\CustomerCreditService;
+use App\Services\Sales\SalesmanFeeService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -56,6 +58,11 @@ class CustomerMaster extends Component
 
     public ?int $default_salesman_id = null;
 
+    public ?int $acquired_by_salesman_id = null;
+
+    /** Persen fee khusus customer; null = pakai default global. */
+    public ?string $acquisition_fee_percent = null;
+
     public bool $is_active = true;
 
     /** @var array<int, array<string, mixed>> */
@@ -82,6 +89,8 @@ class CustomerMaster extends Component
             'payment_terms_days' => ['required', 'integer', 'min:0', 'max:3650'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'default_salesman_id' => ['nullable', 'integer', Rule::exists('salesmen', 'id')->where(fn ($query) => $query->where('is_active', true)->whereNull('deleted_at'))],
+            'acquired_by_salesman_id' => ['nullable', 'integer', Rule::exists('salesmen', 'id')->whereNull('deleted_at')],
+            'acquisition_fee_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'is_active' => ['boolean'],
 
             'pics' => ['required', 'array', 'min:1'],
@@ -170,6 +179,8 @@ class CustomerMaster extends Component
         $this->payment_terms_days = $customer->payment_terms_days;
         $this->notes = $customer->notes ?? '';
         $this->default_salesman_id = $customer->default_salesman_id;
+        $this->acquired_by_salesman_id = $customer->acquired_by_salesman_id;
+        $this->acquisition_fee_percent = $customer->acquisition_fee_percent !== null ? (string) $customer->acquisition_fee_percent : null;
         $this->is_active = $customer->is_active;
         $this->pics = $customer->pics->map(fn (CustomerPic $pic) => [
             'id' => $pic->id,
@@ -268,8 +279,20 @@ class CustomerMaster extends Component
         DB::transaction(function () use ($validated): void {
             $customerData = collect($validated)->only([
                 'name', 'phone', 'email', 'tax_number', 'credit_limit', 'payment_terms_days',
-                'default_salesman_id', 'notes', 'is_active',
+                'default_salesman_id', 'acquired_by_salesman_id', 'acquisition_fee_percent', 'notes', 'is_active',
             ])->all();
+
+            $customerData['acquisition_fee_percent'] = $customerData['acquisition_fee_percent'] === null || $customerData['acquisition_fee_percent'] === ''
+                ? null
+                : round((float) $customerData['acquisition_fee_percent'], 2);
+
+            // Salesman hanya boleh merekrut atas nama dirinya sendiri; perekrut tidak bisa diganti oleh salesman lain.
+            if ($ownSalesmanId = $this->currentSalesmanId()) {
+                $customerData['acquired_by_salesman_id'] = $this->editingId
+                    ? Customer::whereKey($this->editingId)->value('acquired_by_salesman_id') ?? $ownSalesmanId
+                    : $ownSalesmanId;
+                unset($customerData['acquisition_fee_percent']);
+            }
 
             if ($this->editingId) {
                 $customer = Customer::findOrFail($this->editingId);
@@ -304,7 +327,7 @@ class CustomerMaster extends Component
     public function openDetail(int $id): void
     {
         $customer = Customer::withTrashed()
-            ->with(['pics', 'addresses', 'defaultSalesman'])
+            ->with(['pics', 'addresses', 'defaultSalesman', 'acquiredBySalesman'])
             ->findOrFail($id);
 
         $this->detailCustomer = [
@@ -315,6 +338,10 @@ class CustomerMaster extends Component
             'tax_number' => $customer->tax_number,
             'credit_limit' => $customer->credit_limit,
             'payment_terms_days' => $customer->payment_terms_days,
+            'credit_summary' => app(CustomerCreditService::class)->summary($customer),
+            'acquired_by_salesman' => $customer->acquiredBySalesman?->name,
+            'acquisition_fee_percent' => $customer->acquisition_fee_percent,
+            'effective_fee_percent' => app(SalesmanFeeService::class)->percentFor($customer),
             'notes' => $customer->notes,
             'default_salesman' => $customer->defaultSalesman?->name,
             'is_active' => $customer->is_active,
@@ -484,10 +511,20 @@ class CustomerMaster extends Component
         $this->payment_terms_days = 30;
         $this->notes = '';
         $this->default_salesman_id = null;
+        $this->acquired_by_salesman_id = $this->currentSalesmanId();
+        $this->acquisition_fee_percent = null;
         $this->is_active = true;
         $this->pics = [$this->blankPic(true)];
         $this->addresses = [$this->blankAddress(true)];
         $this->resetValidation();
+    }
+
+    /**
+     * ID salesman milik user yang login (null bila user bukan salesman).
+     */
+    private function currentSalesmanId(): ?int
+    {
+        return auth()->user()?->salesman()->value('id');
     }
 
     private function blankPic(bool $isPrimary = false): array
@@ -520,9 +557,18 @@ class CustomerMaster extends Component
         ];
     }
 
+    public function resetFilters(): void
+    {
+        $this->reset(['search']);
+        $this->resetPage();
+    }
+
     public function render()
     {
-        $query = Customer::query()->with('defaultSalesman')->withCount(['pics', 'addresses']);
+        $query = Customer::query()
+            ->with(['defaultSalesman', 'acquiredBySalesman'])
+            ->withCount(['pics', 'addresses'])
+            ->withSum('confirmedSalesInvoices as outstanding_receivable', 'amount_due');
 
         if ($this->showTrashed) {
             $query->withTrashed();
@@ -546,6 +592,9 @@ class CustomerMaster extends Component
                 ->orderBy($this->sortField, $this->sortDirection)
                 ->paginate($this->perPage),
             'salesmen' => Salesman::where('is_active', true)->orderBy('name')->get(['id', 'code', 'name']),
+            'allSalesmen' => Salesman::orderBy('name')->get(['id', 'code', 'name', 'is_active']),
+            'isSalesmanUser' => $this->currentSalesmanId() !== null,
+            'defaultFeePercent' => app(SalesmanFeeService::class)->defaultPercent(),
         ]);
     }
 }

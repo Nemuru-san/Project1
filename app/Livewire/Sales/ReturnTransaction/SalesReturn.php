@@ -74,7 +74,7 @@ class SalesReturn extends Component
     public function updatedDeliveryOrderId(): void
     {
         $this->items = [];
-        $delivery = DeliveryOrder::with(['items.product', 'items.warehouse', 'items.unit', 'items.salesOrderItem'])->where('status', DeliveryOrder::STATUS_SHIPPED)->find($this->deliveryOrderId);
+        $delivery = DeliveryOrder::with(['items.product', 'items.warehouse', 'items.unit', 'items.salesOrderItem'])->whereIn('status', DeliveryOrder::STOCK_STATUSES)->find($this->deliveryOrderId);
         if (! $delivery) {
             $this->deliveryOrderId = null;
 
@@ -104,7 +104,7 @@ class SalesReturn extends Component
         }
 
         $return = DB::transaction(function () {
-            $delivery = DeliveryOrder::with('items.salesOrderItem')->lockForUpdate()->where('status', DeliveryOrder::STATUS_SHIPPED)->findOrFail($this->deliveryOrderId);
+            $delivery = DeliveryOrder::with('items.salesOrderItem')->lockForUpdate()->whereIn('status', DeliveryOrder::STOCK_STATUSES)->findOrFail($this->deliveryOrderId);
             $inputs = collect($this->items)->keyBy('delivery_order_item_id');
             $rows = [];
             foreach ($delivery->items as $item) {
@@ -230,6 +230,6 @@ class SalesReturn extends Component
             ->when($this->search, fn ($query) => $query->where(fn ($query) => $query->where('return_no', 'like', '%'.$this->search.'%')->orWhereHas('customer', fn ($customer) => $customer->where('name', 'like', '%'.$this->search.'%'))->orWhereHas('deliveryOrder', fn ($delivery) => $delivery->where('delivery_no', 'like', '%'.$this->search.'%'))))
             ->when($this->statusFilter, fn ($query) => $query->where('status', $this->statusFilter))->when($this->dateFrom, fn ($query) => $query->whereDate('return_date', '>=', $this->dateFrom))->when($this->dateTo, fn ($query) => $query->whereDate('return_date', '<=', $this->dateTo))->latest('return_date')->latest('id')->paginate($this->perPage);
 
-        return view('livewire.sales.return-transaction.sales-return', ['returns' => $returns, 'deliveryOrders' => DeliveryOrder::with('customer')->where('status', DeliveryOrder::STATUS_SHIPPED)->latest('delivery_date')->get()]);
+        return view('livewire.sales.return-transaction.sales-return', ['returns' => $returns, 'deliveryOrders' => DeliveryOrder::with('customer')->whereIn('status', DeliveryOrder::STOCK_STATUSES)->latest('delivery_date')->get()]);
     }
 }

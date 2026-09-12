@@ -263,6 +263,12 @@ class ChartOfAccount extends Component
         $this->resetErrorBag();
     }
 
+    public function resetFilters(): void
+    {
+        $this->reset(['search']);
+        $this->resetPage();
+    }
+
     public function render()
     {
         $query = ModelsChartOfAccount::query()

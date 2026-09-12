@@ -8,48 +8,23 @@
         @endforeach
     </div>
 
-    <div class="mt-5 flex flex-col gap-4">
-        <div>
-            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Daftar PO Belum Selesai</h2>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Pesanan Pembelian yang masih memiliki qty belum diterima.
-            </p>
-        </div>
-        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-6">
-            <input wire:model.live.debounce.300ms="search" type="search" placeholder="Cari PO / supplier"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white xl:col-span-2">
-            <select wire:model.live="supplierFilter"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
-                <option value="">Semua supplier</option>
-                @foreach ($suppliers as $supplier)
-                    <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                @endforeach
-            </select>
-            <select wire:model.live="statusFilter"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
-                <option value="">Semua status terima</option>
-                @foreach ($statuses as $status)
-                    <option value="{{ $status }}">
-                        {{ $status === 'Partially Received' ? 'Diterima Sebagian' : 'Menunggu Penerimaan' }}</option>
-                @endforeach
-            </select>
-            <select wire:model.live="perPage"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
-                <option value="10">10 / hal</option>
-                <option value="25">25 / hal</option>
-                <option value="50">50 / hal</option>
-            </select>
-        </div>
-        <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center"><span
-                class="text-sm font-medium text-gray-600 dark:text-gray-300">Rentang tanggal PO</span><input
-                wire:model.live="dateFrom" type="date" aria-label="Tanggal mulai"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><span
-                class="hidden text-gray-400 sm:inline">s.d.</span><input wire:model.live="dateTo" type="date"
-                aria-label="Tanggal akhir"
-                class="rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><button
-                wire:click="resetFilters" type="button"
-                class="cursor-pointer rounded-lg border border-gray-300 px-4 py-2.5 text-sm hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-zinc-800">Bersihkan
-                Filter</button></div>
-    </div>
+    <x-filter.card title="Daftar PO Belum Selesai" description="Pesanan Pembelian yang masih memiliki qty belum diterima.">
+        <x-filter.search placeholder="Cari PO / supplier" />
+        <x-filter.select model="supplierFilter" label="Supplier">
+            <option value="">Semua supplier</option>
+            @foreach ($suppliers as $supplier)
+                <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+            @endforeach
+        </x-filter.select>
+        <x-filter.select model="statusFilter" label="Status terima">
+            <option value="">Semua status terima</option>
+            @foreach ($statuses as $status)
+                <option value="{{ $status }}">{{ $status === 'Partially Received' ? 'Diterima Sebagian' : 'Menunggu Penerimaan' }}</option>
+            @endforeach
+        </x-filter.select>
+        <x-filter.date-range label="Rentang tanggal PO" />
+        <x-filter.per-page :show-reset="filled($search) || filled($supplierFilter) || filled($statusFilter) || filled($dateFrom) || filled($dateTo)" />
+    </x-filter.card>
 
     <div class="mt-5 overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700">
         <table class="w-full min-w-[1150px] text-left text-sm text-gray-600 dark:text-gray-300">
