@@ -7,7 +7,6 @@ use App\Models\BankAccount;
 use App\Models\ChartOfAccount;
 use App\Models\JournalEntry;
 use App\Models\PurchaseInvoice;
-use App\Models\PurchaseOrder;
 use App\Models\Supplier;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -519,15 +518,9 @@ class APPayment extends Component
                         'payment_status' => $paymentStatus,
                     ]);
 
-                    if ($invoice->purchase_order_id) {
-                        $poStatus = $newRemaining <= 0
-                            ? PurchaseOrder::STATUS_PAID
-                            : PurchaseOrder::STATUS_PARTIAL_PAID;
-
-                        $invoice->purchaseOrder()->update([
-                            'status' => $poStatus,
-                        ]);
-                    }
+                    // Lunasnya satu faktur belum tentu melunasi PO-nya, jadi status PO
+                    // dihitung ulang dari seluruh faktur PO tersebut.
+                    $invoice->purchaseOrder?->refreshPaymentStatus();
                 }
 
                 $payment->update([

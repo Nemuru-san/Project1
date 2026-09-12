@@ -18,10 +18,14 @@ class PurchaseInvoice extends Component
 {
     use WithPagination;
 
+    // Status Partial Paid / Paid tetap diizinkan: pembayaran faktur pertama mengubah
+    // status PO, sedangkan Penerimaan Barang sisanya masih perlu difakturkan.
     private const ALLOWED_PURCHASE_ORDER_STATUSES = [
         PurchaseOrder::STATUS_APPROVED,
         PurchaseOrder::STATUS_RECEIVED,
         PurchaseOrder::STATUS_PARTIALLY_RECEIVED,
+        PurchaseOrder::STATUS_PARTIAL_PAID,
+        PurchaseOrder::STATUS_PAID,
     ];
 
     // Table state
@@ -486,23 +490,27 @@ class PurchaseInvoice extends Component
             ->exists();
 
         if (! $validPurchaseOrder) {
-            $this->addError('purchase_order_id', 'Pesanan Pembelian harus berstatus Disetujui, Diterima, atau Diterima Sebagian.');
+            $this->addError('purchase_order_id', 'Pesanan Pembelian harus berstatus Disetujui, Diterima, Diterima Sebagian, atau sudah dibayar sebagian.');
 
             return;
         }
 
-        if (! $this->invoiceId) {
+        $this->recalculateTotals();
+        $goodsReceiveIds = array_values(array_unique(array_map('intval', $this->selectedGoodsReceiveIds)));
+
+        // Satu PO boleh punya beberapa faktur selama tiap Penerimaan Barang hanya
+        // ditagih sekali (penerimaan bertahap). Faktur tanpa Penerimaan Barang
+        // menagih seluruh PO, jadi tetap dibatasi satu per PO.
+        if (! $this->invoiceId && $goodsReceiveIds === []) {
             $exists = ModelsPurchaseInvoice::where('purchase_order_id', $this->purchase_order_id)->exists();
 
             if ($exists) {
-                $this->addError('purchase_order_id', 'Pesanan Pembelian ini sudah memiliki Faktur Pembelian.');
+                $this->addError('purchase_order_id', 'Pesanan Pembelian ini sudah memiliki Faktur Pembelian. Pilih Penerimaan Barang yang belum ditagih untuk membuat faktur lanjutan.');
 
                 return;
             }
         }
 
-        $this->recalculateTotals();
-        $goodsReceiveIds = array_values(array_unique(array_map('intval', $this->selectedGoodsReceiveIds)));
         if ($this->invoiceId && $goodsReceiveIds === []
             && ModelsPurchaseInvoice::findOrFail($this->invoiceId)->goodsReceives()->exists()) {
             $this->addError('selectedGoodsReceiveIds', 'Pilih minimal satu Penerimaan Barang.');
@@ -688,20 +696,7 @@ class PurchaseInvoice extends Component
             return;
         }
 
-        $paidAmount = (int) $invoice->paid_amount;
-        $grandTotal = (int) $invoice->grand_total;
-
-        if ($paidAmount <= 0) {
-            $paymentStatus = ModelsPurchaseInvoice::PAYMENT_UNPAID;
-        } elseif ($paidAmount < $grandTotal) {
-            $paymentStatus = ModelsPurchaseInvoice::PAYMENT_PARTIAL_PAID;
-        } else {
-            $paymentStatus = ModelsPurchaseInvoice::PAYMENT_PAID;
-        }
-
-        $purchaseOrder->update([
-            'payment_status' => $paymentStatus,
-        ]);
+        $purchaseOrder->refreshPaymentStatus();
     }
 
     private function createPurchaseInvoiceJournal(ModelsPurchaseInvoice $invoice): void
@@ -993,7 +988,18 @@ class PurchaseInvoice extends Component
         $purchaseOrders = PurchaseOrder::query()
             ->with('supplier')
             ->whereIn('status', self::ALLOWED_PURCHASE_ORDER_STATUSES)
-            ->whereDoesntHave('purchaseInvoices')
+            ->where(function ($query) {
+                // PO yang masih punya Penerimaan Barang belum ditagih (penerimaan bertahap),
+                // atau PO tanpa Penerimaan Barang yang belum pernah difakturkan.
+                $query->whereHas('goodsReceives', function ($goodsReceive) {
+                    $goodsReceive->where('status', GoodsReceive::STATUS_RECEIVED)
+                        ->whereDoesntHave('purchaseInvoices');
+                })->orWhere(function ($query) {
+                    $query->whereDoesntHave('goodsReceives', function ($goodsReceive) {
+                        $goodsReceive->where('status', GoodsReceive::STATUS_RECEIVED);
+                    })->whereDoesntHave('purchaseInvoices');
+                });
+            })
             ->orderByDesc('date')
             ->orderByDesc('id')
             ->get();

@@ -101,4 +101,9 @@ class SalesOrder extends Model
     {
         return $this->hasOne(SalesInvoice::class);
     }
+
+    public function salesInvoices(): HasMany
+    {
+        return $this->hasMany(SalesInvoice::class);
+    }
 }

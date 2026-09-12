@@ -71,7 +71,11 @@ class SalesInvoice extends Component
             'salesOrderId' => [
                 'required', 'integer',
                 Rule::exists('sales_orders', 'id')->whereNotNull('verified_at')->whereNull('deleted_at'),
-                Rule::unique('sales_invoices', 'sales_order_id')->whereNull('deleted_at')->ignore($this->editingId),
+                // Satu SO boleh punya beberapa faktur selama tiap Surat Jalan hanya ditagih
+                // sekali. Faktur tanpa Surat Jalan menagih seluruh SO, jadi tetap unik.
+                ...($this->selectedDeliveryOrderIds === []
+                    ? [Rule::unique('sales_invoices', 'sales_order_id')->whereNull('deleted_at')->ignore($this->editingId)]
+                    : []),
             ],
             'selectedDeliveryOrderIds' => ['array'],
             'selectedDeliveryOrderIds.*' => ['integer', 'distinct', 'exists:delivery_orders,id'],
@@ -177,8 +181,16 @@ class SalesInvoice extends Component
             ->whereNotNull('verified_at')->findOrFail((int) $value);
         $this->authorizeSalesOrder($order);
 
-        if ($order->salesInvoice()->whereNull('deleted_at')->exists()) {
-            $this->addError('salesOrderId', 'Pesanan Penjualan ini sudah memiliki Faktur Penjualan.');
+        // Faktur tanpa Surat Jalan menagih seluruh SO, jadi hanya boleh sekali per SO.
+        // Penagihan bertahap dilakukan dengan memilih Surat Jalan yang belum ditagih.
+        if ($order->salesInvoices()->whereNull('deleted_at')->exists()) {
+            if ($this->unbilledDeliveryOrders($order->id)->doesntExist()) {
+                $this->addError('salesOrderId', 'Pesanan Penjualan ini sudah memiliki Faktur Penjualan.');
+
+                return;
+            }
+
+            $this->applyCustomerPaymentTerms($order->customer);
 
             return;
         }
@@ -284,7 +296,13 @@ class SalesInvoice extends Component
         $taxable = max(0, $subtotal - $discount);
         $tax = $order->is_taxed ? (int) round($taxable * 0.11) : 0;
         $grandTotal = $taxable + $tax;
-        $dpAmount = min((int) $order->dp_amount, $grandTotal);
+
+        // Uang muka SO hanya boleh dipakai sekali, jadi faktur lanjutan hanya
+        // mendapat sisa DP yang belum dipakai faktur lain pada SO yang sama.
+        $dpUsed = (int) $order->salesInvoices()
+            ->when($this->editingId, fn (Builder $query) => $query->whereKeyNot($this->editingId))
+            ->sum('dp_amount');
+        $dpAmount = min(max(0, (int) $order->dp_amount - $dpUsed), $grandTotal);
 
         return [
             'subtotal' => $subtotal,
@@ -338,8 +356,10 @@ class SalesInvoice extends Component
             if (! $order->verified_at) {
                 throw ValidationException::withMessages(['salesOrderId' => 'Pesanan Penjualan harus dikonfirmasi terlebih dahulu.']);
             }
-            if ($order->salesInvoice()->whereNull('deleted_at')->exists()) {
-                throw ValidationException::withMessages(['salesOrderId' => 'Pesanan Penjualan ini sudah memiliki Faktur Penjualan.']);
+            if ($deliveryOrderIds === [] && $order->salesInvoices()->whereNull('deleted_at')->exists()) {
+                throw ValidationException::withMessages([
+                    'salesOrderId' => 'Pesanan Penjualan ini sudah memiliki Faktur Penjualan. Pilih Surat Jalan yang belum ditagih untuk membuat faktur lanjutan.',
+                ]);
             }
 
             $deliveryOrders = DeliveryOrder::with([
@@ -621,6 +641,24 @@ class SalesInvoice extends Component
         return $prefix.str_pad((string) ($last ? (int) substr($last, strlen($prefix)) + 1 : 1), 3, '0', STR_PAD_LEFT);
     }
 
+    /**
+     * Surat Jalan terkirim milik SO yang belum ditagih di faktur mana pun,
+     * ditambah yang sedang dipilih di form (agar tetap tampil saat diedit).
+     */
+    private function unbilledDeliveryOrders(?int $salesOrderId): Builder
+    {
+        return DeliveryOrder::query()
+            ->where('sales_order_id', $salesOrderId)
+            ->where('status', DeliveryOrder::STATUS_SHIPPED)
+            ->where(function (Builder $query) {
+                $query->whereDoesntHave('salesInvoices');
+
+                if ($this->selectedDeliveryOrderIds !== []) {
+                    $query->orWhereIn('id', array_map('intval', $this->selectedDeliveryOrderIds));
+                }
+            });
+    }
+
     private function accessibleSalesOrders(): Builder
     {
         $salesmanId = auth()->user()?->salesman()->where('is_active', true)->value('id');
@@ -628,7 +666,17 @@ class SalesInvoice extends Component
         return SalesOrder::query()
             ->with('customer')
             ->whereNotNull('verified_at')
-            ->whereDoesntHave('salesInvoice')
+            ->where(function (Builder $query) {
+                // SO yang masih punya Surat Jalan belum ditagih (pengiriman bertahap),
+                // atau SO tanpa Surat Jalan terkirim yang belum pernah difakturkan.
+                $query->whereHas('deliveryOrders', fn (Builder $deliveryOrder) => $deliveryOrder
+                    ->where('status', DeliveryOrder::STATUS_SHIPPED)
+                    ->whereDoesntHave('salesInvoices')
+                )->orWhere(fn (Builder $query) => $query
+                    ->whereDoesntHave('deliveryOrders', fn (Builder $deliveryOrder) => $deliveryOrder->where('status', DeliveryOrder::STATUS_SHIPPED))
+                    ->whereDoesntHave('salesInvoices')
+                );
+            })
             ->when(! auth()->user()?->isSuperAdmin(), fn (Builder $query) => $query->where(function (Builder $query) use ($salesmanId) {
                 $query->where('created_by', Auth::id())
                     ->orWhere('salesman_id', $salesmanId ?? 0)
@@ -663,16 +711,7 @@ class SalesInvoice extends Component
             }
         }
 
-        $deliveryOrders = DeliveryOrder::query()
-            ->where('sales_order_id', $this->salesOrderId)
-            ->where('status', DeliveryOrder::STATUS_SHIPPED)
-            ->where(function (Builder $query) {
-                $query->whereDoesntHave('salesInvoices');
-
-                if ($this->selectedDeliveryOrderIds !== []) {
-                    $query->orWhereIn('id', array_map('intval', $this->selectedDeliveryOrderIds));
-                }
-            })
+        $deliveryOrders = $this->unbilledDeliveryOrders($this->salesOrderId)
             ->latest('delivery_date')
             ->latest('id')
             ->get();

@@ -2,7 +2,6 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-2 md:space-y-0 md:space-x-2 my-2 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Tabel Data Saldo Stok</p>
 
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             {{-- Search --}}
@@ -68,8 +67,8 @@
 
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-lg font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-4">
+            <thead class="text-sm font-bold text-white uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 w-12">No.</th>
 
@@ -97,32 +96,32 @@
 
                     <th class="px-4 py-4 cursor-pointer select-none text-right" wire:click="sortBy('quantity')">
                         <div class="flex items-center justify-end gap-1">
-                            Quantity
+                            QOH
                             @if ($sortField === 'quantity')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
                         </div>
                     </th>
+
+                    <th class="px-4 py-4 text-right">AFS</th>
                     <th class="px-4 py-4">Aksi</th>
                 </tr>
             </thead>
 
-            <tbody class="dark:bg-zinc-950 text-base text-white">
+            <tbody class="dark:bg-zinc-950 text-sm text-white">
                 @forelse($stockBalances as $index => $row)
-                    @if ($isZeroMode)
-                        @php
-                            $product = $row;
-                            $balance = $product->stockBalances->first();
-                            $quantity = $balance?->quantity ?? 0;
-                            $warehouseName = $selectedWarehouse?->desc ?? '-';
-                        @endphp
-                    @else
-                        @php
-                            $product = $row->product;
-                            $quantity = $row->quantity;
-                            $warehouseName = $row->warehouse?->name ?? '-';
-                        @endphp
-                    @endif
+                    @php
+                        $product = $isZeroMode ? $row : $row->product;
+                        $warehouseId = (int) ($isZeroMode ? $warehouseFilter : $row->warehouse_id);
+                        $warehouseName = $isZeroMode ? ($selectedWarehouse?->name ?? '-') : ($row->warehouse?->name ?? '-');
+                        $summary = $stockSummaries->get(($product?->id ?? 0).'-'.$warehouseId, [
+                            'quantity_on_hand' => 0,
+                            'reserved' => 0,
+                            'available_for_sales' => 0,
+                        ]);
+                        $quantity = (int) $summary['quantity_on_hand'];
+                        $availableForSales = (int) $summary['available_for_sales'];
+                    @endphp
 
                     <tr class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800">
                         <td class="px-4 py-4 text-gray-500">
@@ -138,7 +137,7 @@
                         </td>
 
                         <td class="px-4 py-4 text-gray-900 dark:text-white">
-                            {{ $product?->category?->name ?? '-' }}
+                            {{ $product?->category?->desc ?? '-' }}
                         </td>
 
                         <td class="px-4 py-4 text-gray-900 dark:text-white">
@@ -146,7 +145,10 @@
                         </td>
 
                         <td class="px-4 py-4 text-right font-semibold text-gray-900 dark:text-white">
-                            {{ $this->formatStockQuantity($product, (int) $quantity) }}
+                            {{ $this->formatStockQuantity($product, $quantity) }}
+                        </td>
+                        <td class="px-4 py-4 text-right font-bold {{ $availableForSales < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400' }}">
+                            {{ $this->formatStockQuantity($product, $availableForSales) }}
                         </td>
                         <td class="px-4 py-4">
                             <div class="inline-block" x-data="{
@@ -197,7 +199,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-10 text-center text-gray-400 dark:text-gray-500">
+                        <td colspan="8" class="px-4 py-10 text-center text-gray-400 dark:text-gray-500">
                             Tidak ada data stok balance ditemukan.
                         </td>
                     </tr>
@@ -212,8 +214,8 @@
 
     {{-- DETAIL STOCK BOOKING MODAL --}}
     @if ($showDetailModal && $selectedStock)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-            <div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 backdrop-blur-sm p-4">
+            <div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[min(80vh,calc(100dvh-2rem))] overflow-y-auto">
 
                 {{-- Header --}}
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
@@ -271,6 +273,17 @@
                         </div>
                     </div>
 
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div class="rounded-lg bg-zinc-100 p-4 dark:bg-zinc-800">
+                            <span class="block text-xs uppercase text-gray-500">QOH</span>
+                            <strong class="text-lg text-gray-900 dark:text-white">{{ $selectedStock['quantity_on_hand_display'] }}</strong>
+                        </div>
+                        <div class="rounded-lg bg-green-50 p-4 dark:bg-green-950/30">
+                            <span class="block text-xs uppercase text-green-600">AFS</span>
+                            <strong class="text-lg {{ $selectedStock['available_for_sales'] < 0 ? 'text-red-600' : 'text-green-700 dark:text-green-300' }}">{{ $selectedStock['available_for_sales_display'] }}</strong>
+                        </div>
+                    </div>
+
                     {{-- Table Booking --}}
                     <div class="overflow-x-auto rounded-lg border dark:border-zinc-700">
                         <table class="w-full text-sm text-left">
@@ -315,7 +328,7 @@
                                         </td>
 
                                         <td class="px-4 py-3">
-                                            @if ($booking['status'] === 'Approved')
+                                            @if (in_array(strtolower($booking['status']), ['approved', 'confirmed'], true))
                                                 <span class="text-sm px-2.5 py-0.5 rounded bg-blue-700 text-white">Disetujui
                                                 </span>
                                             @else

@@ -8,11 +8,8 @@
     </div>
 
     {{-- FILTER BAR --}}
-    <div
-        class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Data Tabel Pembayaran Utang</p>
-
-        <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+    <div class="flex flex-col gap-3 my-4 dark:bg-zinc-900">
+        <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 w-full">
             <div class="relative w-full sm:w-72">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <svg aria-hidden="true" class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -41,26 +38,40 @@
                 <option value="50">50 / hal</option>
             </select>
 
-            <label class="flex items-center gap-2 text-sm dark:text-gray-300 cursor-pointer whitespace-nowrap">
+            <label
+                class="flex items-center gap-2 rounded-lg border border-gray-600 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer whitespace-nowrap">
                 <input type="checkbox" wire:model.live="showTrashed"
                     class="w-4 h-4 rounded border-gray-600 dark:bg-zinc-800 text-blue-600">
                 Tampilkan Terhapus
             </label>
 
             <button wire:click="openCreate"
-                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
+                class="order-last sm:ml-auto inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 border border-transparent text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
                 Tambah Pembayaran
             </button>
         </div>
+
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <span class="text-sm font-medium text-gray-600 dark:text-gray-300 sm:min-w-28">Rentang tanggal</span>
+            <input wire:model.live="dateFrom" type="date" title="Tanggal mulai" aria-label="Tanggal mulai"
+                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-3 py-2.5 w-full sm:w-auto">
+            <span class="hidden sm:inline text-gray-400">s.d.</span>
+            <input wire:model.live="dateTo" type="date" title="Tanggal akhir" aria-label="Tanggal akhir"
+                class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-3 py-2.5 w-full sm:w-auto">
+            <button wire:click="resetFilters" type="button"
+                class="rounded-lg border border-gray-600 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-zinc-800 cursor-pointer">
+                Bersihkan Filter
+            </button>
+        </div>
     </div>
 
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-sm font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('code')">
                         <div class="flex items-center gap-1">
@@ -89,7 +100,7 @@
                 </tr>
             </thead>
 
-            <tbody class="dark:bg-zinc-950 text-base">
+            <tbody class="dark:bg-zinc-950 text-sm">
                 @forelse ($payments as $payment)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $payment->trashed() ? 'opacity-60' : '' }}">
@@ -213,8 +224,9 @@
 
                                         <div class="py-1">
                                             <button
-                                                @if (!$locked) wire:click="confirmDelete({{ $payment->id }})" @endif
-                                                @click="open = false" @disabled($locked)
+                                                @if (!$locked && auth()->user()->isSuperAdmin()) wire:click="confirmDelete({{ $payment->id }})" @endif
+                                                @disabled($locked || !auth()->user()->isSuperAdmin()) @click="open = false"
+                                                @disabled($locked)
                                                 class="flex items-center gap-2 w-full py-2 px-4 text-base {{ $locked ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer' }}">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -246,13 +258,14 @@
 
     {{-- CREATE / EDIT MODAL --}}
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div
+            class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-full mx-auto h-[90vh] flex flex-col overflow-hidden">
+                class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-full mx-auto h-[80vh] max-h-[calc(100dvh-2rem)] flex flex-col overflow-hidden">
                 <div
                     class="flex items-center justify-between px-8 py-6 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
                     <h3 class="text-lg font-semibold dark:text-white">
-                        {{ $paymentId ? 'Edit AP Payment' : 'Tambah AP Payment' }}
+                        {{ $paymentId ? 'Ubah Pembayaran Utang' : 'Tambah Pembayaran Utang' }}
                     </h3>
 
                     <button wire:click="$set('showModal', false)"
@@ -305,10 +318,10 @@
                             </label>
                             <select wire:model.live="bank_account_id"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
-                                <option value="">-- Pilih Bank Account --</option>
+                                <option value="">-- Pilih Rekening Bank --</option>
                                 @foreach ($bankAccounts as $bank)
                                     <option value="{{ $bank->id }}">
-                                        {{ $bank->name ?? ($bank->bank_name ?? 'Bank Account #' . $bank->id) }}
+                                        {{ $bank->display_label }}
                                     </option>
                                 @endforeach
                             </select>
@@ -318,7 +331,8 @@
                         </div>
 
                         <div class="w-full">
-                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Metode Pembayaran
+                            <label class="block mb-3 text-base font-medium text-gray-900 dark:text-white">Metode
+                                Pembayaran
                             </label>
                             <select wire:model.live="payment_method"
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-zinc-800 dark:border-gray-600 dark:text-white">
@@ -370,16 +384,18 @@
 
                         <div class="overflow-x-auto">
                             <table
-                                class="w-full text-base text-left text-gray-900 dark:text-white my-2 min-w-375 whitespace-nowrap border-collapse border border-gray-300 dark:border-zinc-600">
+                                class="w-full text-sm text-left text-gray-900 dark:text-white my-2 min-w-375 whitespace-nowrap border-collapse border border-gray-300 dark:border-zinc-600">
                                 <thead
-                                    class="text-base font-bold text-gray-900 uppercase bg-gray-200 dark:bg-zinc-700 dark:text-white">
+                                    class="text-sm font-bold text-gray-900 uppercase bg-gray-200 dark:bg-zinc-700 dark:text-white">
                                     <tr>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Tidak
                                         </th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">PIV
                                             No</th>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Faktur Pemasok</th>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Tanggal
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
+                                            Faktur Pemasok</th>
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
+                                            Tanggal
                                         </th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Due
                                             Tanggal</th>
@@ -387,14 +403,16 @@
                                             class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm text-right">
                                             Total Keseluruhan</th>
                                         <th
-                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm text-right">Lunas</th>
+                                            class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm text-right">
+                                            Lunas</th>
                                         <th
                                             class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm text-right">
                                             Remaining</th>
                                         <th
                                             class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm text-right">
                                             Amount</th>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Aksi</th>
+                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Aksi
+                                        </th>
                                     </tr>
                                 </thead>
 
@@ -524,9 +542,10 @@
 
     {{-- DETAIL MODAL --}}
     @if ($showDetail && $selectedPayment)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+        <div
+            class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[min(80vh,calc(100dvh-2rem))] overflow-y-auto">
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
                     <div>
                         <h2 class="text-xl font-bold text-gray-800 dark:text-white">Detail Pembayaran Utang</h2>
@@ -760,7 +779,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="delete"
+                    <button wire:click="delete" @disabled(!auth()->user()->isSuperAdmin())
                         class="px-4 py-2 text-sm rounded-lg bg-red-700 text-white hover:bg-red-800 cursor-pointer">
                         Ya, Hapus
                     </button>

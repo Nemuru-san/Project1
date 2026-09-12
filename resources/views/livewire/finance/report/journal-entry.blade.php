@@ -24,22 +24,22 @@
 
                 <input wire:model.live.debounce.300ms="search" type="text"
                     class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2.5 placeholder-gray-400"
-                    placeholder="Cari kode, source, deskripsi..." />
+                    placeholder="Cari kode, sumber, deskripsi..." />
             </div>
 
             <select wire:model.live="statusFilter"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
                 <option value="">Semua Status</option>
-                @foreach ($statusOptions as $status)
-                    <option value="{{ $status }}">{{ $status }}</option>
+                @foreach ($statusOptions as $status => $label)
+                    <option value="{{ $status }}">{{ $label }}</option>
                 @endforeach
             </select>
 
             <select wire:model.live="sourceFilter"
                 class="dark:bg-zinc-800 border border-gray-600 dark:text-white text-sm rounded-lg px-8 py-2.5 focus:ring-primary-500 w-full sm:w-auto">
                 <option value="">Semua Sumber</option>
-                @foreach ($sourceOptions as $source)
-                    <option value="{{ $source }}">{{ $source }}</option>
+                @foreach ($sourceOptions as $source => $label)
+                    <option value="{{ $source }}">{{ $label }}</option>
                 @endforeach
             </select>
 
@@ -60,8 +60,8 @@
 
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-4">
+            <thead class="text-sm font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('code')">
                         <div class="flex items-center gap-1">
@@ -90,7 +90,7 @@
                 </tr>
             </thead>
 
-            <tbody class="dark:bg-zinc-950 text-base">
+            <tbody class="dark:bg-zinc-950 text-sm">
                 @forelse ($journals as $journal)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $journal->trashed() ? 'opacity-60' : '' }}">
@@ -104,7 +104,7 @@
 
                         <td class="px-4 py-4">
                             <div class="font-medium text-gray-900 dark:text-white">
-                                {{ $journal->source_type ?: '-' }}
+                                {{ $sourceOptions[$journal->source_type] ?? ($journal->source_type ?: '-') }}
                             </div>
                             <div class="text-xs text-gray-400">
                                 ID: {{ $journal->source_id ?: '-' }}
@@ -193,7 +193,8 @@
 
                                         {{-- <div class="py-1">
                                             <button
-                                                @if (!$locked) wire:click="confirmDelete({{ $journal->id }})" @endif
+                                                @if (!$locked && auth()->user()->isSuperAdmin()) wire:click="confirmDelete({{ $journal->id }})" @endif
+                                                @disabled($locked || ! auth()->user()->isSuperAdmin())
                                                 @click="open = false" @disabled($locked)
                                                 class="flex items-center gap-2 w-full py-2 px-4 text-base {{ $locked ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer' }}">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
@@ -226,9 +227,10 @@
 
     {{-- DETAIL MODAL --}}
     @if ($showDetail && $selectedJournal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+        <div
+            class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 backdrop-blur-sm p-4">
             <div
-                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+                class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[min(80vh,calc(100dvh-2rem))] overflow-y-auto">
 
                 <div class="flex items-center justify-between px-6 py-4 border-b dark:border-zinc-700">
                     <div>
@@ -266,7 +268,7 @@
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-400">Jenis Sumber</span>
                                 <span class="text-gray-800 dark:text-white">
-                                    {{ $selectedJournal->source_type ?: '-' }}
+                                    {{ $sourceOptions[$selectedJournal->source_type] ?? ($selectedJournal->source_type ?: '-') }}
                                 </span>
                             </div>
 
@@ -292,7 +294,7 @@
                                     @endphp
 
                                     <span class="text-sm px-2.5 py-0.5 rounded {{ $statusClass }}">
-                                        {{ $selectedJournal->status }}
+                                        {{ $statusOptions[$selectedJournal->status] ?? $selectedJournal->status }}
                                     </span>
                                 </span>
                             </div>
@@ -427,7 +429,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="delete"
+                    <button wire:click="delete" @disabled(!auth()->user()->isSuperAdmin())
                         class="px-4 py-2 text-sm rounded-lg bg-red-700 text-white hover:bg-red-800 cursor-pointer">
                         Ya, Hapus
                     </button>

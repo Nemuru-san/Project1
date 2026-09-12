@@ -83,4 +83,28 @@ class PurchaseOrder extends Model
     {
         return $this->hasMany(GoodsReceive::class, 'purchase_order_id');
     }
+
+    /**
+     * Hitung ulang status pembayaran PO dari seluruh fakturnya.
+     *
+     * Satu PO bisa punya beberapa faktur (penerimaan bertahap), jadi lunas berarti
+     * total yang dibayar sudah menutup nilai PO, bukan sekadar satu faktur lunas.
+     */
+    public function refreshPaymentStatus(): void
+    {
+        $paidAmount = (int) $this->purchaseInvoices()->sum('paid_amount');
+
+        // Belum ada pembayaran: status penerimaan dibiarkan apa adanya.
+        if ($paidAmount <= 0) {
+            return;
+        }
+
+        $orderTotal = (int) ($this->nett ?: $this->total_price);
+
+        $this->update([
+            'status' => $orderTotal > 0 && $paidAmount >= $orderTotal
+                ? self::STATUS_PAID
+                : self::STATUS_PARTIAL_PAID,
+        ]);
+    }
 }

@@ -10,7 +10,6 @@
     {{-- FILTER BAR --}}
     <div
         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 my-4 dark:bg-zinc-900">
-        <p class="dark:text-white text-base font-semibold">Data Tabel Gudang</p>
 
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             <div class="relative w-full sm:w-72">
@@ -41,7 +40,7 @@
             </label>
 
             <button wire:click="openCreate"
-                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:w-auto w-full justify-center">
+                class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 text-sm font-medium px-4 py-2.5 rounded-lg whitespace-nowrap cursor-pointer sm:ml-auto sm:w-auto w-full justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -52,8 +51,8 @@
 
     {{-- TABLE --}}
     <div class="overflow-x-auto dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="w-full text-base text-left text-gray-500 dark:text-gray-400 mt-4">
-            <thead class="text-lg font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-4">
+            <thead class="text-sm font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
                         <div class="flex items-center gap-1">
@@ -87,7 +86,7 @@
                 </tr>
             </thead>
 
-            <tbody class="dark:bg-zinc-950 text-base">
+            <tbody class="dark:bg-zinc-950 text-sm">
                 @forelse ($warehouses as $warehouse)
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $warehouse->trashed() ? 'opacity-50' : '' }}">
@@ -156,7 +155,7 @@
                                         </ul>
 
                                         <div class="py-1">
-                                            <button wire:click="confirmDelete({{ $warehouse->id }})"
+                                            <button wire:click="confirmDelete({{ $warehouse->id }})" @disabled(! auth()->user()->isSuperAdmin())
                                                 @click="open = false"
                                                 class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white">Hapus
                                             </button>
@@ -184,14 +183,14 @@
 
     {{-- CREATE / EDIT MODAL --}}
     @if ($showModal)
-        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-lg mx-auto max-h-[80vh] flex flex-col overflow-hidden"
+        <div class="fixed inset-0 z-40 flex items-start justify-center overflow-hidden bg-black/50 backdrop-blur-sm p-4">
+            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl w-full max-w-lg mx-auto max-h-[min(80vh,calc(100dvh-2rem))] flex flex-col overflow-hidden"
                 @click.outside="$wire.set('showModal', false)">
 
                 <div
                     class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
                     <h3 class="text-lg font-semibold dark:text-white">
-                        {{ $editingId ? 'Edit' : 'Tambah' }} Warehouse
+                        {{ $editingId ? 'Ubah' : 'Tambah' }} Gudang
                     </h3>
 
                     <button wire:click="$set('showModal', false)" class="text-gray-400 hover:text-white cursor-pointer">
@@ -269,7 +268,7 @@
                         Batal
                     </button>
 
-                    <button wire:click="delete" wire:loading.attr="disabled"
+                    <button wire:click="delete" wire:loading.attr="disabled" @disabled(! auth()->user()->isSuperAdmin())
                         class="px-4 py-2 text-sm rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-50">
                         <span wire:loading.remove wire:target="delete">Hapus</span>
                         <span wire:loading wire:target="delete">Menghapus...</span>

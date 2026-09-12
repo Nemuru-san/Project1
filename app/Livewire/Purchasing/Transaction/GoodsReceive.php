@@ -19,6 +19,15 @@ class GoodsReceive extends Component
 {
     use WithPagination;
 
+    // Status Partial Paid / Paid tetap diizinkan: pembayaran faktur mengubah status PO,
+    // sedangkan sisa barang pada PO tersebut masih perlu diterima.
+    private const RECEIVABLE_PURCHASE_ORDER_STATUSES = [
+        PurchaseOrder::STATUS_APPROVED,
+        PurchaseOrder::STATUS_PARTIALLY_RECEIVED,
+        PurchaseOrder::STATUS_PARTIAL_PAID,
+        PurchaseOrder::STATUS_PAID,
+    ];
+
     // Table state
     public string $search = '';
 
@@ -79,7 +88,7 @@ class GoodsReceive extends Component
         }
 
         $purchaseOrder = PurchaseOrder::query()
-            ->whereIn('status', [PurchaseOrder::STATUS_APPROVED, PurchaseOrder::STATUS_PARTIALLY_RECEIVED])
+            ->whereIn('status', self::RECEIVABLE_PURCHASE_ORDER_STATUSES)
             ->find($orderId);
 
         if ($purchaseOrder) {
@@ -264,10 +273,7 @@ class GoodsReceive extends Component
                 'items.product.prices.unit',
                 'items.goodsReceiveItems',
             ])
-            ->whereIn('status', [
-                PurchaseOrder::STATUS_APPROVED,
-                PurchaseOrder::STATUS_PARTIALLY_RECEIVED,
-            ])
+            ->whereIn('status', self::RECEIVABLE_PURCHASE_ORDER_STATUSES)
             ->find($this->purchase_order_id);
 
         if (! $purchaseOrder) {
@@ -428,6 +434,11 @@ class GoodsReceive extends Component
     {
         $purchaseOrder = PurchaseOrder::with('items.goodsReceiveItems.goodsReceive')
             ->findOrFail($purchaseOrderId);
+
+        // Status pembayaran tidak boleh tertimpa status penerimaan.
+        if (in_array($purchaseOrder->status, [PurchaseOrder::STATUS_PARTIAL_PAID, PurchaseOrder::STATUS_PAID], true)) {
+            return;
+        }
 
         $totalOrder = 0;
         $totalReceived = 0;
@@ -864,10 +875,7 @@ class GoodsReceive extends Component
 
         $purchaseOrders = PurchaseOrder::query()
             ->with('supplier')
-            ->whereIn('status', [
-                PurchaseOrder::STATUS_APPROVED,
-                PurchaseOrder::STATUS_PARTIALLY_RECEIVED,
-            ])
+            ->whereIn('status', self::RECEIVABLE_PURCHASE_ORDER_STATUSES)
             ->whereDoesntHave('goodsReceives', function ($q) {
                 $q->where('status', GoodsReceiveModel::STATUS_DRAFT)
                     ->when($this->editingId, fn ($q) => $q->where('id', '!=', $this->editingId));
