@@ -110,6 +110,18 @@
                                                                 d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                                         </svg>Konfirmasi</button></li>
                                             @endif
+                                            @if ($order->status === 'draft' && $order->order_type === 'direct' && auth()->user()?->canPerform('sales.transaction.salesOrder', 'verify'))
+                                                <li><button type="button"
+                                                        wire:click="openCheckout({{ $order->id }})"
+                                                        @click="open=false"
+                                                        class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-emerald-600 hover:bg-emerald-600 hover:text-white dark:text-emerald-400"><svg
+                                                            class="h-5 w-5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                                                        </svg>Checkout & Proses</button></li>
+                                            @endif
                                             <li><button wire:click="openEdit({{ $order->id }})"
                                                     @disabled($order->status !== 'draft') @click="open=false"
                                                     class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600"><svg
@@ -715,6 +727,90 @@
                         class="cursor-pointer rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-50"><span
                             wire:loading.remove wire:target="confirmOrder">Ya, Konfirmasi</span><span wire:loading
                             wire:target="confirmOrder">Memproses...</span></button></div>
+            </div>
+        </div>
+    @endif
+    @if ($showCheckoutModal && $checkoutOrder)
+        @php $checkoutTotal = (int) $checkoutOrder->grand_total; @endphp
+        <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4">
+            <div class="w-full max-w-lg rounded-2xl bg-white p-6 dark:bg-zinc-800">
+                <div class="mb-4 flex items-center gap-3">
+                    <div class="rounded-full bg-emerald-100 p-2 dark:bg-emerald-900/40"><svg
+                            class="h-5 w-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                        </svg></div>
+                    <div>
+                        <h3 class="text-lg font-semibold dark:text-white">Checkout Penjualan Langsung</h3>
+                        <p class="text-xs text-gray-400">{{ $checkoutOrder->order_no }} &middot; {{ $checkoutOrder->customer?->name ?? '-' }}</p>
+                    </div>
+                </div>
+                <p class="mb-4 text-sm text-gray-400">Stok akan dikurangi, Surat Jalan dan Faktur dibuat otomatis, lalu
+                    pesanan ditutup. Proses ini tidak dapat dibatalkan.</p>
+                @error('checkout') <p class="mb-3 rounded bg-red-100 p-2 text-sm text-red-700">{{ $message }}</p> @enderror
+
+                <div class="mb-4 grid grid-cols-2 gap-2 rounded-lg bg-gray-50 p-3 text-sm dark:bg-zinc-900/60 dark:text-gray-200">
+                    <div class="text-gray-500 dark:text-gray-400">Jumlah Item</div>
+                    <div class="text-right font-medium">{{ $checkoutOrder->items->count() }} barang</div>
+                    <div class="text-gray-500 dark:text-gray-400">Total Transaksi</div>
+                    <div class="text-right font-semibold">Rp {{ number_format($checkoutTotal, 0, ',', '.') }}</div>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium dark:text-white">Jenis Pembayaran</label>
+                        <select wire:model.live="paymentMode" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                            <option value="paid">Lunas</option>
+                            <option value="partial">Bayar Sebagian</option>
+                            <option value="credit">Kredit</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium dark:text-white">Jumlah Dibayar</label>
+                        @if($paymentMode === 'partial')
+                            <input wire:model.live.debounce.400ms="paidAmount" type="number" min="1" max="{{ max(0, $checkoutTotal - 1) }}" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                        @else
+                            <input value="Rp {{ number_format($paymentMode === 'paid' ? $checkoutTotal : 0, 0, ',', '.') }}" readonly class="w-full rounded-lg border bg-gray-100 p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-300">
+                        @endif
+                        @error('paidAmount') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    </div>
+                    @if($paymentMode !== 'credit')
+                        <div>
+                            <label class="mb-1 block text-sm font-medium dark:text-white">Metode</label>
+                            <select wire:model="paymentMethod" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                <option value="Tunai">Tunai</option>
+                                <option value="Transfer">Transfer</option>
+                                <option value="Giro">Giro</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-sm font-medium dark:text-white">Akun Kas / Bank</label>
+                            <select wire:model="bankAccountId" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
+                                <option value="">-- Pilih Akun --</option>
+                                @foreach($bankAccounts as $account)
+                                    <option value="{{ $account->id }}">{{ $account->display_label }}</option>
+                                @endforeach
+                            </select>
+                            @error('bankAccountId') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                        </div>
+                    @endif
+                </div>
+
+                <div class="mt-4 flex justify-between border-t border-gray-200 pt-3 text-sm dark:border-zinc-700 dark:text-gray-200">
+                    <span>Sisa tagihan setelah checkout</span>
+                    <strong>Rp {{ number_format($checkoutRemaining, 0, ',', '.') }}</strong>
+                </div>
+                @if ($checkoutCreditSummary && $checkoutRemaining > 0)
+                    <x-credit-summary :summary="$checkoutCreditSummary" class="mt-3" />
+                @endif
+
+                <div class="mt-6 flex justify-end gap-3"><button wire:click="closeCheckout" type="button"
+                        class="rounded-lg border px-4 py-2">Batal</button><button wire:click="processCheckout"
+                        wire:loading.attr="disabled" wire:target="processCheckout" type="button"
+                        class="cursor-pointer rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-50"><span
+                            wire:loading.remove wire:target="processCheckout">Checkout & Proses</span><span wire:loading
+                            wire:target="processCheckout">Memproses...</span></button></div>
             </div>
         </div>
     @endif

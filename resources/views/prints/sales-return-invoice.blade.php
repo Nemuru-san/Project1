@@ -6,7 +6,7 @@
     <title>{{ $invoice->credit_note_no }}</title>
     <style>
         @page {
-            size: 16in 9in;
+            size: auto;
             margin: 0;
         }
 
@@ -66,8 +66,8 @@
         @media print {
             html,
             body {
-                width: 16in;
-                height: 9in;
+                width: 100%;
+                height: 14cm;
             }
 
             body {

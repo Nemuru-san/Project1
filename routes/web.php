@@ -21,7 +21,7 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->middleware('guest')->name('home');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'module'])->group(function () {
     Route::view('dashboard', 'dashboard')
         ->name('dashboard');
 
@@ -263,6 +263,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('finance/report/journal-entry', function () {
         return view('pages.finance.report.journalEntry');
     })->name('finance.report.journal-entry');
+
+    Route::view('finance/report/general-ledger', 'pages.finance.report.generalLedger')->name('finance.report.general-ledger');
+    Route::view('finance/report/trial-balance', 'pages.finance.report.trialBalance')->name('finance.report.trial-balance');
+    Route::view('finance/report/profit-loss', 'pages.finance.report.profitLoss')->name('finance.report.profit-loss');
+    Route::view('finance/report/balance-sheet', 'pages.finance.report.balanceSheet')->name('finance.report.balance-sheet');
 
     // User
     Route::get('user/action/user', function () {

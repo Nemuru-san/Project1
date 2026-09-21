@@ -156,7 +156,7 @@ it('disables and enables the ERP login together with salesman status', function 
 });
 
 it('renders the salesman master page for authenticated users', function () {
-    $admin = User::factory()->create();
+    $admin = User::factory()->superAdmin()->create();
     $role = Role::create(['name' => 'Salesman', 'permissions' => ['dashboard']]);
     $account = User::factory()->for($role)->create();
     SalesmanModel::create([

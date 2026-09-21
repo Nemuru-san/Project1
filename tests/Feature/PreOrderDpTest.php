@@ -231,7 +231,7 @@ it('allocates one customer payment to multiple checked pre orders', function () 
         ->and($secondPreOrder->fresh()->remaining_dp_amount)->toBe(0);
 });
 it('exposes the authenticated ar dp route', function () {
-    $this->actingAs(User::factory()->create())
+    $this->actingAs(User::factory()->superAdmin()->create())
         ->get(route('finance.transaction.ar-dp-payment'))
         ->assertOk()
         ->assertSee('Penerimaan DP Pelanggan');

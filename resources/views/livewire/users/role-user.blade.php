@@ -224,10 +224,10 @@
                             @endif
 
                             @php
-                                $authorizationPermissions = collect($permissionGroups)
+                                $authorizationPermissions = collect($this->permissionGroups)
                                     ->filter(fn($permissions, $group) => str_ends_with($group, ' - Otorisasi'))
                                     ->flatMap(fn($permissions) => $permissions);
-                                $moduleGroups = collect($permissionGroups)->reject(
+                                $moduleGroups = collect($this->permissionGroups)->reject(
                                     fn($permissions, $group) => str_ends_with($group, ' - Otorisasi'),
                                 );
                             @endphp

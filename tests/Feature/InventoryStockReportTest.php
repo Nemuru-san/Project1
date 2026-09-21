@@ -12,7 +12,7 @@ use App\Models\Warehouse;
 use App\Services\Inventory\StockMovementService;
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
+    $this->user = User::factory()->superAdmin()->create();
     $category = ProductCategory::create(['code' => 'STOCK-REPORT-CAT', 'name' => 'Stock Report Category']);
     $this->unit = ProductUnit::create(['code' => 'PCS', 'name' => 'Pieces']);
     $this->product = Product::create([

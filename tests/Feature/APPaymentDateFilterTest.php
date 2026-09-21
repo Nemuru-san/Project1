@@ -9,7 +9,7 @@ use App\Models\User;
 use Livewire\Livewire;
 
 it('filters ap payments by date and can clear all filters', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->superAdmin()->create();
     $supplier = Supplier::create([
         'code' => 'SUP-AP-FILTER',
         'name' => 'Supplier AP Filter',

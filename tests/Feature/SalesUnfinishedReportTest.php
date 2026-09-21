@@ -14,7 +14,7 @@ use App\Models\Warehouse;
 use Livewire\Livewire;
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
+    $this->user = User::factory()->superAdmin()->create();
     $this->actingAs($this->user);
     $this->customer = Customer::create(['code' => 'CUS-REPORT-S', 'name' => 'Pelanggan Laporan Penjualan', 'is_active' => true, 'created_by' => $this->user->id]);
     $category = ProductCategory::create(['code' => 'CAT-REPORT-S', 'name' => 'Kategori Laporan']);

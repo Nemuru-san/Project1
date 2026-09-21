@@ -30,7 +30,7 @@
     }
     .toolbar .primary { background: #2563eb; border-color: #2563eb; color: #fff; }
     .sheet {
-        max-width: 940px;
+        max-width: 9.5in;
         margin: 0 auto;
         background: #fff;
         padding: 18px 22px 14px;
@@ -77,33 +77,50 @@
     .status-draft {
         margin-top: 6px; text-align: center; font-weight: bold; letter-spacing: 3px; color: #b91c1c;
     }
-    /* Continuous form Epson LX-310: lebar 16 inci, tinggi 9 inci. */
-    @page { size: 16in 9in; margin: 0; }
+    /* Continuous form Epson LX-310: 9.5in x 5.5in (1/2 folio, ~24.1cm x 14cm).
+       @page TIDAK dikunci ke ukuran tertentu: LX-310 (narrow carriage) maksimal ±10in, ukuran
+       lebar yang tak dikenal driver membuat Chrome jatuh ke A4 tegak dan konten meluber ke 2 halaman.
+       Lebar ikut kertas yang dipilih di driver (width:100%), tinggi dipatok 14cm. */
+    @page { size: auto; margin: 0; }
     @media print {
         html, body {
-            width: 16in;
-            height: 9in;
+            width: 100%;
             margin: 0;
             padding: 0;
         }
         body {
             background: #fff;
-            font-size: 11px;
+            font-size: 10.5px;
+            line-height: 1.3;
             overflow: hidden;
         }
         .toolbar, .tearline { display: none !important; }
         .sheet {
-            width: 16in;
-            height: 9in;
+            width: 100%;
+            height: 14cm;
             max-width: none;
             margin: 0;
             border: 0;
-            padding: .18in .35in;
+            padding: 4mm 6mm;
             overflow: hidden;
             break-inside: avoid;
             break-after: avoid-page;
             page-break-inside: avoid;
             page-break-after: avoid;
         }
+        .company .nm { font-size: 12px; }
+        .title { margin: 4px 0 0; }
+        .title h1 { font-size: 15px; letter-spacing: 5px; }
+        .meta { margin-top: 4px; }
+        table { margin-top: 4px; }
+        thead th { padding: 1px 4px; }
+        tbody td { padding: 1px 4px; }
+        tbody tr.filler td { height: 15px; }
+        .lower { margin-top: 4px; }
+        .bank { margin-top: 5px; line-height: 1.25; }
+        .signs { margin-top: 6px; }
+        .signs .line { margin-top: 26px; }
+        .foot { margin-top: 5px; font-size: 10px; }
+        .status-draft { margin-top: 3px; }
     }
 </style>

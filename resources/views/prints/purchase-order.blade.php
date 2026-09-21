@@ -8,7 +8,7 @@
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet" />
     <style>
         @page {
-            size: 16in 9in;
+            size: auto;
             margin: 0;
         }
 
@@ -19,7 +19,7 @@
 
         html,
         body {
-            width: 16in;
+            width: 100%;
             height: 100%;
         }
 
@@ -158,6 +158,7 @@
 
         @media print {
             body {
+                height: 14cm;
                 padding: .18in .35in;
                 overflow: hidden;
             }

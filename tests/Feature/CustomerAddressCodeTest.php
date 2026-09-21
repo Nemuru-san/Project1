@@ -10,7 +10,7 @@ use App\Models\User;
 use Livewire\Livewire;
 
 it('shows the separate address code catalog', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
     AddressCode::create([
         'code' => 'GUDANG-JKT',
         'description' => 'Gudang Jakarta',

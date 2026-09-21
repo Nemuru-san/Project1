@@ -121,7 +121,7 @@ it('rejects non expense accounts from expense details', function () {
 });
 
 it('filters expenses by date and exposes the authenticated route', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->superAdmin()->create();
     $bank = expenseBankAccount();
 
     foreach ([

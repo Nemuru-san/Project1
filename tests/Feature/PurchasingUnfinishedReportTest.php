@@ -15,7 +15,7 @@ use App\Models\Warehouse;
 use Livewire\Livewire;
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
+    $this->user = User::factory()->superAdmin()->create();
     $this->supplier = Supplier::create([
         'code' => 'SUP-REPORT',
         'name' => 'Supplier Report',

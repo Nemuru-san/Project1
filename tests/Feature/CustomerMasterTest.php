@@ -326,7 +326,7 @@ it('shows customer detail from the action menu', function () {
 });
 
 it('keeps only the customer master route', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $this->get(route('sales.master.customer'))->assertOk();
     $this->get('/sales/master/customer-delivery-address')->assertNotFound();

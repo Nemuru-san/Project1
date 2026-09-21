@@ -213,6 +213,6 @@ it('renders the Indonesian delivery order page and printable pre order reference
     $this->get(route('sales.transaction.deliveryOrder.print', $deliveryOrder->id))
         ->assertOk()
         ->assertSee('SJ-TEST-001')
-        ->assertSee('size: 16in 9in', false)
+        ->assertSee('height: 14cm', false)
         ->assertDontSee('size: A4 portrait', false);
 });

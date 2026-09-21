@@ -56,6 +56,10 @@ class SalesOrder extends Component
 
     public bool $showConfirmModal = false;
 
+    public ?int $checkoutTargetId = null;
+
+    public bool $showCheckoutModal = false;
+
     public ?SalesOrderModel $selectedOrder = null;
 
     public string $sourceType = 'manual';
@@ -431,6 +435,80 @@ class SalesOrder extends Component
             throw ValidationException::withMessages(['checkout' => 'Checkout hanya tersedia untuk mode Penjualan Langsung / Scan.']);
         }
 
+        $this->paidAmount = $this->validatedPaidAmount($this->totals()['grand_total']);
+        $this->persist(true);
+    }
+
+    /**
+     * Checkout dari daftar: buka modal pembayaran untuk Penjualan Langsung berstatus Draf
+     * yang sudah tersimpan, tanpa harus membuka form edit.
+     */
+    public function openCheckout(int $id): void
+    {
+        if (! auth()->user()?->canPerform('sales.transaction.salesOrder', 'verify')) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk checkout Penjualan Langsung.', type: 'error');
+
+            return;
+        }
+        $order = SalesOrderModel::findOrFail($id);
+        if ($order->order_type !== 'direct') {
+            $this->dispatch('toast', message: 'Checkout hanya tersedia untuk Penjualan Langsung / Scan.', type: 'error');
+
+            return;
+        }
+        if ($order->status !== 'draft') {
+            $this->dispatch('toast', message: 'Hanya Penjualan Langsung berstatus Draf yang dapat di-checkout.', type: 'error');
+
+            return;
+        }
+
+        $this->reset(['bankAccountId', 'paidAmount']);
+        $this->paymentMode = 'paid';
+        $this->paymentMethod = 'Tunai';
+        $this->resetErrorBag();
+        $this->checkoutTargetId = $id;
+        $this->showCheckoutModal = true;
+    }
+
+    public function closeCheckout(): void
+    {
+        $this->showCheckoutModal = false;
+        $this->checkoutTargetId = null;
+        $this->resetErrorBag();
+    }
+
+    public function processCheckout(): void
+    {
+        if (! auth()->user()?->canPerform('sales.transaction.salesOrder', 'verify')) {
+            throw ValidationException::withMessages(['checkout' => 'Anda tidak memiliki izin untuk checkout Penjualan Langsung.']);
+        }
+        if (! $this->checkoutTargetId) {
+            return;
+        }
+
+        $order = SalesOrderModel::findOrFail($this->checkoutTargetId);
+        $paidAmount = $this->validatedPaidAmount((int) $order->grand_total);
+
+        $result = app(DirectSalesCheckoutService::class)->handle(
+            $order->id,
+            $paidAmount,
+            $this->bankAccountId,
+            $this->paymentMethod,
+            (int) Auth::id(),
+        );
+
+        $invoiceNo = $result['invoice']->invoice_no;
+        $remaining = (int) $result['invoice']->fresh()->amount_due;
+        $this->closeCheckout();
+        $this->dispatch('toast', message: "Checkout berhasil. Faktur {$invoiceNo}, sisa tagihan Rp ".number_format($remaining, 0, ',', '.'), type: 'success');
+    }
+
+    /**
+     * Validasi input pembayaran dan kembalikan nominal yang benar-benar dibayar
+     * sesuai jenis pembayaran (lunas = total, kredit = 0, sebagian = input user).
+     */
+    private function validatedPaidAmount(int $total): int
+    {
         $this->validate([
             'paymentMode' => ['required', Rule::in(['paid', 'partial', 'credit'])],
             'paymentMethod' => ['required', Rule::in(['Tunai', 'Transfer', 'Giro'])],
@@ -438,7 +516,6 @@ class SalesOrder extends Component
             'paidAmount' => ['required', 'integer', 'min:0'],
         ]);
 
-        $total = $this->totals()['grand_total'];
         $paidAmount = match ($this->paymentMode) {
             'paid' => $total,
             'credit' => 0,
@@ -447,8 +524,8 @@ class SalesOrder extends Component
         if ($this->paymentMode === 'partial' && ($paidAmount <= 0 || $paidAmount >= $total)) {
             throw ValidationException::withMessages(['paidAmount' => 'Pembayaran sebagian harus lebih dari Rp 0 dan kurang dari total transaksi.']);
         }
-        $this->paidAmount = $paidAmount;
-        $this->persist(true);
+
+        return $paidAmount;
     }
 
     private function persist(bool $checkout): void
@@ -833,8 +910,34 @@ class SalesOrder extends Component
             : null;
     }
 
+    /**
+     * Pesanan yang sedang di-checkout dari daftar (untuk ringkasan di modal checkout).
+     */
+    private function checkoutOrder(): ?SalesOrderModel
+    {
+        if (! $this->showCheckoutModal || ! $this->checkoutTargetId) {
+            return null;
+        }
+
+        return SalesOrderModel::with(['customer', 'items'])->find($this->checkoutTargetId);
+    }
+
+    /**
+     * Sisa tagihan setelah checkout berdasarkan jenis pembayaran yang dipilih.
+     */
+    private function remainingAfterCheckout(int $total): int
+    {
+        return max(0, $total - match ($this->paymentMode) {
+            'paid' => $total,
+            'credit' => 0,
+            default => $this->paidAmount,
+        });
+    }
+
     public function render()
     {
+        $checkoutOrder = $this->checkoutOrder();
+        $checkoutRemaining = $checkoutOrder ? $this->remainingAfterCheckout((int) $checkoutOrder->grand_total) : 0;
         $currentSalesmanId = auth()->user()?->salesman()->where('is_active', true)->value('id');
         $salesOrders = SalesOrderModel::query()
             ->with(['salesCanvas', 'preOrder', 'customer', 'salesInvoice'])
@@ -892,6 +995,11 @@ class SalesOrder extends Component
             'customers' => Customer::where('is_active', true)->orderBy('name')->get(),
             'creditSummary' => $this->creditSummaryFor($this->customerId),
             'confirmCreditSummary' => $this->confirmCreditSummary(),
+            'checkoutOrder' => $checkoutOrder,
+            'checkoutRemaining' => $checkoutRemaining,
+            'checkoutCreditSummary' => $checkoutOrder?->customer
+                ? app(CustomerCreditService::class)->summary($checkoutOrder->customer, $checkoutRemaining)
+                : null,
             'customerAddresses' => CustomerAddress::where('customer_id', $this->customerId)->orderByDesc('is_primary')->orderBy('label')->get(),
             'warehouses' => Warehouse::orderBy('name')->get(),
             'products' => Product::with('category')
