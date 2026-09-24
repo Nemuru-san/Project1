@@ -10,6 +10,7 @@ use App\Models\SalesOrderItem;
 use App\Models\SalesReturn;
 use App\Models\StockBalance;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -451,7 +452,7 @@ class DeliveryOrder extends Component
 
     private function generateCode(): string
     {
-        $prefix = 'SJ-'.now()->format('ymd').'-';
+        $prefix = 'SJ-'.now()->format('ym').'-';
         $last = DeliveryOrderModel::withTrashed()
             ->where('delivery_no', 'like', $prefix.'%')
             ->orderByDesc('delivery_no')
@@ -474,6 +475,29 @@ class DeliveryOrder extends Component
                     ->orWhere('salesman_id', $currentSalesmanId ?? 0)
                     ->orWhereHas('salesCanvas', fn (Builder $canvas) => $canvas->where('salesman_id', $currentSalesmanId ?? 0));
             }));
+    }
+
+    /**
+     * SO yang barangnya sudah dikirim semua tidak perlu Surat Jalan lagi, tapi SO
+     * yang sedang dipilih tetap ditampilkan supaya pilihan tidak hilang saat mengubah.
+     */
+    private function selectableSalesOrders(): Collection
+    {
+        $salesOrders = $this->accessibleSalesOrders()
+            ->withDeliveryProgress()
+            ->latest('date')
+            ->latest('id')
+            ->get()
+            ->filter(fn (SalesOrder $salesOrder) => $salesOrder->hasOutstandingDelivery())
+            ->values();
+
+        if ($this->salesOrderId && ! $salesOrders->contains('id', $this->salesOrderId)) {
+            if ($currentSalesOrder = SalesOrder::with(['customer', 'preOrder', 'salesCanvas'])->find($this->salesOrderId)) {
+                $salesOrders->prepend($currentSalesOrder);
+            }
+        }
+
+        return $salesOrders;
     }
 
     public function render()
@@ -499,7 +523,7 @@ class DeliveryOrder extends Component
 
         return view('livewire.sales.transaction.delivery-order', [
             'deliveryOrders' => $deliveryOrders,
-            'salesOrders' => $this->accessibleSalesOrders()->latest('date')->latest('id')->get(),
+            'salesOrders' => $this->selectableSalesOrders(),
             'customerAddresses' => CustomerAddress::query()
                 ->where('customer_id', $this->customerId)
                 ->orderByDesc('is_primary')->orderBy('label')->get(),

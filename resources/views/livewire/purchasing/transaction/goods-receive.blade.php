@@ -130,7 +130,7 @@
                                             </div>
                                         @else
                                             @php
-                                                $locked = $gr->status !== 'Draft';
+                                                $locked = ! $gr->isEditable();
                                             @endphp
 
                                             <ul class="py-1 text-base text-gray-700 dark:text-gray-200">

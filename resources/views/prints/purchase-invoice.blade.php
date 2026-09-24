@@ -187,7 +187,6 @@
                 </div>
 
                 <div>
-                    Supplier Inv : {{ $invoice->supplier_invoice_number ?: '-' }}<br>
                     Status&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : {{ $invoice->status }}<br>
                     Payment&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : {{ $invoice->payment_status }}
                 </div>

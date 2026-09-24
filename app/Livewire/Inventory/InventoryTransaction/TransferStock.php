@@ -451,7 +451,7 @@ class TransferStock extends Component
 
     private function generateCode(): string
     {
-        $date = now()->format('dmy');
+        $date = now()->format('ym');
         $prefix = "TRF-{$date}-";
 
         $last = StockTransfer::withTrashed()
@@ -489,7 +489,7 @@ class TransferStock extends Component
             'transfers' => $transfers,
             'warehouses' => Warehouse::orderBy('name')->get(),
             'units' => ProductUnit::orderBy('name')->get(),
-            'products' => Product::with('category')
+            'products' => Product::with('category')->active()
                 ->when($this->productSearch, function ($q) {
                     $q->where(function ($query) {
                         $query->where('name', 'like', '%'.$this->productSearch.'%')

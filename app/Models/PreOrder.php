@@ -44,6 +44,28 @@ class PreOrder extends Model
         ];
     }
 
+    /**
+     * Pesanan Awal hanya bisa diubah/dihapus selama masih Draf dan belum ada DP terposting.
+     */
+    public function isEditable(): bool
+    {
+        return $this->status === self::STATUS_DRAFT
+            && ! $this->dpAllocations()
+                ->whereHas('payment', fn ($query) => $query->where('status', ArDpPayment::STATUS_POSTED))
+                ->exists();
+    }
+
+    public function editLockReason(): ?string
+    {
+        if ($this->isEditable()) {
+            return null;
+        }
+
+        return $this->status !== self::STATUS_DRAFT
+            ? 'Pesanan Awal yang sudah dikonfirmasi tidak dapat diubah.'
+            : 'Pesanan Awal sudah memiliki DP terposting sehingga tidak dapat diubah.';
+    }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class)->withTrashed();

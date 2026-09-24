@@ -139,7 +139,7 @@ it('filters purchase invoices by an inclusive transaction date range', function 
         ->assertSee('INV-DATE-BEFORE')
         ->assertSee('INV-DATE-AFTER');
 });
-it('allows a posted purchase invoice to be edited and deleted with its journal', function () {
+it('locks a posted purchase invoice from being edited or deleted', function () {
     $role = Role::create([
         'name' => 'Pengelola Faktur Pembelian',
         'permissions' => ['purchases.transaction.purchase-invoice', 'purchases.transaction.purchase-invoice.delete'],
@@ -208,30 +208,25 @@ it('allows a posted purchase invoice to be edited and deleted with its journal',
         'created_by' => $this->user->id,
     ]);
 
+    // Faktur yang sudah diposting tidak boleh dibuka untuk diubah.
     Livewire::test(PurchaseInvoiceComponent::class)
         ->call('openEdit', $invoice->id)
-        ->assertSet('invoiceId', $invoice->id)
-        ->set('date', '2026-07-20')
-        ->set('note', 'Diubah setelah posting')
-        ->call('save')
-        ->assertHasNoErrors();
+        ->assertSet('invoiceId', null)
+        ->assertSet('showModal', false);
 
     $invoice->refresh();
-    $journal->refresh()->load('lines');
     expect($invoice->status)->toBe(PurchaseInvoice::STATUS_POSTED)
-        ->and($invoice->date->toDateString())->toBe('2026-07-20')
-        ->and($invoice->note)->toBe('Diubah setelah posting')
-        ->and($journal->date->toDateString())->toBe('2026-07-20')
-        ->and((int) $journal->lines->sum('debit'))->toBe(100000)
-        ->and((int) $journal->lines->sum('credit'))->toBe(100000);
+        ->and($invoice->date->toDateString())->toBe('2026-07-10')
+        ->and($invoice->note)->toBeNull();
 
+    // Hapus pun ditolak, jurnalnya tetap utuh.
     Livewire::test(PurchaseInvoiceComponent::class)
         ->call('confirmDelete', $invoice->id)
         ->assertSet('showDeleteModal', true)
         ->call('delete');
 
-    expect($invoice->fresh()->trashed())->toBeTrue()
-        ->and(JournalEntry::withTrashed()->findOrFail($journal->id)->trashed())->toBeTrue();
+    expect($invoice->fresh()->trashed())->toBeFalse()
+        ->and(JournalEntry::findOrFail($journal->id)->trashed())->toBeFalse();
 });
 
 it('creates one purchase invoice from multiple received goods receives', function () {

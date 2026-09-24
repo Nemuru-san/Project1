@@ -211,7 +211,6 @@ class APPayment extends Component
             return [
                 'purchase_invoice_id' => $detail->purchase_invoice_id,
                 'invoice_code' => $invoice?->code ?? '-',
-                'supplier_invoice_number' => $invoice?->supplier_invoice_number ?? '-',
                 'date' => $invoice?->date?->format('d/m/Y') ?? '-',
                 'due_date' => $invoice?->due_date?->format('d/m/Y') ?? '-',
                 'grand_total' => (int) ($invoice?->grand_total ?? 0),
@@ -268,7 +267,6 @@ class APPayment extends Component
             return [
                 'purchase_invoice_id' => $invoice->id,
                 'invoice_code' => $invoice->code,
-                'supplier_invoice_number' => $invoice->supplier_invoice_number ?: '-',
                 'date' => $invoice->date?->format('d/m/Y') ?? '-',
                 'due_date' => $invoice->due_date?->format('d/m/Y') ?? '-',
                 'grand_total' => (int) $invoice->grand_total,
@@ -609,7 +607,7 @@ class APPayment extends Component
 
     private function generateJournalCode(): string
     {
-        $date = now()->format('dmy');
+        $date = now()->format('ym');
         $prefix = "JE-{$date}-";
 
         $last = JournalEntry::withTrashed()
@@ -690,7 +688,7 @@ class APPayment extends Component
 
     private function generateCode(): string
     {
-        $date = now()->format('dmy');
+        $date = now()->format('ym');
         $prefix = "APP-{$date}-";
 
         $last = ModelsAPPayment::withTrashed()

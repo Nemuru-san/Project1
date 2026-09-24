@@ -206,7 +206,7 @@ it('posts ar payment only for a confirmed sales invoice and updates invoice bala
         ->and($journal->lines->sum('debit'))->toBe(40000)
         ->and($journal->lines->sum('credit'))->toBe(40000);
 });
-it('allows a confirmed sales invoice to be edited and deleted with its journal', function () {
+it('locks a confirmed sales invoice from being edited or deleted', function () {
     $data = verifiedSalesOrderFixture();
     $this->actingAs($data['user']);
     $data['order']->forceFill(['status' => 'verified', 'verified_at' => now(), 'verified_by' => $data['user']->id])->save();
@@ -223,24 +223,23 @@ it('allows a confirmed sales invoice to be edited and deleted with its journal',
         ->call('openConfirmInvoice', $invoice->id)
         ->call('confirmInvoice');
 
-    Livewire::test(SalesInvoiceComponent::class)
-        ->call('openEdit', $invoice->id)
-        ->assertSet('editingId', $invoice->id)
-        ->set('invoiceDate', '2026-08-20')
-        ->set('dueDate', '2026-09-20')
-        ->set('notes', 'Diubah setelah konfirmasi')
-        ->call('save')
-        ->assertHasNoErrors();
-
     $invoice->refresh();
+    $originalDate = $invoice->invoice_date->toDateString();
     $journal = JournalEntry::where('source_type', JournalEntry::SOURCE_SALES_INVOICE)
         ->where('source_id', $invoice->id)
         ->sole();
-    expect($invoice->status)->toBe(SalesInvoice::STATUS_CONFIRMED)
-        ->and($invoice->invoice_date->toDateString())->toBe('2026-08-20')
-        ->and($invoice->notes)->toBe('Diubah setelah konfirmasi')
-        ->and($journal->date->toDateString())->toBe('2026-08-20');
 
+    // Faktur yang sudah dikonfirmasi tidak boleh dibuka untuk diubah.
+    Livewire::test(SalesInvoiceComponent::class)
+        ->call('openEdit', $invoice->id)
+        ->assertSet('editingId', null)
+        ->assertSet('showModal', false);
+
+    $invoice->refresh();
+    expect($invoice->status)->toBe(SalesInvoice::STATUS_CONFIRMED)
+        ->and($invoice->invoice_date->toDateString())->toBe($originalDate);
+
+    // Super Admin pun tidak bisa menghapusnya.
     $superAdminRole = Role::create(['name' => 'Super Admin', 'permissions' => ['*']]);
     $superAdmin = User::factory()->for($superAdminRole)->create();
     $this->actingAs($superAdmin);
@@ -250,8 +249,8 @@ it('allows a confirmed sales invoice to be edited and deleted with its journal',
         ->assertSet('showDeleteModal', true)
         ->call('delete');
 
-    expect($invoice->fresh()->trashed())->toBeTrue()
-        ->and(JournalEntry::withTrashed()->findOrFail($journal->id)->trashed())->toBeTrue();
+    expect($invoice->fresh()->trashed())->toBeFalse()
+        ->and(JournalEntry::findOrFail($journal->id)->trashed())->toBeFalse();
 });
 
 it('creates one sales invoice from multiple shipped delivery orders', function () {

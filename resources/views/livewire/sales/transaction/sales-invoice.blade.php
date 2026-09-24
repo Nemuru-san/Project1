@@ -129,8 +129,11 @@
                                                         stroke-width="2"
                                                         d="M6 9V3h12v6M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v7H6v-7z" />
                                                 </svg>Cetak Invoice</a></li>
-                                        <li><button wire:click="openEdit({{ $invoice->id }})" @click="open=false"
-                                                class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600"><svg
+                                        @php $locked = ! $invoice->isEditable(); @endphp
+                                        <li><button @if (!$locked) wire:click="openEdit({{ $invoice->id }})" @endif
+                                                @click="open=false" @disabled($locked)
+                                                title="{{ $locked ? $invoice->editLockReason() : '' }}"
+                                                class="flex w-full items-center gap-2 px-4 py-2 {{ $locked ? 'cursor-not-allowed opacity-40 text-gray-400 dark:text-gray-500' : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600' }}"><svg
                                                     class="h-5 w-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -152,9 +155,10 @@
                                         @endif
                                     </ul>
                                     @if (auth()->user()?->isSuperAdmin())
-                                        <div class="py-1"><button wire:click="confirmDelete({{ $invoice->id }})"
-                                                @click="open=false" @disabled(!auth()->user()?->isSuperAdmin())
-                                                class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-600 hover:text-white disabled:opacity-40"><svg
+                                        <div class="py-1"><button @if (!$locked) wire:click="confirmDelete({{ $invoice->id }})" @endif
+                                                @click="open=false" @disabled($locked || !auth()->user()?->isSuperAdmin())
+                                                title="{{ $locked ? $invoice->editLockReason() : '' }}"
+                                                class="flex w-full items-center gap-2 px-4 py-2 text-sm {{ $locked ? 'cursor-not-allowed opacity-40 text-gray-400 dark:text-gray-500' : 'cursor-pointer text-red-600 hover:bg-red-600 hover:text-white' }} disabled:opacity-40"><svg
                                                     class="h-5 w-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -272,6 +276,8 @@
                                     <thead class="bg-gray-200 text-xs font-bold uppercase dark:bg-zinc-700">
                                         <tr>
                                             <th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">No.</th>
+                                            <th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">SJ No
+                                            </th>
                                             <th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">Kode</th>
                                             <th class="border border-gray-300 px-4 py-3 dark:border-zinc-600">Produk
                                             </th>
@@ -299,6 +305,17 @@
                                                 <td class="border border-gray-300 px-4 py-3 dark:border-zinc-600">
                                                     {{ $index + 1 }}</td>
                                                 <td class="border border-gray-300 px-4 py-3 dark:border-zinc-600">
+                                                    @php
+                                                        $doCodes = array_filter(array_map('trim', explode(',', (string) ($item['do_codes'] ?? ''))));
+                                                    @endphp
+                                                    @forelse ($doCodes as $doCode)
+                                                        <span
+                                                            class="mb-1 mr-1 inline-block rounded-full bg-blue-100 px-2.5 py-0.5 font-mono text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">{{ $doCode }}</span>
+                                                    @empty
+                                                        -
+                                                    @endforelse
+                                                </td>
+                                                <td class="border border-gray-300 px-4 py-3 dark:border-zinc-600">
                                                     {{ $item['sku'] }}</td>
                                                 <td class="border border-gray-300 px-4 py-3 dark:border-zinc-600">
                                                     {{ $item['product_name'] }}</td>
@@ -321,9 +338,9 @@
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="9"
+                                                <td colspan="10"
                                                     class="border border-gray-300 px-4 py-8 text-center text-gray-400 dark:border-zinc-600">
-                                                    Pilih Pesanan Penjualan untuk menampilkan detail produk.</td>
+                                                    Pilih Pesanan Penjualan, lalu pilih Surat Jalan untuk menampilkan rincian produk.</td>
                                             </tr>
                                         @endforelse
                                     </tbody>

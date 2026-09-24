@@ -230,8 +230,8 @@ class GoodsReceive extends Component
                 'goods_receive_item_id' => $item->id,
                 'purchase_order_item_id' => $item->purchase_order_item_id,
                 'product_id' => $item->product_id,
-                'product_sku' => $item->product?->name ?? '-',
-                'product_name' => $item->product?->sku ?? '-',
+                'product_sku' => $item->product?->sku ?? '-',
+                'product_name' => $item->product?->name ?? '-',
                 'category_name' => $item->product?->category?->desc ?? '-',
                 'unit_id' => $item->unit_id,
                 'unit_name' => $item->unit?->name ?? '-',
@@ -271,7 +271,8 @@ class GoodsReceive extends Component
             ->with([
                 'supplier',
                 'items.product.category',
-                'items.product.prices.unit',
+                'items.product.baseUnit',
+                'items.unit',
                 'items.goodsReceiveItems',
             ])
             ->whereIn('status', self::RECEIVABLE_PURCHASE_ORDER_STATUSES)
@@ -307,12 +308,15 @@ class GoodsReceive extends Component
                 continue;
             }
 
-            $price = $poItem->product?->prices?->sortBy('conversion')->first();
+            // Satuan mengikuti yang dipesan di PO, bukan satuan terkecil produk,
+            // supaya Qty Pesanan/Outstanding dan konversi ke stok dasar sepadan.
+            $unitId = $poItem->unit_id ?? $poItem->product?->base_unit_id;
+            $unitName = $poItem->unit?->name ?? $poItem->product?->baseUnit?->name;
 
-            if (! $price) {
+            if (! $unitId) {
                 $this->dispatch(
                     'toast',
-                    message: 'Produk '.($poItem->product?->name ?? '-').' belum punya satuan / harga.',
+                    message: 'Produk '.($poItem->product?->name ?? '-').' belum punya satuan.',
                     type: 'error'
                 );
 
@@ -322,13 +326,13 @@ class GoodsReceive extends Component
             $this->items[] = [
                 'purchase_order_item_id' => $poItem->id,
                 'product_id' => $poItem->product_id,
-                'product_sku' => $poItem->product?->name ?? '-',
-                'product_name' => $poItem->product?->sku ?? '-',
+                'product_sku' => $poItem->product?->sku ?? '-',
+                'product_name' => $poItem->product?->name ?? '-',
                 'category_name' => $poItem->product?->category?->desc ?? '-',
 
-                'unit_id' => $price?->unit_id,
-                'unit_name' => $price?->unit?->name ?? '-',
-                'conversion' => (int) ($price?->conversion ?? 1),
+                'unit_id' => $unitId,
+                'unit_name' => $unitName ?? '-',
+                'conversion' => max(1, (int) ($poItem->conversion ?? 1)),
 
                 'qty_order' => $qtyOrder,
                 'qty_outstanding' => $qtyOutstanding,
@@ -336,6 +340,18 @@ class GoodsReceive extends Component
                 'warehouse_id' => '',
                 'note' => '',
             ];
+        }
+
+        if ($this->items === []) {
+            $this->purchase_order_id = null;
+            $this->supplier_id = null;
+            $this->supplier_name = '';
+
+            $this->dispatch(
+                'toast',
+                message: 'Seluruh barang pada Pesanan Pembelian ini sudah diterima.',
+                type: 'error'
+            );
         }
     }
 
@@ -819,7 +835,7 @@ class GoodsReceive extends Component
 
     private function generateGrCode(): string
     {
-        $date = now()->format('dmy');
+        $date = now()->format('ym');
         $prefix = "GR-{$date}-";
 
         $last = GoodsReceiveModel::withTrashed()
@@ -877,6 +893,7 @@ class GoodsReceive extends Component
 
         $purchaseOrders = PurchaseOrder::query()
             ->with('supplier')
+            ->withReceiptProgress()
             ->whereIn('status', self::RECEIVABLE_PURCHASE_ORDER_STATUSES)
             ->whereNull('closed_at')
             ->whereDoesntHave('goodsReceives', function ($q) {
@@ -884,7 +901,17 @@ class GoodsReceive extends Component
                     ->when($this->editingId, fn ($q) => $q->where('id', '!=', $this->editingId));
             })
             ->orderByDesc('date')
-            ->get();
+            ->get()
+            // PO yang barangnya sudah diterima semua tidak perlu Penerimaan Barang lagi.
+            ->filter(fn (PurchaseOrder $purchaseOrder) => $purchaseOrder->hasOutstandingReceipt())
+            ->values();
+
+        // PO yang sedang dipilih tetap ditampilkan supaya pilihan tidak hilang saat mengubah GR.
+        if ($this->purchase_order_id && ! $purchaseOrders->contains('id', $this->purchase_order_id)) {
+            if ($currentPurchaseOrder = PurchaseOrder::with('supplier')->find($this->purchase_order_id)) {
+                $purchaseOrders->prepend($currentPurchaseOrder);
+            }
+        }
 
         $warehouses = Warehouse::query()
             ->orderBy('name')

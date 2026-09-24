@@ -52,6 +52,28 @@ class SalesInvoice extends Model
         ])->findOrFail($id);
     }
 
+    /**
+     * Faktur hanya bisa diubah/dihapus selama masih Draf dan belum ada pembayaran.
+     * Begitu dikonfirmasi atau dibayar, faktur terkunci permanen.
+     */
+    public function isEditable(): bool
+    {
+        return $this->status === self::STATUS_DRAFT && (int) $this->paid_amount <= 0;
+    }
+
+    public function editLockReason(): ?string
+    {
+        if ($this->isEditable()) {
+            return null;
+        }
+
+        if ($this->status !== self::STATUS_DRAFT) {
+            return 'Faktur Penjualan berstatus '.$this->status.' tidak dapat diubah lagi.';
+        }
+
+        return 'Faktur Penjualan sudah menerima pembayaran sehingga tidak dapat diubah lagi.';
+    }
+
     public function salesOrder(): BelongsTo
     {
         return $this->belongsTo(SalesOrder::class);

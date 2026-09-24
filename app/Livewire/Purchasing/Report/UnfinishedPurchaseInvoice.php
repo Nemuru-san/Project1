@@ -62,7 +62,6 @@ class UnfinishedPurchaseInvoice extends Component
             ->when($this->search, function ($query) {
                 $search = '%'.$this->search.'%';
                 $query->where(fn ($query) => $query->where('code', 'like', $search)
-                    ->orWhere('supplier_invoice_number', 'like', $search)
                     ->orWhereHas('supplier', fn ($query) => $query->where('name', 'like', $search))
                     ->orWhereHas('purchaseOrder', fn ($query) => $query->where('code', 'like', $search)));
             })

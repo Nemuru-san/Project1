@@ -14,7 +14,6 @@ class PurchaseInvoice extends Model
 
     protected $fillable = [
         'code',
-        'supplier_invoice_number',
         'date',
         'due_date',
         'supplier_id',
@@ -69,6 +68,30 @@ class PurchaseInvoice extends Model
             self::PAYMENT_PARTIAL_PAID,
             self::PAYMENT_PAID,
         ];
+    }
+
+    /**
+     * Faktur hanya bisa diubah/dihapus selama masih Draf dan belum ada pembayaran.
+     * Begitu diposting atau dibayar, faktur terkunci permanen.
+     */
+    public function isEditable(): bool
+    {
+        return $this->status === self::STATUS_DRAFT
+            && $this->payment_status === self::PAYMENT_UNPAID
+            && (int) $this->paid_amount <= 0;
+    }
+
+    public function editLockReason(): ?string
+    {
+        if ($this->isEditable()) {
+            return null;
+        }
+
+        if ($this->status !== self::STATUS_DRAFT) {
+            return 'Faktur Pembelian berstatus '.$this->status.' tidak dapat diubah lagi.';
+        }
+
+        return 'Faktur Pembelian sudah dibayar ('.$this->payment_status.') sehingga tidak dapat diubah lagi.';
     }
 
     public function items(): HasMany

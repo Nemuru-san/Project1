@@ -454,7 +454,7 @@ class ArDpPayment extends Component
 
     private function generateCode(): string
     {
-        $prefix = 'ARDP-'.now()->format('dmy').'-';
+        $prefix = 'ARDP-'.now()->format('ym').'-';
         $last = ArDpPaymentModel::withTrashed()->where('code', 'like', $prefix.'%')->orderByDesc('code')->value('code');
         $sequence = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
 
@@ -463,7 +463,7 @@ class ArDpPayment extends Component
 
     private function generateJournalCode(): string
     {
-        $prefix = 'JE-'.now()->format('dmy').'-';
+        $prefix = 'JE-'.now()->format('ym').'-';
         $last = JournalEntry::withTrashed()->where('code', 'like', $prefix.'%')->orderByDesc('code')->value('code');
         $sequence = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
 

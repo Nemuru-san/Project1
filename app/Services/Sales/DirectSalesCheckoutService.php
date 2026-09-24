@@ -220,7 +220,7 @@ class DirectSalesCheckoutService
 
     private function deliveryCode(): string
     {
-        return $this->nextCode(DeliveryOrder::class, 'delivery_no', 'SJ-'.now()->format('ymd').'-');
+        return $this->nextCode(DeliveryOrder::class, 'delivery_no', 'SJ-'.now()->format('ym').'-');
     }
 
     private function invoiceCode(): string
@@ -231,12 +231,12 @@ class DirectSalesCheckoutService
 
     private function paymentCode(): string
     {
-        return $this->nextCode(ArPayment::class, 'code', 'ARP-'.now()->format('dmy').'-');
+        return $this->nextCode(ArPayment::class, 'code', 'ARP-'.now()->format('ym').'-');
     }
 
     private function journalCode(): string
     {
-        return $this->nextCode(JournalEntry::class, 'code', 'JE-'.now()->format('dmy').'-');
+        return $this->nextCode(JournalEntry::class, 'code', 'JE-'.now()->format('ym').'-');
     }
 
     private function nextCode(string $model, string $column, string $prefix, int $pad = 3): string

@@ -397,7 +397,7 @@ class PurchaseOrder extends Component
 
     private function generateCode(): string
     {
-        $date = now()->format('dmy');
+        $date = now()->format('ym');
         $prefix = "PO-{$date}-";
         $last = PurchaseOrderModel::withTrashed()
             ->where('code', 'like', $prefix.'%')
@@ -580,6 +580,12 @@ class PurchaseOrder extends Component
     {
         $po = PurchaseOrderModel::with(['items.product.prices.unit', 'items.unit'])->findOrFail($id);
 
+        if (! $po->isEditable()) {
+            $this->dispatch('toast', message: $po->editLockReason(), type: 'error');
+
+            return;
+        }
+
         $this->editId = $po->id;
         $this->date = $po->date->toDateString();
         $this->supplier_id = $po->supplier_id;
@@ -670,7 +676,12 @@ class PurchaseOrder extends Component
 
                 if ($this->editId) {
                     $po = PurchaseOrderModel::with(['items.goodsReceiveItems', 'items.purchaseInvoiceItems'])
+                        ->lockForUpdate()
                         ->findOrFail($this->editId);
+
+                    if (! $po->isEditable()) {
+                        throw new \Exception($po->editLockReason());
+                    }
 
                     $alreadyUsed = $po->items->contains(function ($item) {
                         return $item->goodsReceiveItems->isNotEmpty()
@@ -924,11 +935,11 @@ class PurchaseOrder extends Component
         $suppliers = Supplier::orderBy('name')->get();
         $categories = ProductCategory::orderBy('name')->get();
 
-        $products = Product::with(['category', 'prices.unit'])
+        $products = Product::with(['category', 'prices.unit'])->active()
             ->when(
                 $this->searchProduct,
-                fn ($q) => $q->where('name', 'like', "%{$this->searchProduct}%")
-                    ->orWhere('sku', 'like', "%{$this->searchProduct}%")
+                fn ($q) => $q->where(fn ($s) => $s->where('name', 'like', "%{$this->searchProduct}%")
+                    ->orWhere('sku', 'like', "%{$this->searchProduct}%"))
             )
             ->when(
                 $this->filterCategory,

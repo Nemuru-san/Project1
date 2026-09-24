@@ -12,6 +12,7 @@ use App\Models\StockBalance;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Models\Warehouse;
+use Livewire\Livewire;
 
 it('cancels a received goods receive by reversing stock and recalculating purchase order status', function () {
     $role = Role::create(['name' => 'Goods Receive Manager', 'permissions' => ['purchases.transaction.good-receive.receive']]);
@@ -214,4 +215,85 @@ it('keeps partially received purchase orders available for the next goods receiv
     $purchaseOrders = $view->getData()['purchaseOrders'];
 
     expect($purchaseOrders->pluck('id')->all())->toContain($purchaseOrder->id);
+});
+
+it('takes the goods receive line unit and conversion from the purchase order item', function () {
+    $role = Role::create(['name' => 'Goods Receive Manager', 'permissions' => ['purchases.transaction.good-receive.receive']]);
+    $user = User::factory()->for($role)->create();
+    $this->actingAs($user);
+
+    $supplier = Supplier::create([
+        'code' => 'SUP-UNIT',
+        'name' => 'Supplier Satuan',
+        'address' => 'Alamat',
+        'contact' => 'Kontak',
+        'created_by' => (string) $user->id,
+    ]);
+    $category = ProductCategory::create(['code' => 'CAT-UNIT', 'name' => 'Kategori Satuan']);
+    $pcs = ProductUnit::create(['code' => 'PCS-U', 'name' => 'Pcs']);
+    $dus = ProductUnit::create(['code' => 'DUS-U', 'name' => 'Dus']);
+
+    $product = Product::create([
+        'name' => 'Produk Multi Satuan',
+        'sku' => 'SKU-UNIT-001',
+        'category_id' => $category->id,
+        'base_unit_id' => $pcs->id,
+        'created_by' => (string) $user->id,
+    ]);
+
+    // Satuan terkecil dibuat lebih dulu supaya urutan relasi tidak menutupi bug.
+    ProductPrice::create(['product_id' => $product->id, 'unit_id' => $pcs->id, 'conversion' => 1, 'price' => 1000]);
+    $dusPrice = ProductPrice::create(['product_id' => $product->id, 'unit_id' => $dus->id, 'conversion' => 12, 'price' => 12000]);
+
+    $warehouse = Warehouse::create(['name' => 'WH-UNIT', 'desc' => 'Gudang', 'address' => 'Alamat Gudang']);
+
+    $purchaseOrder = PurchaseOrder::create([
+        'code' => 'PO-UNIT-001',
+        'date' => now()->toDateString(),
+        'supplier_id' => $supplier->id,
+        'user_id' => $user->id,
+        'total_price' => 120000,
+        'tax' => false,
+        'ppn' => 0,
+        'gross' => 120000,
+        'nett' => 120000,
+        'status' => PurchaseOrder::STATUS_APPROVED,
+    ]);
+
+    // PO memesan 10 Dus (1 Dus = 12 Pcs).
+    $purchaseOrder->items()->create([
+        'product_id' => $product->id,
+        'price_id' => $dusPrice->id,
+        'unit_id' => $dus->id,
+        'qty' => 10,
+        'price' => 12000,
+        'conversion' => 12,
+        'qty_base' => 120,
+        'total_harga' => 120000,
+        'disc' => 0,
+    ]);
+
+    $component = Livewire::test(GoodsReceiveComponent::class)
+        ->call('openCreate')
+        ->set('purchase_order_id', $purchaseOrder->id);
+
+    $component->assertSet('items.0.unit_id', $dus->id)
+        ->assertSet('items.0.unit_name', 'Dus')
+        ->assertSet('items.0.conversion', 12)
+        ->assertSet('items.0.qty_order', 10)
+        ->assertSet('items.0.qty_outstanding', 10);
+
+    // Terima 2 Dus → stok bertambah 24 Pcs, bukan 2.
+    $component->set('items.0.warehouse_id', (string) $warehouse->id)
+        ->set('items.0.qty_received', 2)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $receiveItem = GoodsReceive::where('purchase_order_id', $purchaseOrder->id)->sole()->items()->sole();
+
+    expect($receiveItem->unit_id)->toBe($dus->id)
+        ->and((int) $receiveItem->conversion)->toBe(12)
+        ->and((int) $receiveItem->qty_received)->toBe(2)
+        ->and((int) $receiveItem->qty_base)->toBe(24)
+        ->and((int) $receiveItem->qty_outstanding)->toBe(8);
 });

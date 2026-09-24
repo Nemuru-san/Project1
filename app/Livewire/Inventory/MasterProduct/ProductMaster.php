@@ -149,8 +149,28 @@ class ProductMaster extends Component
 
     public function confirmDelete(int $id): void
     {
+        if (Product::findOrFail($id)->hasTransactions()) {
+            $this->dispatch('toast', message: 'Produk sudah memiliki transaksi dan tidak dapat dihapus. Silakan nonaktifkan produk.', type: 'error');
+
+            return;
+        }
+
         $this->deleteTargetId = $id;
         $this->showDeleteModal = true;
+    }
+
+    // ── Aktif / Nonaktif ───────────────────────────────────────────────────────
+
+    public function toggleActive(int $id): void
+    {
+        $product = Product::findOrFail($id);
+        $product->update(['is_active' => ! $product->is_active]);
+
+        $this->dispatch(
+            'toast',
+            message: $product->is_active ? 'Produk berhasil diaktifkan.' : 'Produk berhasil dinonaktifkan.',
+            type: 'success'
+        );
     }
 
     // ── Save (Create / Update) ─────────────────────────────────────────────────
@@ -313,7 +333,17 @@ class ProductMaster extends Component
             return;
         }
 
-        Product::findOrFail($this->deleteTargetId)->delete();
+        $product = Product::findOrFail($this->deleteTargetId);
+
+        if ($product->hasTransactions()) {
+            $this->showDeleteModal = false;
+            $this->deleteTargetId = null;
+            $this->dispatch('toast', message: 'Produk sudah memiliki transaksi dan tidak dapat dihapus. Silakan nonaktifkan produk.', type: 'error');
+
+            return;
+        }
+
+        $product->delete();
 
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
@@ -425,8 +455,11 @@ class ProductMaster extends Component
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 
+        $idsWithTransactions = Product::idsWithTransactions($products->pluck('id')->all());
+
         return view('livewire.inventory.master-product.product-master', [
             'products' => $products,
+            'idsWithTransactions' => $idsWithTransactions,
         ]);
     }
 }

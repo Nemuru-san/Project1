@@ -140,6 +140,12 @@ class SalesInvoice extends Component
         ])->findOrFail($id);
         $this->authorizeInvoice($invoice);
 
+        if (! $invoice->isEditable()) {
+            $this->dispatch('toast', message: $invoice->editLockReason(), type: 'error');
+
+            return;
+        }
+
         $this->resetForm();
         $this->editingId = $invoice->id;
         $this->invoiceNo = $invoice->invoice_no;
@@ -191,6 +197,14 @@ class SalesInvoice extends Component
                 return;
             }
 
+            $this->applyCustomerPaymentTerms($order->customer);
+
+            return;
+        }
+
+        // SO yang punya Surat Jalan: rincian produk baru muncul setelah Surat Jalan dipilih,
+        // karena yang ditagih adalah barang yang benar-benar dikirim, bukan seluruh SO.
+        if ($this->unbilledDeliveryOrders($order->id)->exists()) {
             $this->applyCustomerPaymentTerms($order->customer);
 
             return;
@@ -326,21 +340,18 @@ class SalesInvoice extends Component
                 $this->authorizeInvoice($invoice);
                 abort_unless($invoice->sales_order_id === $this->salesOrderId, 422);
 
+                if (! $invoice->isEditable()) {
+                    throw ValidationException::withMessages(['status' => $invoice->editLockReason()]);
+                }
+
                 $invoice->update([
                     'invoice_date' => $this->invoiceDate,
                     'due_date' => $this->dueDate ?: null,
                     'notes' => trim($this->notes) ?: null,
                 ]);
 
-                if ($invoice->status === SalesInvoiceModel::STATUS_CONFIRMED) {
-                    JournalEntry::where('source_type', JournalEntry::SOURCE_SALES_INVOICE)
-                        ->where('source_id', $invoice->id)
-                        ->update([
-                            'date' => $invoice->invoice_date,
-                            'description' => 'Faktur Penjualan '.$invoice->invoice_no,
-                        ]);
-                    app(SalesmanFeeService::class)->syncInvoiceDate($invoice);
-                }
+                // Faktur Dikonfirmasi tidak pernah sampai ke sini (lihat isEditable()),
+                // jadi jurnal dan fee salesman tidak perlu disinkronkan ulang.
 
                 return $invoice;
             });
@@ -550,6 +561,12 @@ class SalesInvoice extends Component
             return;
         }
 
+        if (! $invoice->isEditable()) {
+            $this->dispatch('toast', message: $invoice->editLockReason(), type: 'error');
+
+            return;
+        }
+
         DB::transaction(function () use ($invoice) {
             JournalEntry::where('source_type', JournalEntry::SOURCE_SALES_INVOICE)
                 ->where('source_id', $invoice->id)
@@ -657,7 +674,7 @@ class SalesInvoice extends Component
 
     private function generateJournalCode(): string
     {
-        $prefix = 'JE-'.now()->format('dmy').'-';
+        $prefix = 'JE-'.now()->format('ym').'-';
         $last = JournalEntry::withTrashed()->where('code', 'like', $prefix.'%')->orderByDesc('code')->value('code');
 
         return $prefix.str_pad((string) ($last ? (int) substr($last, strlen($prefix)) + 1 : 1), 3, '0', STR_PAD_LEFT);

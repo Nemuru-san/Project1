@@ -116,6 +116,7 @@
                                             Data sudah terhapus
                                         </div>
                                     @else
+                                        @php $locked = ! $invoice->isEditable(); @endphp
                                         <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
                                             @if ($invoice->status === 'Draft')
                                                 <li>
@@ -162,9 +163,11 @@
                                             </li>
 
                                             <li>
-                                                <button wire:click="openEdit({{ $invoice->id }})"
-                                                    @click="open = false"
-                                                    class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
+                                                <button
+                                                    @if (!$locked) wire:click="openEdit({{ $invoice->id }})" @endif
+                                                    @click="open = false" @disabled($locked)
+                                                    title="{{ $locked ? $invoice->editLockReason() : '' }}"
+                                                    class="flex items-center gap-2 w-full py-2 px-4 {{ $locked ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer' }}">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -176,9 +179,11 @@
                                         </ul>
 
                                         <div class="py-1">
-                                            <button wire:click="confirmDelete({{ $invoice->id }})"
-                                                @disabled(!auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.delete')) @click="open = false"
-                                                class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-40">
+                                            <button
+                                                @if (!$locked) wire:click="confirmDelete({{ $invoice->id }})" @endif
+                                                @disabled($locked || !auth()->user()?->hasPermission('purchases.transaction.purchase-invoice.delete')) @click="open = false"
+                                                title="{{ $locked ? $invoice->editLockReason() : '' }}"
+                                                class="flex items-center gap-2 w-full py-2 px-4 text-base {{ $locked ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500' : 'text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer' }} disabled:cursor-not-allowed disabled:opacity-40">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -439,7 +444,15 @@
                                                 {{ $row['po_code'] ?? '-' }}
                                             </td>
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                {{ $row['gr_codes'] ?? '-' }}
+                                                @php
+                                                    $grCodes = array_filter(array_map('trim', explode(',', (string) ($row['gr_codes'] ?? ''))));
+                                                @endphp
+                                                @forelse ($grCodes as $grCode)
+                                                    <span
+                                                        class="mb-1 mr-1 inline-block rounded-full bg-blue-100 px-2.5 py-0.5 font-mono text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">{{ $grCode }}</span>
+                                                @empty
+                                                    -
+                                                @endforelse
                                             </td>
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
                                                 {{ $row['product_code'] ?? '-' }}
@@ -492,7 +505,7 @@
                                         <tr>
                                             <td colspan="11"
                                                 class="border border-gray-300 dark:border-zinc-600 px-4 py-8 text-center text-gray-400">
-                                                Pilih Pesanan Pembelian terlebih dahulu.
+                                                Pilih Pesanan Pembelian, lalu pilih Penerimaan Barang untuk menampilkan rincian produk.
                                             </td>
                                         </tr>
                                     @endforelse

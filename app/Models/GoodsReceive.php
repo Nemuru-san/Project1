@@ -53,6 +53,21 @@ class GoodsReceive extends Model
         ];
     }
 
+    /**
+     * Penerimaan Barang hanya bisa diubah/dihapus selama masih Draf.
+     */
+    public function isEditable(): bool
+    {
+        return $this->status === self::STATUS_DRAFT;
+    }
+
+    public function editLockReason(): ?string
+    {
+        return $this->isEditable()
+            ? null
+            : 'Penerimaan Barang berstatus '.$this->status.' tidak dapat diubah lagi.';
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(GoodsReceiveItem::class, 'goods_receive_id');

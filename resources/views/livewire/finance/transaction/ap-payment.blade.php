@@ -347,8 +347,6 @@
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">PIV
                                             No</th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
-                                            Faktur Pemasok</th>
-                                        <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">
                                             Tanggal
                                         </th>
                                         <th class="border border-gray-300 dark:border-zinc-600 px-4 py-3 text-sm">Due
@@ -380,10 +378,6 @@
                                             <td
                                                 class="border border-gray-300 dark:border-zinc-600 px-4 py-3 font-mono">
                                                 {{ $row['invoice_code'] ?? '-' }}
-                                            </td>
-
-                                            <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
-                                                {{ $row['supplier_invoice_number'] ?? '-' }}
                                             </td>
 
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
@@ -449,7 +443,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="10"
+                                            <td colspan="9"
                                                 class="border border-gray-300 dark:border-zinc-600 px-4 py-8 text-center text-gray-400">
                                                 Pilih supplier terlebih dahulu / tidak ada invoice yang belum lunas.
                                             </td>
@@ -595,7 +589,6 @@
                                 <tr>
                                     <th class="px-4 py-3 w-8">No.</th>
                                     <th class="px-4 py-3">PIV No</th>
-                                    <th class="px-4 py-3">Faktur Pemasok</th>
                                     <th class="px-4 py-3 text-right">Total Keseluruhan</th>
                                     <th class="px-4 py-3 text-right">Jumlah Dibayar</th>
                                 </tr>
@@ -610,10 +603,6 @@
                                             {{ $detail->purchaseInvoice?->code ?? '-' }}
                                         </td>
 
-                                        <td class="px-4 py-3 text-gray-800 dark:text-white">
-                                            {{ $detail->purchaseInvoice?->supplier_invoice_number ?? '-' }}
-                                        </td>
-
                                         <td class="px-4 py-3 text-right text-gray-800 dark:text-white">
                                             Rp
                                             {{ number_format($detail->purchaseInvoice?->grand_total ?? 0, 0, ',', '.') }}
@@ -625,7 +614,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="px-4 py-6 text-center text-gray-400">
+                                        <td colspan="4" class="px-4 py-6 text-center text-gray-400">
                                             Tidak ada detail payment.
                                         </td>
                                     </tr>

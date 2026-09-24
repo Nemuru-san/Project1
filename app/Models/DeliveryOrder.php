@@ -69,6 +69,21 @@ class DeliveryOrder extends Model
         return $this->salesOrder?->salesman_id === $salesmanId;
     }
 
+    /**
+     * Surat Jalan hanya bisa diubah/dihapus selama masih Draf.
+     */
+    public function isEditable(): bool
+    {
+        return $this->status === self::STATUS_DRAFT;
+    }
+
+    public function editLockReason(): ?string
+    {
+        return $this->isEditable()
+            ? null
+            : 'Surat Jalan yang sudah dikirim/difakturkan/dibatalkan tidak dapat diubah.';
+    }
+
     public function salesOrder(): BelongsTo
     {
         return $this->belongsTo(SalesOrder::class);

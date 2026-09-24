@@ -48,6 +48,21 @@ class SalesCanvas extends Model
         ];
     }
 
+    /**
+     * Penjualan Kanvas hanya bisa diubah/dihapus selama masih Draf.
+     */
+    public function isEditable(): bool
+    {
+        return $this->status === self::STATUS_DRAFT;
+    }
+
+    public function editLockReason(): ?string
+    {
+        return $this->isEditable()
+            ? null
+            : 'Penjualan Kanvas yang sudah dikonfirmasi tidak dapat diubah.';
+    }
+
     public function salesman(): BelongsTo
     {
         return $this->belongsTo(Salesman::class)->withTrashed();

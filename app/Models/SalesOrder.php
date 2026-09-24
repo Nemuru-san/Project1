@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -55,6 +56,46 @@ class SalesOrder extends Model
 
         return $this->salesman_id === $salesmanId
             || $user->canPerform('sales.transaction.salesOrder', 'verify');
+    }
+
+    /**
+     * Ikut memuat total qty terkirim per item (termasuk Surat Jalan draf, karena
+     * qty-nya sudah dialokasikan), supaya sisa kiriman bisa dihitung tanpa query per SO.
+     */
+    public function scopeWithDeliveryProgress(Builder $query): void
+    {
+        $query->with(['items' => fn ($item) => $item->withSum([
+            'deliveryOrderItems as delivered_qty' => fn ($deliveryItem) => $deliveryItem->whereHas(
+                'deliveryOrder',
+                fn ($delivery) => $delivery->whereIn('status', [
+                    DeliveryOrder::STATUS_DRAFT,
+                    ...DeliveryOrder::STOCK_STATUSES,
+                ])
+            ),
+        ], 'qty_delivered')]);
+    }
+
+    /**
+     * Masih ada item yang belum dikirim penuh. Butuh scopeWithDeliveryProgress().
+     */
+    public function hasOutstandingDelivery(): bool
+    {
+        return $this->items->contains(fn ($item) => (int) $item->qty > (int) ($item->delivered_qty ?? 0));
+    }
+
+    /**
+     * Pesanan Penjualan hanya bisa diubah/dihapus selama masih Draf.
+     */
+    public function isEditable(): bool
+    {
+        return $this->status === 'draft';
+    }
+
+    public function editLockReason(): ?string
+    {
+        return $this->isEditable()
+            ? null
+            : 'Pesanan Penjualan yang sudah diproses tidak dapat diubah.';
     }
 
     public function salesCanvas(): BelongsTo

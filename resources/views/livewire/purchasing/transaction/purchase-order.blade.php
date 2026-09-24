@@ -172,7 +172,7 @@
                                 <div x-show="open" x-cloak :style="`position: fixed; top: ${top}px; left: ${left}px;`"
                                     class="z-50 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
 
-                                    @php $locked = $po->status !== 'Draft'; @endphp
+                                    @php $locked = ! $po->isEditable(); @endphp
 
                                     @if ($po->trashed())
                                         <div class="px-4 py-2 text-sm text-gray-400">

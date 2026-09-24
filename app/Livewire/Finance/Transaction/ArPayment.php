@@ -183,7 +183,7 @@ class ArPayment extends Component
 
     private function generateCode(): string
     {
-        $prefix = 'ARP-'.now()->format('dmy').'-';
+        $prefix = 'ARP-'.now()->format('ym').'-';
         $last = ArPaymentModel::withTrashed()->where('code', 'like', $prefix.'%')->orderByDesc('code')->value('code');
 
         return $prefix.str_pad((string) ($last ? (int) substr($last, strlen($prefix)) + 1 : 1), 3, '0', STR_PAD_LEFT);
@@ -191,7 +191,7 @@ class ArPayment extends Component
 
     private function generateJournalCode(): string
     {
-        $prefix = 'JE-'.now()->format('dmy').'-';
+        $prefix = 'JE-'.now()->format('ym').'-';
         $last = JournalEntry::withTrashed()->where('code', 'like', $prefix.'%')->orderByDesc('code')->value('code');
 
         return $prefix.str_pad((string) ($last ? (int) substr($last, strlen($prefix)) + 1 : 1), 3, '0', STR_PAD_LEFT);

@@ -486,7 +486,7 @@ class SalesCanvas extends Component
                 }
 
                 $salesOrder = SalesOrderModel::create([
-                    'order_no' => 'SO-'.$canvas->date->format('ymd').'-'.str_pad((string) $canvas->id, 5, '0', STR_PAD_LEFT),
+                    'order_no' => 'SO-'.$canvas->date->format('ym').'-'.str_pad((string) $canvas->id, 5, '0', STR_PAD_LEFT),
                     'date' => $canvas->date,
                     'sales_canvas_id' => $canvas->id,
                     'customer_id' => $canvas->customer_id,
@@ -741,7 +741,7 @@ class SalesCanvas extends Component
 
     private function generateCode(): string
     {
-        $prefix = 'SC-'.now()->format('dmy').'-';
+        $prefix = 'SC-'.now()->format('ym').'-';
         $lastCode = SalesCanvasModel::withTrashed()
             ->where('canvas_no', 'like', $prefix.'%')
             ->orderByDesc('canvas_no')
@@ -778,7 +778,7 @@ class SalesCanvas extends Component
             'customers' => Customer::where('is_active', true)->orderBy('name')->get(),
             'customerAddresses' => CustomerAddress::where('customer_id', $this->customerId)->orderByDesc('is_primary')->orderBy('label')->get(),
             'warehouses' => Warehouse::orderBy('name')->get(),
-            'products' => Product::with('category')
+            'products' => Product::with('category')->active()
                 ->whereHas('prices')
                 ->when($this->productSearch, function (Builder $query) {
                     $query->where(fn (Builder $product) => $product

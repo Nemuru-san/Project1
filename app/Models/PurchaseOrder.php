@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -89,6 +90,27 @@ class PurchaseOrder extends Model
     }
 
     /**
+     * PO hanya bisa diubah/dihapus selama masih Draf dan belum ditutup.
+     */
+    public function isEditable(): bool
+    {
+        return $this->status === self::STATUS_DRAFT && ! $this->isClosed();
+    }
+
+    public function editLockReason(): ?string
+    {
+        if ($this->isEditable()) {
+            return null;
+        }
+
+        if ($this->isClosed()) {
+            return 'Pesanan Pembelian sudah ditutup sehingga tidak dapat diubah.';
+        }
+
+        return 'Pesanan Pembelian berstatus '.$this->status.' tidak dapat diubah lagi.';
+    }
+
+    /**
      * Total qty yang sudah diterima (GR Received / Invoiced) untuk seluruh item PO.
      */
     public function receivedQty(): int
@@ -102,6 +124,28 @@ class PurchaseOrder extends Model
     public function orderedQty(): int
     {
         return (int) $this->items()->sum('qty');
+    }
+
+    /**
+     * Ikut memuat total qty diterima per item, supaya sisa penerimaan bisa
+     * dihitung tanpa query tambahan per PO saat mengisi daftar pilihan.
+     */
+    public function scopeWithReceiptProgress(Builder $query): void
+    {
+        $query->with(['items' => fn ($item) => $item->withSum([
+            'goodsReceiveItems as received_qty' => fn ($receiveItem) => $receiveItem->whereHas(
+                'goodsReceive',
+                fn ($receive) => $receive->whereIn('status', GoodsReceive::STOCK_STATUSES)
+            ),
+        ], 'qty_received')]);
+    }
+
+    /**
+     * Masih ada item yang belum diterima penuh. Butuh scopeWithReceiptProgress().
+     */
+    public function hasOutstandingReceipt(): bool
+    {
+        return $this->items->contains(fn ($item) => (int) $item->qty > (int) ($item->received_qty ?? 0));
     }
 
     /**

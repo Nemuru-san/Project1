@@ -68,7 +68,7 @@ class ConvertPreOrderToSalesOrder
 
     private function generateCode(): string
     {
-        $prefix = 'SO-PO-'.now()->format('ymd').'-';
+        $prefix = 'SO-PO-'.now()->format('ym').'-';
         $last = SalesOrder::withTrashed()->where('order_no', 'like', $prefix.'%')->orderByDesc('order_no')->value('order_no');
         $sequence = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
 

@@ -164,7 +164,7 @@ class PreOrder extends Component
         $preOrder = PreOrderModel::with(['items.product.prices.unit', 'items.product.baseUnit'])->findOrFail($id);
         $this->authorizePreOrder($preOrder);
 
-        if ($preOrder->status !== PreOrderModel::STATUS_DRAFT || $preOrder->dpAllocations()->whereHas('payment', fn ($query) => $query->where('status', ArDpPayment::STATUS_POSTED))->exists()) {
+        if (! $preOrder->isEditable()) {
             $this->dispatch('toast', message: 'Pesanan Awal yang sudah memiliki DP terposting atau sudah dikonversi tidak dapat diubah.', type: 'error');
 
             return;
@@ -258,7 +258,7 @@ class PreOrder extends Component
             $preOrder = $this->editingId ? PreOrderModel::lockForUpdate()->findOrFail($this->editingId) : new PreOrderModel;
             if ($preOrder->exists) {
                 $this->authorizePreOrder($preOrder);
-                if ($preOrder->status !== PreOrderModel::STATUS_DRAFT || $preOrder->dpAllocations()->whereHas('payment', fn ($query) => $query->where('status', ArDpPayment::STATUS_POSTED))->exists()) {
+                if (! $preOrder->isEditable()) {
                     throw ValidationException::withMessages(['date' => 'Pesanan Awal sudah diproses dan tidak dapat diubah.']);
                 }
             }
@@ -397,7 +397,7 @@ class PreOrder extends Component
 
         $preOrder = PreOrderModel::findOrFail($id);
         $this->authorizePreOrder($preOrder);
-        if ($preOrder->status !== PreOrderModel::STATUS_DRAFT || $preOrder->dpAllocations()->whereHas('payment', fn ($query) => $query->where('status', ArDpPayment::STATUS_POSTED))->exists()) {
+        if (! $preOrder->isEditable()) {
             $this->dispatch('toast', message: 'Pesanan Awal yang sudah diproses tidak dapat dihapus.', type: 'error');
 
             return;
@@ -417,7 +417,7 @@ class PreOrder extends Component
             return;
         }
         $preOrder = PreOrderModel::findOrFail($this->deleteTargetId);
-        if ($preOrder->status !== PreOrderModel::STATUS_DRAFT || $preOrder->dpAllocations()->whereHas('payment', fn ($query) => $query->where('status', ArDpPayment::STATUS_POSTED))->exists()) {
+        if (! $preOrder->isEditable()) {
             $this->dispatch('toast', message: 'Pesanan Awal yang sudah diproses tidak dapat dihapus.', type: 'error');
 
             return;
@@ -510,7 +510,7 @@ class PreOrder extends Component
 
     private function generateCode(): string
     {
-        $prefix = 'PRE-'.now()->format('ymd').'-';
+        $prefix = 'PRE-'.now()->format('ym').'-';
         $last = PreOrderModel::withTrashed()->where('pre_order_no', 'like', $prefix.'%')->orderByDesc('pre_order_no')->value('pre_order_no');
         $sequence = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
 
@@ -535,7 +535,7 @@ class PreOrder extends Component
             'customers' => Customer::where('is_active', true)->orderBy('name')->get(),
             'customerAddresses' => CustomerAddress::where('customer_id', $this->customerId)->orderByDesc('is_primary')->orderBy('label')->get(),
             'warehouses' => Warehouse::orderBy('name')->get(),
-            'products' => Product::with('category')->whereHas('prices')
+            'products' => Product::with('category')->active()->whereHas('prices')
                 ->when($this->productSearch, fn (Builder $query) => $query->where(fn (Builder $product) => $product->where('name', 'like', '%'.$this->productSearch.'%')->orWhere('sku', 'like', '%'.$this->productSearch.'%')))
                 ->when($this->categoryFilter, fn (Builder $query) => $query->where('category_id', $this->categoryFilter))
                 ->orderBy('name')->limit(50)->get(),

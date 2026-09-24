@@ -424,7 +424,7 @@ class AdjustmentIn extends Component
 
     private function generateCode(): string
     {
-        $date = now()->format('dmy');
+        $date = now()->format('ym');
         $prefix = "ADI-{$date}-";
 
         $last = StockAdjustment::withTrashed()
@@ -458,7 +458,7 @@ class AdjustmentIn extends Component
             'adjustments' => $adjustments,
             'warehouses' => Warehouse::orderBy('name')->get(),
             'units' => ProductUnit::orderBy('name')->get(),
-            'products' => Product::with('category')
+            'products' => Product::with('category')->active()
                 ->when($this->productSearch, function ($q) {
                     $q->where(function ($query) {
                         $query->where('name', 'like', '%'.$this->productSearch.'%')

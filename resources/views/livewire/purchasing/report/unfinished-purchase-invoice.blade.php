@@ -38,7 +38,6 @@
                 <tr>
                     <th class="px-4 py-3">No.</th>
                     <th wire:click="sortBy('code')" class="cursor-pointer px-4 py-3">Kode Faktur</th>
-                    <th class="px-4 py-3">Faktur Supplier</th>
                     <th class="px-4 py-3">PO</th>
                     <th wire:click="sortBy('date')" class="cursor-pointer px-4 py-3">Tanggal</th>
                     <th wire:click="sortBy('due_date')" class="cursor-pointer px-4 py-3">Jatuh Tempo</th>
@@ -58,7 +57,6 @@
                         <td class="px-4 py-3 text-gray-400">{{ $invoices->firstItem() + $index }}</td>
                         <td class="px-4 py-3 font-mono font-medium text-gray-900 dark:text-white">{{ $invoice->code }}
                         </td>
-                        <td class="px-4 py-3">{{ $invoice->supplier_invoice_number ?: '-' }}</td>
                         <td class="px-4 py-3 font-mono">{{ $invoice->purchaseOrder?->code ?? '-' }}</td>
                         <td class="px-4 py-3">{{ $invoice->date?->format('d/m/Y') }}</td>
                         <td class="px-4 py-3 {{ $invoice->overdue_days > 0 ? 'font-semibold text-red-600' : '' }}">
@@ -117,7 +115,7 @@
                         </td>
                     </tr>
                 @empty<tr>
-                        <td colspan="14" class="px-4 py-10 text-center text-gray-400">Tidak ada Faktur Pembelian
+                        <td colspan="13" class="px-4 py-10 text-center text-gray-400">Tidak ada Faktur Pembelian
                             yang belum lunas.</td>
                     </tr>
                 @endforelse

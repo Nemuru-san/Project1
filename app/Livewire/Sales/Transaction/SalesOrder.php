@@ -553,11 +553,16 @@ class SalesOrder extends Component
         $savedOrder = DB::transaction(function () {
             $totals = $this->totals();
             $order = $this->editingId
-                ? SalesOrderModel::findOrFail($this->editingId)
+                ? SalesOrderModel::lockForUpdate()->findOrFail($this->editingId)
                 : new SalesOrderModel;
 
             if ($order->exists) {
                 $this->authorizeOrder($order);
+
+                if (! $order->isEditable()) {
+                    throw ValidationException::withMessages(['status' => $order->editLockReason()]);
+                }
+
                 $this->salesCanvasId = $order->sales_canvas_id;
                 $this->preOrderId = $order->pre_order_id;
             }
@@ -683,7 +688,15 @@ class SalesOrder extends Component
             return;
         }
 
-        SalesOrderModel::findOrFail($this->deleteTargetId)->delete();
+        $order = SalesOrderModel::findOrFail($this->deleteTargetId);
+
+        if (! $order->isEditable()) {
+            $this->dispatch('toast', message: $order->editLockReason(), type: 'error');
+
+            return;
+        }
+
+        $order->delete();
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
         $this->dispatch('toast', message: 'Sales Order berhasil dihapus.', type: 'success');
@@ -874,8 +887,11 @@ class SalesOrder extends Component
 
     private function generateCode(): string
     {
-        $prefix = ($this->orderType === 'direct' ? 'SO-L-' : 'SO-M-').now()->format('ymd').'-';
-        $sequence = SalesOrderModel::withTrashed()->where('order_no', 'like', $prefix.'%')->count() + 1;
+        $prefix = ($this->orderType === 'direct' ? 'SO-L-' : 'SO-M-').now()->format('ym').'-';
+        // Ambil nomor terakhir, bukan jumlah baris: jumlah baris bisa menabrak
+        // nomor yang sudah ada kalau ada data terhapus permanen di tengah urutan.
+        $last = SalesOrderModel::withTrashed()->where('order_no', 'like', $prefix.'%')->orderByDesc('order_no')->value('order_no');
+        $sequence = $last ? ((int) substr($last, strlen($prefix))) + 1 : 1;
 
         return $prefix.str_pad((string) $sequence, 3, '0', STR_PAD_LEFT);
     }
@@ -1002,7 +1018,7 @@ class SalesOrder extends Component
                 : null,
             'customerAddresses' => CustomerAddress::where('customer_id', $this->customerId)->orderByDesc('is_primary')->orderBy('label')->get(),
             'warehouses' => Warehouse::orderBy('name')->get(),
-            'products' => Product::with('category')
+            'products' => Product::with('category')->active()
                 ->whereHas('prices')
                 ->when($this->productSearch, fn (Builder $query) => $query->where(fn (Builder $product) => $product->where('name', 'like', '%'.$this->productSearch.'%')->orWhere('sku', 'like', '%'.$this->productSearch.'%')))
                 ->when($this->categoryFilter, fn (Builder $query) => $query->where('category_id', $this->categoryFilter))

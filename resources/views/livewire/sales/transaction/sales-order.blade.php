@@ -122,9 +122,11 @@
                                                                 d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
                                                         </svg>Checkout & Proses</button></li>
                                             @endif
-                                            <li><button wire:click="openEdit({{ $order->id }})"
-                                                    @disabled($order->status !== 'draft') @click="open=false"
-                                                    class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600"><svg
+                                            @php $locked = ! $order->isEditable(); @endphp
+                                            <li><button @if (!$locked) wire:click="openEdit({{ $order->id }})" @endif
+                                                    @disabled($locked) @click="open=false"
+                                                    title="{{ $locked ? $order->editLockReason() : '' }}"
+                                                    class="flex w-full items-center gap-2 px-4 py-2 {{ $locked ? 'cursor-not-allowed opacity-40 text-gray-400 dark:text-gray-500' : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600' }}"><svg
                                                         class="h-5 w-5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -132,8 +134,9 @@
                                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                     </svg>Ubah</button></li>
                                         </ul>
-                                        <div class="py-1"><button wire:click="confirmDelete({{ $order->id }})"
-                                                @click="open=false" @disabled(!auth()->user()?->isSuperAdmin() || $order->status !== 'draft')
+                                        <div class="py-1"><button @if (!$locked) wire:click="confirmDelete({{ $order->id }})" @endif
+                                                @click="open=false" @disabled($locked || !auth()->user()?->isSuperAdmin())
+                                                title="{{ $locked ? $order->editLockReason() : '' }}"
                                                 class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"><svg
                                                     class="h-5 w-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">

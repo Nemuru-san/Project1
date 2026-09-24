@@ -211,6 +211,12 @@ class PurchaseInvoice extends Component
             'goodsReceives',
         ])->findOrFail($id);
 
+        if (! $invoice->isEditable()) {
+            $this->dispatch('toast', message: $invoice->editLockReason(), type: 'error');
+
+            return;
+        }
+
         $this->invoiceId = $invoice->id;
         $this->code = $invoice->code;
         $this->date = $invoice->date?->format('Y-m-d') ?? now()->format('Y-m-d');
@@ -325,6 +331,24 @@ class PurchaseInvoice extends Component
             ->format('Y-m-d');
     }
 
+    /**
+     * PO masih punya Penerimaan Barang yang bisa dipilih di form faktur ini.
+     */
+    private function hasSelectableGoodsReceives(int $purchaseOrderId): bool
+    {
+        return GoodsReceive::query()
+            ->where('purchase_order_id', $purchaseOrderId)
+            ->whereIn('status', GoodsReceive::STOCK_STATUSES)
+            ->where(function ($query) {
+                $query->whereDoesntHave('purchaseInvoices');
+
+                if ($this->invoiceId) {
+                    $query->orWhereHas('purchaseInvoices', fn ($invoice) => $invoice->where('purchase_invoices.id', $this->invoiceId));
+                }
+            })
+            ->exists();
+    }
+
     private function loadPurchaseOrder(int $purchaseOrderId): void
     {
         $po = PurchaseOrder::with([
@@ -337,6 +361,16 @@ class PurchaseInvoice extends Component
 
         $this->supplier_id = $po->supplier_id;
         $this->tax = (bool) $po->tax;
+
+        // PO yang punya Penerimaan Barang: rincian produk baru muncul setelah GR dipilih,
+        // karena yang ditagih adalah barang yang benar-benar diterima, bukan seluruh PO.
+        if ($this->hasSelectableGoodsReceives($po->id)) {
+            $this->itemRows = [];
+            $this->itemPage = 1;
+            $this->recalculateTotals();
+
+            return;
+        }
 
         $this->itemRows = $po->items->map(function ($item) use ($po) {
             $qty = (int) $item->qty;
@@ -536,7 +570,11 @@ class PurchaseInvoice extends Component
             ];
 
             if ($this->invoiceId) {
-                $invoice = ModelsPurchaseInvoice::findOrFail($this->invoiceId);
+                $invoice = ModelsPurchaseInvoice::lockForUpdate()->findOrFail($this->invoiceId);
+
+                if (! $invoice->isEditable()) {
+                    throw ValidationException::withMessages(['status' => $invoice->editLockReason()]);
+                }
 
                 $invoice->update($data);
                 $invoice->items()->delete();
@@ -837,6 +875,12 @@ class PurchaseInvoice extends Component
             return;
         }
 
+        if (! $invoice->isEditable()) {
+            $this->dispatch('toast', message: $invoice->editLockReason(), type: 'error');
+
+            return;
+        }
+
         DB::transaction(function () use ($invoice) {
             JournalEntry::where('source_type', JournalEntry::SOURCE_PURCHASE_INVOICE)
                 ->where('source_id', $invoice->id)
@@ -864,7 +908,7 @@ class PurchaseInvoice extends Component
     private function generateCode(): string
     {
         // Nomor urut di-reset per bulan, bukan per hari.
-        $period = now()->format('my');
+        $period = now()->format('ym');
         $prefix = "PIV-{$period}-";
 
         $last = ModelsPurchaseInvoice::withTrashed()

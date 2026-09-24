@@ -424,7 +424,7 @@ class Expense extends Component
 
     private function generateCode(): string
     {
-        $prefix = 'EXP-'.now()->format('dmy').'-';
+        $prefix = 'EXP-'.now()->format('ym').'-';
         $lastCode = ExpenseModel::withTrashed()->where('code', 'like', $prefix.'%')->orderByDesc('code')->value('code');
         $sequence = $lastCode ? (int) substr($lastCode, strlen($prefix)) + 1 : 1;
 
@@ -433,7 +433,7 @@ class Expense extends Component
 
     private function generateJournalCode(): string
     {
-        $prefix = 'JE-'.now()->format('dmy').'-';
+        $prefix = 'JE-'.now()->format('ym').'-';
         $lastCode = JournalEntry::withTrashed()->where('code', 'like', $prefix.'%')->orderByDesc('code')->value('code');
         $sequence = $lastCode ? (int) substr($lastCode, strlen($prefix)) + 1 : 1;
 
