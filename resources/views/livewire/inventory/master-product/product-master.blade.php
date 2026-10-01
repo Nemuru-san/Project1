@@ -129,7 +129,7 @@
                     <th class="px-4 py-4 w-12">No.</th>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('sku')">
                         <div class="flex items-center gap-1">
-                            SKU Produk
+                            Kode Produk
                             @if ($sortField === 'sku')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
@@ -155,11 +155,11 @@
                     <tr
                         class="border-b dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 {{ $product->trashed() ? 'opacity-50' : '' }}">
                         <td class="px-4 py-4 text-gray-500">{{ $products->firstItem() + $index }}</td>
-                        <td class="px-4 py-4 font-mono font-medium text-gray-900 dark:text-white">{{ $product->sku }}
+                        <td class="px-4 py-4 font-mono font-medium text-gray-900 dark:text-white">{{ $product->name }}
                         </td>
                         <td class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {{ $product->name }}</td>
-                        <td class="px-4 py-4">{{ $product->category?->name ?? '-' }}</td>
+                            {{ $product->sku }}</td>
+                        <td class="px-4 py-4">{{ $product->category?->desc ?? '-' }}</td>
                         <td class="px-4 py-4">
                             {{ $product->baseUnit ? $product->baseUnit->name . ' (' . $product->baseUnit->code . ')' : '-' }}
                         </td>
@@ -320,7 +320,7 @@
                 </div>
 
                 {{-- Modal Body --}}
-                <div class="flex-1 overflow-y-auto px-8 pt-6 pb-10 space-y-8">
+                <div class="min-h-0 flex-1 overflow-y-auto px-8 pt-6 pb-10 space-y-8">
 
                     {{-- Validation Errors --}}
                     {{-- @if ($errors->any())
@@ -581,7 +581,7 @@
 
                 {{-- Modal Footer --}}
                 <div
-                    class="flex justify-end gap-2 px-8 py-5 border-t border-gray-200 dark:border-zinc-700 shrink-0 bg-white dark:bg-zinc-900">
+                    class="sticky bottom-0 z-10 flex justify-end gap-2 px-8 py-5 border-t border-gray-200 dark:border-zinc-700 shrink-0 bg-white dark:bg-zinc-900 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
                     <button wire:click="$set('showModal', false)"
                         class="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-zinc-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700">
                         Batal

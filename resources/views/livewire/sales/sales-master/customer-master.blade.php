@@ -46,7 +46,7 @@
                         </td>
                         <td class="px-4 py-3">
                             <div>{{ $customer->phone ?: '-' }}</div>
-                            <div class="text-xs text-gray-500">{{ $customer->email ?: '-' }}</div>
+                            <div class="text-xs text-gray-500">{{ $customer->email ?: '/' }}</div>
                         </td>
                         <td class="px-4 py-3">{{ $customer->defaultSalesman?->name ?? '-' }}</td>
                         <td class="px-4 py-3">{{ $customer->acquiredBySalesman?->name ?? '-' }}</td>

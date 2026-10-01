@@ -22,14 +22,14 @@
             <thead class="text-sm font-bold uppercase bg-gray-50 dark:bg-zinc-800 dark:text-white">
                 <tr>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('code')">
-                        <div class="flex items-center gap-1">Code
+                        <div class="flex items-center gap-1">Kode Satuan
                             @if ($sortField === 'code')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
                         </div>
                     </th>
                     <th class="px-4 py-4 cursor-pointer select-none" wire:click="sortBy('name')">
-                        <div class="flex items-center gap-1">Name
+                        <div class="flex items-center gap-1">Deskripsi Satuan
                             @if ($sortField === 'name')
                                 <span class="text-xs">{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                             @endif
