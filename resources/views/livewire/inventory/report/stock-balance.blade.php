@@ -88,11 +88,11 @@
                         </td>
 
                         <td class="px-4 py-4 font-mono font-medium text-gray-900 dark:text-white">
-                            {{ $product?->sku ?? '-' }}
+                            {{ $product?->name ?? '-' }}
                         </td>
 
                         <td class="px-4 py-4 text-gray-900 dark:text-white">
-                            {{ $product?->name ?? '-' }}
+                            {{ $product?->sku ?? '-' }}
                         </td>
 
                         <td class="px-4 py-4 text-gray-900 dark:text-white">

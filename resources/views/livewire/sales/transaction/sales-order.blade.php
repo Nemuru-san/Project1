@@ -665,7 +665,7 @@
                                 @foreach ($selectedOrder->items as $item)
                                     <tr>
                                         <td class="px-3 py-3 dark:text-white">{{ $item->product?->name ?? '-' }}</td>
-                                        <td class="px-3 py-3">{{ $item->warehouse?->name ?? '-' }}</td>
+                                        <td class="px-3 py-3">{{ $item->warehouse?->desc ?? '-' }}</td>
                                         <td class="px-3 py-3">{{ $item->unit?->name ?? '-' }}</td>
                                         <td class="px-3 py-3 text-right">{{ number_format($item->qty, 0, ',', '.') }}
                                         </td>
