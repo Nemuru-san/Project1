@@ -77,6 +77,10 @@
                                                 wire:navigate
                                                 class="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 hover:bg-blue-600 hover:text-white">+
                                                 Buat Faktur Retur</a>
+                                            @endif @if (auth()->user()?->canCancelTransactions() && $return->status === 'Confirmed' && !$return->returnInvoice)
+                                                <button wire:click="cancel({{ $return->id }})"
+                                                    wire:confirm="Batalkan retur ini? Stok yang sudah masuk akan dikurangi kembali."
+                                                    class="flex w-full cursor-pointer px-4 py-2 text-sm text-red-600 hover:bg-red-600 hover:text-white">Batalkan Retur</button>
                                             @endif @if (auth()->user()?->isSuperAdmin() && $return->status === 'Draft')
                                                 <button wire:click="delete({{ $return->id }})"
                                                     wire:confirm="Hapus retur Draf ini?"

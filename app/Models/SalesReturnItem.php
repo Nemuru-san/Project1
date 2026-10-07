@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SalesReturnItem extends Model
 {
-    protected $fillable = ['sales_return_id', 'delivery_order_item_id', 'sales_order_item_id', 'product_id', 'warehouse_id', 'unit_id', 'conversion', 'qty', 'qty_base', 'unit_price', 'subtotal', 'reason'];
+    protected $fillable = ['sales_return_id', 'delivery_order_item_id', 'sales_order_item_id', 'product_id', 'warehouse_id', 'unit_id', 'conversion', 'qty', 'qty_base', 'unit_cost', 'unit_price', 'subtotal', 'reason'];
 
     protected $casts = ['conversion' => 'integer', 'qty' => 'integer', 'qty_base' => 'integer', 'unit_price' => 'integer', 'subtotal' => 'integer'];
 

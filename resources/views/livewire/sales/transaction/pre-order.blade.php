@@ -114,7 +114,11 @@
                                     class="rounded-full bg-green-100 px-2.5 py-1 text-xs text-green-700">Dikonfirmasi</span>
                             @elseif($preOrder->status === 'sales_order')
                                 <span class="rounded-full bg-blue-100 px-2.5 py-1 text-xs text-blue-700">Sales
-                                Order</span>@else<span
+                                Order</span>
+                                @if ($preOrder->salesOrder)
+                                    <span class="mt-1 block font-mono text-xs text-gray-500">{{ $preOrder->salesOrder->order_no }}</span>
+                                @endif
+                            @else<span
                                     class="rounded-full bg-yellow-100 px-2.5 py-1 text-xs text-yellow-700">Draf</span>
                             @endif
                         </td>

@@ -82,7 +82,7 @@ class CustomerMaster extends Component
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
+            'phone' => ['nullable', 'regex:/^[0-9]+$/', 'max:20'],
             'email' => ['nullable', 'email', 'max:255'],
             'tax_number' => ['nullable', 'string', 'max:100'],
             'credit_limit' => ['nullable', 'integer', 'min:0'],
@@ -97,7 +97,7 @@ class CustomerMaster extends Component
             'pics.*.id' => ['nullable', 'integer'],
             'pics.*.name' => ['required', 'string', 'max:255'],
             'pics.*.position' => ['nullable', 'string', 'max:255'],
-            'pics.*.phone' => ['nullable', 'string', 'max:50'],
+            'pics.*.phone' => ['nullable', 'regex:/^[0-9]+$/', 'max:20'],
             'pics.*.email' => ['nullable', 'email', 'max:255'],
             'pics.*.notes' => ['nullable', 'string', 'max:500'],
             'pics.*.is_primary' => ['boolean'],
@@ -120,6 +120,10 @@ class CustomerMaster extends Component
     protected array $messages = [
         'name.required' => 'Nama pelanggan wajib diisi.',
         'email.email' => 'Format email pelanggan tidak valid.',
+        'phone.regex' => 'Telepon hanya boleh berisi angka.',
+        'phone.max' => 'Telepon maksimal 20 digit.',
+        'pics.*.phone.regex' => 'Telepon kontak hanya boleh berisi angka.',
+        'pics.*.phone.max' => 'Telepon kontak maksimal 20 digit.',
         'pics.required' => 'Minimal satu kontak wajib diisi.',
         'pics.min' => 'Minimal satu kontak wajib diisi.',
         'pics.*.name.required' => 'Nama kontak wajib diisi.',
@@ -172,7 +176,8 @@ class CustomerMaster extends Component
         $this->editingId = $customer->id;
         $this->code = $customer->code;
         $this->name = $customer->name;
-        $this->phone = $customer->phone ?? '';
+        // Telepon hanya angka; nomor lama yang masih berisi simbol dibersihkan saat diedit.
+        $this->phone = preg_replace('/\D/', '', (string) $customer->phone);
         $this->email = $customer->email ?? '';
         $this->tax_number = $customer->tax_number ?? '';
         $this->credit_limit = $customer->credit_limit;
@@ -186,7 +191,7 @@ class CustomerMaster extends Component
             'id' => $pic->id,
             'name' => $pic->name,
             'position' => $pic->position ?? '',
-            'phone' => $pic->phone ?? '',
+            'phone' => preg_replace('/\D/', '', (string) $pic->phone),
             'email' => $pic->email ?? '',
             'notes' => $pic->notes ?? '',
             'is_primary' => $pic->is_primary,

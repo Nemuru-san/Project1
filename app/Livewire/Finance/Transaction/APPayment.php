@@ -47,6 +47,10 @@ class APPayment extends Component
 
     public ?int $postTargetId = null;
 
+    public bool $showCancelPaymentModal = false;
+
+    public ?int $cancelPaymentTargetId = null;
+
     public ?ModelsAPPayment $selectedPayment = null;
 
     public string $code = '';
@@ -547,6 +551,93 @@ class APPayment extends Component
 
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         }
+    }
+
+    public function confirmCancelPayment(int $id): void
+    {
+        $payment = ModelsAPPayment::findOrFail($id);
+
+        if ($payment->status !== ModelsAPPayment::STATUS_POSTED) {
+            $this->dispatch('toast', message: 'Hanya pembayaran berstatus Posted yang dapat dibatalkan.', type: 'error');
+
+            return;
+        }
+
+        $this->cancelPaymentTargetId = $id;
+        $this->showCancelPaymentModal = true;
+    }
+
+    public function closeCancelPayment(): void
+    {
+        $this->showCancelPaymentModal = false;
+        $this->cancelPaymentTargetId = null;
+    }
+
+    /**
+     * Membatalkan pembayaran yang sudah diposting: nominal yang dibayar dikembalikan
+     * ke sisa tagihan faktur dan jurnal pembayaran ikut dibatalkan, sehingga faktur
+     * bisa diubah lagi.
+     */
+    public function cancelPayment(): void
+    {
+        if (! $this->cancelPaymentTargetId) {
+            return;
+        }
+
+        try {
+            DB::transaction(function () {
+                $payment = ModelsAPPayment::with('details')
+                    ->lockForUpdate()
+                    ->findOrFail($this->cancelPaymentTargetId);
+
+                if ($payment->status !== ModelsAPPayment::STATUS_POSTED) {
+                    throw new \Exception('Hanya pembayaran berstatus Posted yang dapat dibatalkan.');
+                }
+
+                foreach ($payment->details as $detail) {
+                    $invoice = PurchaseInvoice::lockForUpdate()->find($detail->purchase_invoice_id);
+
+                    if (! $invoice) {
+                        continue;
+                    }
+
+                    $newPaid = max(0, (int) $invoice->paid_amount - (int) $detail->amount);
+
+                    $invoice->update([
+                        'paid_amount' => $newPaid,
+                        'remaining_amount' => max(0, (int) $invoice->grand_total - $newPaid),
+                        'payment_status' => $newPaid <= 0
+                            ? PurchaseInvoice::PAYMENT_UNPAID
+                            : PurchaseInvoice::PAYMENT_PARTIAL_PAID,
+                    ]);
+
+                    $invoice->purchaseOrder?->refreshPaymentStatus();
+                }
+
+                JournalEntry::where('source_type', JournalEntry::SOURCE_AP_PAYMENT)
+                    ->where('source_id', $payment->id)
+                    ->update(['status' => JournalEntry::STATUS_CANCELLED]);
+
+                $payment->update([
+                    'status' => ModelsAPPayment::STATUS_CANCELLED,
+                ]);
+            });
+
+            if ($this->selectedPayment) {
+                $this->selectedPayment = ModelsAPPayment::with([
+                    'supplier',
+                    'bankAccount',
+                    'creator',
+                    'details.purchaseInvoice',
+                ])->find($this->selectedPayment->id);
+            }
+
+            $this->dispatch('toast', message: 'Pembayaran utang berhasil dibatalkan. Faktur terkait dapat diubah kembali.', type: 'success');
+        } catch (\Throwable $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        }
+
+        $this->closeCancelPayment();
     }
 
     private function createAPPaymentJournal(ModelsAPPayment $payment): void

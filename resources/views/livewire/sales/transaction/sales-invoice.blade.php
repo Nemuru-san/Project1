@@ -10,11 +10,11 @@
                 <h2 class="text-base font-semibold text-gray-900 dark:text-white">Filter Faktur Penjualan</h2>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Temukan faktur berdasarkan kata kunci atau rentang tanggal.</p>
             </div>
-            <button wire:click="openCreate" type="button"
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center"><x-report-buttons route="sales.transaction.salesInvoice.report" :params="['search' => $search, 'date_from' => $dateFrom, 'date_to' => $dateTo]" /><button wire:click="openCreate" type="button"
                 class="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:w-auto">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                 Tambah Faktur Penjualan
-            </button>
+            </button></div>
         </div>
 
         <div class="grid gap-4 p-4 sm:grid-cols-2 sm:px-5 lg:grid-cols-[minmax(18rem,1fr)_auto_auto] lg:items-end">
@@ -47,6 +47,10 @@
                         <option value="50">50 / hal</option>
                     </select>
                 </div>
+                <label class="mb-2.5 inline-flex shrink-0 cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
+                    <input wire:model.live="showCancelled" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600">
+                    Tampilkan dibatalkan
+                </label>
                 @if ($search || $dateFrom || $dateTo)
                     <button wire:click="resetFilters" type="button" title="Reset filter" aria-label="Reset filter" class="mb-0.5 inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-gray-300 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:border-zinc-600 dark:text-gray-300 dark:hover:bg-zinc-800 dark:hover:text-white">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.001 8.001 0 01-15.357-2M15 20h4" /></svg>
@@ -65,6 +69,7 @@
                     <th class="px-4 py-3">Pesanan Penjualan</th>
                     <th class="px-4 py-3">Pelanggan</th>
                     <th class="px-4 py-3 text-right">Total</th>
+                    <th class="px-4 py-3 text-right">DP</th>
                     <th class="px-4 py-3 text-right">Sisa Tagihan</th>
                     <th class="px-4 py-3">Status</th>
                     <th class="px-4 py-3 text-center">Aksi</th>
@@ -79,10 +84,14 @@
                         <td class="whitespace-nowrap px-4 py-3">{{ $invoice->salesOrder?->order_no }}</td>
                         <td class="px-4 py-3">{{ $invoice->customer?->name }}</td>
                         <td class="px-4 py-3 text-right">Rp {{ number_format($invoice->grand_total, 0, ',', '.') }}</td>
+                        <td class="whitespace-nowrap px-4 py-3 text-right text-green-600">Rp
+                            {{ number_format($invoice->dp_amount, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-right font-medium">Rp
                             {{ number_format($invoice->amount_due, 0, ',', '.') }}</td>
                         <td class="px-4 py-3">
-                            @if ($invoice->status === \App\Models\SalesInvoice::STATUS_CONFIRMED)
+                            @if ($invoice->status === \App\Models\SalesInvoice::STATUS_CANCELLED)
+                                <span class="rounded-full bg-red-100 px-2.5 py-1 text-xs text-red-700">Dibatalkan</span>
+                            @elseif ($invoice->status === \App\Models\SalesInvoice::STATUS_CONFIRMED)
                                 <span
                                 class="rounded-full bg-green-100 px-2.5 py-1 text-xs text-green-700">Dikonfirmasi</span>@else<span
                                     class="rounded-full bg-amber-100 px-2.5 py-1 text-xs text-amber-700">Draf</span>
@@ -111,6 +120,8 @@
                                                         stroke-width="2"
                                                         d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.5 12C3.7 8 7.5 5 12 5s8.3 3 9.5 7c-1.2 4-5 7-9.5 7s-8.3-3-9.5-7z" />
                                                 </svg>Rincian</button></li>
+                                        @php $isCancelled = $invoice->status === \App\Models\SalesInvoice::STATUS_CANCELLED; @endphp
+                                        @unless ($isCancelled)
                                         <li><a href="{{ route('sales.transaction.salesInvoice.view', $invoice->id) }}"
                                                 target="_blank" @click="open=false"
                                                 class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600"><svg
@@ -153,8 +164,19 @@
                                                             d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0Z" />
                                                     </svg>Konfirmasi</button></li>
                                         @endif
+                                        @if (auth()->user()?->canCancelTransactions())
+                                            <li><button wire:click="confirmCancelInvoice({{ $invoice->id }})"
+                                                    @click="open=false"
+                                                    class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-600 hover:text-white"><svg
+                                                        class="h-5 w-5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>Batalkan Faktur</button></li>
+                                        @endif
+                                        @endunless
                                     </ul>
-                                    @if (auth()->user()?->isSuperAdmin())
+                                    @if (! $isCancelled && auth()->user()?->isSuperAdmin())
                                         <div class="py-1"><button @if (!$locked) wire:click="confirmDelete({{ $invoice->id }})" @endif
                                                 @click="open=false" @disabled($locked || !auth()->user()?->isSuperAdmin())
                                                 title="{{ $locked ? $invoice->editLockReason() : '' }}"
@@ -170,7 +192,7 @@
                         </td>
                     </tr>
                 @empty<tr>
-                        <td colspan="8" class="px-4 py-10 text-center text-gray-400">Belum ada Faktur Penjualan.
+                        <td colspan="9" class="px-4 py-10 text-center text-gray-400">Belum ada Faktur Penjualan.
                         </td>
                     </tr>
                 @endforelse
@@ -420,7 +442,7 @@
                         <div>
                             <dt class="text-gray-400">Status</dt>
                             <dd class="font-medium">
-                                {{ $selectedInvoice->status === 'Confirmed' ? 'Dikonfirmasi' : 'Draf' }}</dd>
+                                {{ match ($selectedInvoice->status) { 'Confirmed' => 'Dikonfirmasi', 'Cancelled' => 'Dibatalkan', default => 'Draf' } }}</dd>
                         </div>
                         <div>
                             <dt class="text-gray-400">Total</dt>
@@ -498,6 +520,13 @@
             </div>
         </div>
     @endif
+    @if ($showCancelInvoiceModal)
+        <x-cancel-transaction-modal title="Batalkan Faktur Penjualan?" confirm="cancelInvoice" close="closeCancelInvoice">
+            Jurnal faktur dibatalkan dan Surat Jalan dilepas sehingga bisa difakturkan ulang atau dibatalkan.
+            Pembatalan hanya bisa dilakukan selama faktur belum memiliki Pembayaran Piutang.
+        </x-cancel-transaction-modal>
+    @endif
+
     @if ($showDeleteModal)
         <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4">
             <div class="w-full max-w-sm rounded-2xl bg-white p-6 dark:bg-zinc-800">

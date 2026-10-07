@@ -11,6 +11,7 @@ use App\Models\JournalEntry;
 use App\Models\SalesInvoice;
 use App\Models\SalesOrder;
 use App\Models\StockBalance;
+use App\Services\Inventory\InventoryCostService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -102,6 +103,7 @@ class DirectSalesCheckoutService
                     ->where('product_id', $item->product_id)
                     ->decrement('quantity', $required);
             }
+            app(InventoryCostService::class)->recordDeliveryCogs($deliveryOrder);
 
             $dueDate = $remaining > 0
                 ? $order->date->copy()->addDays((int) $customer->payment_terms_days)

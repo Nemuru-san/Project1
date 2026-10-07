@@ -41,6 +41,20 @@ class AvailableForSalesService
             - $this->reserved($productId, $warehouseId, $excludeSalesOrderId);
     }
 
+    /**
+     * Stok yang masih bisa dipakai untuk mengonfirmasi SO: stok fisik dikurangi booking SO
+     * lain yang sudah dikonfirmasi. SO Draf orang lain belum dihitung karena belum pasti.
+     */
+    public function availableToConfirm(int $productId, int $warehouseId, int $salesOrderId): int
+    {
+        $committed = (int) ($this->reservationQuery($productId, $warehouseId, $salesOrderId)
+            ->where('sales_orders.status', '!=', 'draft')
+            ->selectRaw('COALESCE(SUM('.$this->remainingReservationSql().'), 0) as reserved')
+            ->value('reserved') ?? 0);
+
+        return $this->quantityOnHand($productId, $warehouseId) - $committed;
+    }
+
     public function summary(int $productId, int $warehouseId, ?int $excludeSalesOrderId = null): array
     {
         $quantityOnHand = $this->quantityOnHand($productId, $warehouseId);

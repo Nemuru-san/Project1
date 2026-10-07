@@ -1,6 +1,6 @@
 @php
     $autoPrint = $autoPrint ?? false;
-    $company = config('company');
+    $company = \App\Support\CompanyProfile::get();
     $invoice = $order->salesInvoice;
     $payments = $invoice->payments->where('status', \App\Models\ArPayment::STATUS_POSTED);
     $paymentMethods = $payments->pluck('payment_method')->filter()->unique()->implode(', ');

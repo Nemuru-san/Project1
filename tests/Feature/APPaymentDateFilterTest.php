@@ -55,7 +55,7 @@ it('filters ap payments by date and can clear all filters', function () {
 
     Livewire::test(APPaymentComponent::class)
         ->assertSee('Tambah Pembayaran')
-        ->assertSee('Bersihkan Filter')
+        ->assertSee('Filter Pembayaran Utang')
         ->set('dateFrom', '2026-07-05')
         ->set('dateTo', '2026-07-15')
         ->assertSee('AP-DATE-IN-RANGE')

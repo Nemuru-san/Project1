@@ -12,6 +12,7 @@
             <option value="">Semua Status</option>
             <option value="Draft">Draf</option>
             <option value="Posted">Diposting</option>
+            <option value="Cancelled">Dibatalkan</option>
         </x-filter.select>
         <x-filter.date-range />
         <x-filter.per-page :show-reset="filled($search) || filled($statusFilter) || filled($dateFrom) || filled($dateTo)" />
@@ -53,7 +54,9 @@
                                 <span class="rounded-full bg-red-100 px-2.5 py-1 text-xs text-red-700">Terhapus</span>
                             @elseif($payment->status === 'Posted')
                                 <span
-                                class="rounded-full bg-green-100 px-2.5 py-1 text-xs text-green-700">Posted</span>@else<span
+                                class="rounded-full bg-green-100 px-2.5 py-1 text-xs text-green-700">Posted</span>
+                            @elseif($payment->status === 'Cancelled')
+                                <span class="rounded-full bg-red-100 px-2.5 py-1 text-xs text-red-700">Dibatalkan</span>@else<span
                                     class="rounded-full bg-yellow-100 px-2.5 py-1 text-xs text-yellow-700">Draf</span>
                             @endif
                         </td>
@@ -102,6 +105,13 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2" d="M5 13l4 4L19 7" />
                                                     </svg>Posting</button></li>
+                                            @if ($payment->status !== 'Cancelled' && auth()->user()?->canCancelTransactions())
+                                                <li><button wire:click="confirmCancel({{ $payment->id }})" @click="open=false"
+                                                        class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-600 hover:text-white"><svg
+                                                            class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>{{ $payment->status === 'Posted' ? 'Batalkan / Kembalikan DP' : 'Batalkan' }}</button></li>
+                                            @endif
                                         </ul>
                                         <div class="py-1"><button wire:click="confirmDelete({{ $payment->id }})"
                                                 @click="open=false" @disabled(!auth()->user()?->isSuperAdmin() || $payment->status !== 'Draft')
@@ -248,13 +258,40 @@
                                                             @endif
                                                         </td>
                                                     </tr>
-                                                @empty<tr>
-                                                        <td colspan="8"
-                                                            class="px-4 py-8 text-center text-gray-400">Tidak ada
-                                                            Pesanan Awal terkonfirmasi dengan target DP yang masih
-                                                            tersisa.</td>
-                                                    </tr>
+                                                @empty
+                                                    @if ($draftPreOrders->isEmpty())
+                                                        <tr>
+                                                            <td colspan="8"
+                                                                class="px-4 py-8 text-center text-gray-400">Tidak ada
+                                                                Pesanan Awal terkonfirmasi dengan target DP yang masih
+                                                                tersisa.</td>
+                                                        </tr>
+                                                    @endif
                                                 @endforelse
+                                                @foreach ($draftPreOrders as $draftPreOrder)
+                                                    <tr wire:key="ar-dp-draft-po-{{ $draftPreOrder->id }}"
+                                                        class="cursor-not-allowed bg-gray-50 text-gray-400 dark:bg-zinc-900/60 dark:text-gray-500"
+                                                        title="Konfirmasi Pesanan Awal ini terlebih dahulu sebelum menerima DP">
+                                                        <td class="px-4 py-3 text-center"><input type="checkbox"
+                                                                disabled
+                                                                class="h-4 w-4 rounded border-gray-300 opacity-50">
+                                                        </td>
+                                                        <td class="whitespace-nowrap px-4 py-3 font-medium">
+                                                            {{ $draftPreOrder->pre_order_no }}
+                                                            <span
+                                                                class="ml-1 rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">Draf</span>
+                                                        </td>
+                                                        <td class="whitespace-nowrap px-4 py-3">
+                                                            {{ $draftPreOrder->date->format('d/m/Y') }}</td>
+                                                        <td class="whitespace-nowrap px-4 py-3 text-right">Rp
+                                                            {{ number_format($draftPreOrder->grand_total, 0, ',', '.') }}</td>
+                                                        <td class="whitespace-nowrap px-4 py-3 text-right">Rp
+                                                            {{ number_format($draftPreOrder->dp_amount, 0, ',', '.') }}</td>
+                                                        <td colspan="3" class="px-4 py-3 text-right text-xs">
+                                                            Belum dikonfirmasi — konfirmasi dulu di menu Pesanan Awal
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
                                             </tbody>
                                         </table>
                                     </div>
@@ -304,6 +341,14 @@
                 </form>
             </div>
         </div>
+    @endif
+
+    @if ($showCancelModal)
+        <x-cancel-transaction-modal title="Batalkan / Kembalikan DP?" confirm="cancelPayment" close="closeCancel">
+            Gunakan ini bila DP dikembalikan ke pelanggan atau salah input. Jurnal penerimaan DP dibatalkan dan
+            status DP Pesanan Awal dihitung ulang. Tidak bisa dilakukan jika Pesanan Awal sudah dijadikan
+            Pesanan Penjualan.
+        </x-cancel-transaction-modal>
     @endif
 
     @if ($showPostModal)

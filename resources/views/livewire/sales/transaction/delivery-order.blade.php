@@ -127,9 +127,23 @@
                                             </li>
                                         @endif
                                     </ul>
-                                    @if (auth()->user()?->isSuperAdmin() && $deliveryOrder->status !== \App\Models\DeliveryOrder::STATUS_CANCELLED)
+                                    @if (auth()->user()?->canCancelTransactions() && in_array($deliveryOrder->status, [\App\Models\DeliveryOrder::STATUS_DRAFT, \App\Models\DeliveryOrder::STATUS_SHIPPED], true))
                                         <div class="py-1">
-                                            @if ($deliveryOrder->status === \App\Models\DeliveryOrder::STATUS_DRAFT)
+                                            <button type="button"
+                                                wire:click="openCancelShipment({{ $deliveryOrder->id }})"
+                                                @click="open = false"
+                                                class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-600 hover:text-white">
+                                                <svg class="h-5 w-5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                                Batalkan Surat Jalan
+                                            </button>
+                                        </div>
+                                    @endif
+                                    @if (auth()->user()?->isSuperAdmin() && $deliveryOrder->status === \App\Models\DeliveryOrder::STATUS_DRAFT)
+                                        <div class="py-1">
                                                 <button type="button"
                                                     wire:click="confirmDelete({{ $deliveryOrder->id }})"
                                                     @click="open = false" @disabled(!auth()->user()?->isSuperAdmin())
@@ -142,20 +156,6 @@
                                                     </svg>
                                                     Hapus Draf
                                                 </button>
-                                            @elseif($deliveryOrder->status === \App\Models\DeliveryOrder::STATUS_SHIPPED)
-                                                <button type="button"
-                                                    wire:click="openCancelShipment({{ $deliveryOrder->id }})"
-                                                    @click="open = false" @disabled(!auth()->user()?->isSuperAdmin())
-                                                    class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-40">
-                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M4 4v6h6M20 20v-6h-6M5.6 15A7 7 0 0018 17.4M18.4 9A7 7 0 006 6.6" />
-                                                    </svg>
-                                                    Batalkan Pengiriman
-                                                </button>
-                                            @endif
                                         </div>
                                     @endif
                                 </div>
@@ -466,16 +466,17 @@
     @if ($showCancelShipmentModal)
         <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4">
             <div class="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-zinc-800">
-                <h3 class="mb-2 text-lg font-semibold dark:text-white">Batalkan Pengiriman?</h3>
-                <p class="mb-3 text-sm text-gray-400">Stok barang akan dikembalikan ke gudang dan status Pesanan
-                    Penjualan dihitung ulang. Riwayat Surat Jalan tetap disimpan sebagai Dibatalkan.</p>
+                <h3 class="mb-2 text-lg font-semibold dark:text-white">Batalkan Surat Jalan?</h3>
+                <p class="mb-3 text-sm text-gray-400">Stok barang yang sudah dikirim akan dikembalikan ke gudang dan
+                    status Pesanan Penjualan dihitung ulang. Riwayat Surat Jalan tetap disimpan sebagai Dibatalkan.
+                    Pembatalan hanya bisa dilakukan selama Surat Jalan belum difakturkan.</p>
                 @error('shipment')
                     <p class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">{{ $message }}</p>
                 @enderror
                 <div class="flex justify-end gap-3"><button wire:click="$set('showCancelShipmentModal', false)"
                         class="rounded-lg border px-4 py-2 dark:border-zinc-600 dark:text-gray-300">Batal</button><button
-                        wire:click="cancelShipment" @disabled(!auth()->user()?->isSuperAdmin())
-                        class="rounded-lg bg-red-600 px-4 py-2 text-white">Batalkan Pengiriman</button></div>
+                        wire:click="cancelShipment" @disabled(!auth()->user()?->canCancelTransactions())
+                        class="rounded-lg bg-red-600 px-4 py-2 text-white">Batalkan Surat Jalan</button></div>
             </div>
         </div>
     @endif

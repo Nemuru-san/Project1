@@ -2,17 +2,20 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ArPayment extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
 
     public const STATUS_DRAFT = 'Draft';
 
     public const STATUS_POSTED = 'Posted';
+
+    public const STATUS_CANCELLED = 'Cancelled';
 
     protected $fillable = [
         'code', 'payment_date', 'sales_order_id', 'sales_invoice_id', 'customer_id', 'bank_account_id',

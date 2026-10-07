@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class Product extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -22,11 +23,14 @@ class Product extends Model
         'base_unit_id',
         'barcode',
         'is_active',
+        'average_cost',
         'created_by',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        // Harga pokok rata-rata per satuan dasar (lihat InventoryCostService).
+        'average_cost' => 'float',
     ];
 
     /**

@@ -372,7 +372,7 @@ it('creates a sales order manually without a sales canvas reference', function (
     $this->actingAs($data['user']);
 
     Livewire::test(SalesOrder::class)
-        ->assertSee('Tambah Sales Order')
+        ->assertSee('Tambah Pesanan Penjualan')
         ->assertDontSee('Salesman')
         ->call('openCreate')
         ->assertSet('showModal', true)

@@ -9,6 +9,7 @@ use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
 use App\Models\SalesReturn;
 use App\Models\StockBalance;
+use App\Services\Inventory\InventoryCostService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -294,6 +295,7 @@ class DeliveryOrder extends Component
             }
 
             $deliveryOrder->update(['status' => DeliveryOrderModel::STATUS_SHIPPED]);
+            app(InventoryCostService::class)->recordDeliveryCogs($deliveryOrder);
             $salesOrder = SalesOrder::with('items')->lockForUpdate()->findOrFail($deliveryOrder->sales_order_id);
             $this->refreshSalesOrderStatus($salesOrder);
         });
@@ -305,31 +307,46 @@ class DeliveryOrder extends Component
 
     public function openCancelShipment(int $id): void
     {
-        abort_unless(auth()->user()?->isSuperAdmin(), 403);
+        abort_unless(auth()->user()?->canCancelTransactions(), 403);
         $deliveryOrder = DeliveryOrderModel::findOrFail($id);
-        abort_unless($deliveryOrder->status === DeliveryOrderModel::STATUS_SHIPPED, 422);
+        abort_unless(in_array($deliveryOrder->status, [DeliveryOrderModel::STATUS_DRAFT, DeliveryOrderModel::STATUS_SHIPPED], true), 422);
         $this->cancelShipmentTargetId = $id;
         $this->showCancelShipmentModal = true;
     }
 
+    /**
+     * Batalkan Surat Jalan selama belum difakturkan. Surat Jalan yang sudah dikirim
+     * mengembalikan stoknya ke gudang.
+     */
     public function cancelShipment(): void
     {
-        abort_unless(auth()->user()?->isSuperAdmin(), 403);
+        abort_unless(auth()->user()?->canCancelTransactions(), 403);
         if (! $this->cancelShipmentTargetId) {
             return;
         }
 
         DB::transaction(function () {
             $deliveryOrder = DeliveryOrderModel::with('items')->lockForUpdate()->findOrFail($this->cancelShipmentTargetId);
-            if ($deliveryOrder->status !== DeliveryOrderModel::STATUS_SHIPPED) {
-                throw ValidationException::withMessages(['shipment' => 'Hanya pengiriman berstatus Dikirim yang dapat dibatalkan.']);
+            if (! in_array($deliveryOrder->status, [DeliveryOrderModel::STATUS_DRAFT, DeliveryOrderModel::STATUS_SHIPPED], true)) {
+                throw ValidationException::withMessages(['shipment' => 'Surat Jalan yang sudah difakturkan atau dibatalkan tidak dapat dibatalkan.']);
+            }
+
+            if ($deliveryOrder->salesInvoices()->exists()) {
+                throw ValidationException::withMessages(['shipment' => 'Surat Jalan tidak dapat dibatalkan karena sudah memiliki Faktur Penjualan.']);
             }
 
             if ($deliveryOrder->salesReturns()->whereIn('status', [SalesReturn::STATUS_DRAFT, SalesReturn::STATUS_CONFIRMED])->exists()) {
                 throw ValidationException::withMessages(['shipment' => 'Pengiriman tidak dapat dibatalkan karena sudah memiliki Retur Penjualan aktif.']);
             }
 
-            foreach ($deliveryOrder->items as $item) {
+            // Draf belum mengurangi stok, jadi tidak ada yang perlu dikembalikan.
+            $items = $deliveryOrder->status === DeliveryOrderModel::STATUS_SHIPPED ? $deliveryOrder->items : collect();
+
+            if ($deliveryOrder->status === DeliveryOrderModel::STATUS_SHIPPED) {
+                app(InventoryCostService::class)->reverseDeliveryCogs($deliveryOrder);
+            }
+
+            foreach ($items as $item) {
                 $stock = StockBalance::query()->firstOrCreate(
                     ['warehouse_id' => $item->warehouse_id, 'product_id' => $item->product_id],
                     ['quantity' => 0],
@@ -345,7 +362,7 @@ class DeliveryOrder extends Component
 
         $this->showCancelShipmentModal = false;
         $this->cancelShipmentTargetId = null;
-        $this->dispatch('toast', message: 'Pengiriman dibatalkan dan stok telah dikembalikan.', type: 'success');
+        $this->dispatch('toast', message: 'Surat Jalan dibatalkan. Stok yang sudah dikirim telah dikembalikan.', type: 'success');
     }
 
     public function openDetail(int $id): void

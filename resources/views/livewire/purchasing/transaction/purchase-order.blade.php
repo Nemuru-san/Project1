@@ -14,10 +14,10 @@
                 <h2 class="text-base font-semibold text-gray-900 dark:text-white">Filter Purchase Order</h2>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Temukan purchase order berdasarkan kata kunci, status, atau rentang tanggal.</p>
             </div>
-            <button wire:click="openCreate" type="button" class="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:w-auto">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center"><x-report-buttons route="purchases.transaction.purchase-order.report" :params="['search' => $search, 'status' => $statusFilter, 'date_from' => $dateFrom, 'date_to' => $dateTo]" /><button wire:click="openCreate" type="button" class="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:w-auto">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                 Tambah Purchase Order
-            </button>
+            </button></div>
         </div>
 
         <div class="grid gap-4 p-4 sm:grid-cols-2 sm:px-5 xl:grid-cols-[minmax(18rem,1fr)_auto_auto_auto] xl:items-end">
@@ -42,7 +42,7 @@
                 <label for="purchase-order-status" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Status</label>
                 <select id="purchase-order-status" wire:model.live="statusFilter" class="block w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white">
                     <option value="">Semua Status</option>
-                    <option value="Draft">Draf</option><option value="Approved">Disetujui</option><option value="Partially Received">Diterima Sebagian</option><option value="Received">Diterima</option><option value="Partial Paid">Dibayar Sebagian</option><option value="Paid">Lunas</option><option value="Closed">Ditutup</option>
+                    <option value="Draft">Draf</option><option value="Approved">Disetujui</option><option value="Partially Received">Diterima Sebagian</option><option value="Received">Diterima</option><option value="Partial Paid">Dibayar Sebagian</option><option value="Paid">Lunas</option><option value="Closed">Ditutup</option><option value="Cancelled">Dibatalkan</option>
                 </select>
             </div> --}}
 
@@ -144,6 +144,10 @@
                                 <span
                                     class="text-sm font-normal px-2.5 py-0.5 rounded bg-yellow-100 text-green-700 dark:bg-green-600 dark:text-white">Lunas
                                 </span>
+                            @elseif ($po->status === 'Cancelled')
+                                <span
+                                    class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-700 dark:text-white">Dibatalkan
+                                </span>
                             @endif
                         </td>
                         <td class="px-4 py-4">
@@ -208,6 +212,21 @@
                                                                 d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                                                         </svg>
                                                         Tutup PO
+                                                    </button>
+                                                </li>
+                                            @endif
+
+                                            @if (in_array($po->status, ['Draft', 'Approved'], true) && ! $po->isClosed() && auth()->user()?->canCancelTransactions())
+                                                <li>
+                                                    <button wire:click="confirmCancelOrder({{ $po->id }})"
+                                                        @click="open = false"
+                                                        class="flex items-center gap-2 w-full py-2 px-4 text-red-600 hover:bg-red-600 hover:text-white dark:text-red-300 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                        Batalkan PO
                                                     </button>
                                                 </li>
                                             @endif
@@ -777,6 +796,7 @@
                                             'Received' => 'bg-green-700 text-white',
                                             'Paid' => 'bg-emerald-700 text-white',
                                             'Partial Paid' => 'bg-orange-600 text-white',
+                                            'Cancelled' => 'bg-red-700 text-white',
                                             default => 'bg-zinc-600 text-white',
                                         };
                                     @endphp
@@ -965,6 +985,13 @@
                 </div>
             </div>
         </div>
+    @endif
+
+    @if ($showCancelOrderModal)
+        <x-cancel-transaction-modal title="Batalkan Pesanan Pembelian?" confirm="cancelOrder" close="closeCancelOrder">
+            PO yang dibatalkan tidak bisa dibuatkan Penerimaan Barang maupun Faktur Pembelian lagi.
+            Pembatalan hanya bisa dilakukan selama PO belum memiliki Penerimaan Barang.
+        </x-cancel-transaction-modal>
     @endif
 
     @if ($showCloseModal)

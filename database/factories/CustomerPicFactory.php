@@ -15,7 +15,7 @@ class CustomerPicFactory extends Factory
             'customer_id' => Customer::factory(),
             'name' => fake()->name(),
             'position' => fake()->jobTitle(),
-            'phone' => fake()->phoneNumber(),
+            'phone' => fake()->numerify('08##########'),
             'email' => fake()->safeEmail(),
             'notes' => null,
             'is_primary' => false,

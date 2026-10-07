@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,7 +17,9 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
+    use HasFactory, LogsActivity, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
+
+    public const CANCEL_TRANSACTIONS_PERMISSION = 'transactions.cancel';
 
     /**
      * The attributes that are mass assignable.
@@ -105,5 +108,20 @@ class User extends Authenticatable
     public function isSuperAdmin(): bool
     {
         return $this->role?->name === 'Super Admin';
+    }
+
+    public function isOwner(): bool
+    {
+        return $this->role?->name === 'Owner';
+    }
+
+    /**
+     * Pembatalan transaksi (PO, SO, GR, Surat Jalan, Faktur, Pembayaran, dll) lewat izin
+     * "transactions.cancel" yang diatur di Peran Pengguna (default diberikan ke Owner).
+     * Super Admin selalu diizinkan sebagai akun sistem.
+     */
+    public function canCancelTransactions(): bool
+    {
+        return $this->isSuperAdmin() || $this->hasPermission(self::CANCEL_TRANSACTIONS_PERMISSION);
     }
 }

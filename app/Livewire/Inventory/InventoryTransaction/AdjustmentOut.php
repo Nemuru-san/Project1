@@ -9,6 +9,7 @@ use App\Models\ProductUnit;
 use App\Models\StockAdjustment;
 use App\Models\StockBalance;
 use App\Models\Warehouse;
+use App\Services\Inventory\StockAdjustmentService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -43,6 +44,10 @@ class AdjustmentOut extends Component
     public ?int $deleteTargetId = null;
 
     public ?int $approveTargetId = null;
+
+    public bool $showCancelModal = false;
+
+    public ?int $cancelTargetId = null;
 
     public ?int $editingId = null;
 
@@ -350,32 +355,8 @@ class AdjustmentOut extends Component
 
         try {
             DB::transaction(function () {
-                $adjustment = StockAdjustment::with('items')
-                    ->where('type', 'out')
-                    ->findOrFail($this->approveTargetId);
-
-                if ($adjustment->status !== 'draft') {
-                    return;
-                }
-
-                foreach ($adjustment->items as $item) {
-                    $qtyBase = $item->qty * $item->conversion;
-
-                    $stock = StockBalance::where('warehouse_id', $adjustment->warehouse_id)
-                        ->where('product_id', $item->product_id)
-                        ->lockForUpdate()
-                        ->first();
-
-                    if (! $stock || $stock->quantity < $qtyBase) {
-                        throw new \Exception('Stock tidak cukup untuk salah satu produk.');
-                    }
-
-                    $stock->decrement('quantity', $qtyBase);
-                }
-
-                $adjustment->update([
-                    'status' => 'approved',
-                ]);
+                $adjustment = StockAdjustment::where('type', 'out')->findOrFail($this->approveTargetId);
+                app(StockAdjustmentService::class)->approve($adjustment);
             });
 
             $this->showApproveModal = false;
@@ -383,8 +364,61 @@ class AdjustmentOut extends Component
 
             $this->dispatch('toast', message: 'Penyesuaian stok keluar berhasil disetujui.', type: 'success');
         } catch (\Throwable $e) {
+            $this->showApproveModal = false;
+            $this->approveTargetId = null;
             $this->dispatch('toast', message: $e->getMessage(), type: 'error');
         }
+    }
+
+    public function confirmCancel(int $id): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Penyesuaian Stok.', type: 'error');
+
+            return;
+        }
+
+        if (StockAdjustment::where('type', 'out')->findOrFail($id)->status === StockAdjustmentService::STATUS_CANCELLED) {
+            $this->dispatch('toast', message: 'Penyesuaian stok sudah dibatalkan.', type: 'error');
+
+            return;
+        }
+
+        $this->cancelTargetId = $id;
+        $this->showCancelModal = true;
+    }
+
+    public function closeCancel(): void
+    {
+        $this->showCancelModal = false;
+        $this->cancelTargetId = null;
+    }
+
+    /**
+     * Batalkan penyesuaian: bila sudah disetujui, stok dikembalikan dan jurnal selisih persediaan dibatalkan.
+     */
+    public function cancelAdjustment(): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Penyesuaian Stok.', type: 'error');
+
+            return;
+        }
+        if (! $this->cancelTargetId) {
+            return;
+        }
+
+        try {
+            DB::transaction(function () {
+                $adjustment = StockAdjustment::where('type', 'out')->findOrFail($this->cancelTargetId);
+                app(StockAdjustmentService::class)->cancel($adjustment);
+            });
+            $this->dispatch('toast', message: 'Penyesuaian stok keluar berhasil dibatalkan.', type: 'success');
+        } catch (\Throwable $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        }
+
+        $this->closeCancel();
     }
 
     public function confirmDelete(int $id): void

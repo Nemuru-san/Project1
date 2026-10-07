@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PreOrder extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
 
     public const STATUS_DRAFT = 'draft';
 
@@ -96,9 +97,12 @@ class PreOrder extends Model
         return $this->hasMany(ArDpPaymentAllocation::class);
     }
 
+    /**
+     * SO aktif hasil konversi. SO yang dibatalkan melepas Pesanan Awal supaya bisa dikonversi ulang.
+     */
     public function salesOrder(): HasOne
     {
-        return $this->hasOne(SalesOrder::class);
+        return $this->hasOne(SalesOrder::class)->where('status', '!=', 'cancelled');
     }
 
     public function getPostedDpAmountAttribute(): int

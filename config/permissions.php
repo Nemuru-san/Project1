@@ -65,6 +65,11 @@ return [
             'inventory.transaction.transfer-stock' => 'Transfer Stok',
             'inventory.transaction.adjustment-in' => 'Penyesuaian Stok Masuk',
             'inventory.transaction.adjustment-out' => 'Penyesuaian Stok Keluar',
+            'inventory.transaction.stock-opname' => 'Stok Opname',
+        ],
+
+        'Stok Opname - Otorisasi' => [
+            'inventory.transaction.stock-opname.approve' => 'Setujui',
         ],
 
         'Transfer Stok - Otorisasi' => [
@@ -86,6 +91,7 @@ return [
             'inventory.report.stock-balance' => 'Saldo Stok',
             'inventory.report.stock-card' => 'Kartu Stok',
             'inventory.report.stock-movement' => 'Pergerakan Stok',
+            'inventory.report.stock-valuation' => 'Nilai Persediaan',
         ],
 
         'Penjualan - Master' => [
@@ -137,7 +143,6 @@ return [
         'Keuangan - Master' => [
             'finance.master.chart-of-accounts' => 'Daftar Akun',
             'finance.master.bank-accounts' => 'Rekening Bank',
-            'finance.master.payment-terms' => 'Termin Pembayaran',
         ],
 
         'Keuangan - Transaksi' => [
@@ -158,6 +163,13 @@ return [
         'Pengguna' => [
             'user.action.user' => 'Pengguna',
             'user.action.role' => 'Peran Pengguna',
+            'user.action.activity-log' => 'Log Aktivitas',
+            'user.setting.company-profile' => 'Profil Perusahaan',
+        ],
+
+        // Izin lintas modul (tidak punya halaman sendiri).
+        'Otorisasi Khusus' => [
+            'transactions.cancel' => 'Batalkan Transaksi (PO, SO, GR, Surat Jalan, Faktur, Pembayaran, DP, Pengeluaran, Stok)',
         ],
     ],
 
@@ -172,6 +184,6 @@ return [
     /*
     | Akhiran route turunan (print/preview) yang mengikuti izin halaman induknya.
     */
-    'route_suffixes' => ['.print', '.view', '.thermal-print'],
+    'route_suffixes' => ['.print', '.view', '.thermal-print', '.report'],
 
 ];

@@ -9,7 +9,7 @@
 
     {{-- FILTER BAR --}}
     <section class="my-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-            <div class="flex flex-col gap-4 border-b border-gray-100 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between dark:border-zinc-700"><div><h2 class="text-base font-semibold text-gray-900 dark:text-white">Filter Faktur Pembelian</h2><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Temukan faktur pembelian berdasarkan kata kunci, status, atau rentang tanggal.</p></div><button wire:click="openCreate" type="button" class="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:w-auto"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>Tambah Faktur Pembelian</button></div>
+            <div class="flex flex-col gap-4 border-b border-gray-100 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between dark:border-zinc-700"><div><h2 class="text-base font-semibold text-gray-900 dark:text-white">Filter Faktur Pembelian</h2><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Temukan faktur pembelian berdasarkan kata kunci, status, atau rentang tanggal.</p></div><div class="flex flex-col gap-2 sm:flex-row sm:items-center"><x-report-buttons route="purchases.transaction.purchase-invoice.report" :params="['search' => $search, 'status' => $statusFilter, 'payment_status' => $paymentStatusFilter, 'date_from' => $dateFrom, 'date_to' => $dateTo]" /><button wire:click="openCreate" type="button" class="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:w-auto"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>Tambah Faktur Pembelian</button></div></div>
             <div class="grid gap-4 p-4 sm:grid-cols-2 sm:px-5 xl:grid-cols-[minmax(18rem,1fr)_auto_auto_auto] xl:items-end">
                 <div class="sm:col-span-2 xl:col-span-1"><label for="goods-receive-search" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Pencarian</label><div class="relative"><svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg><input id="goods-receive-search" wire:model.live.debounce.300ms="search" type="search" placeholder="Cari nomor faktur, PO, atau supplier..." class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 pl-10 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"></div></div>
                 <fieldset class="sm:col-span-2 xl:col-span-1"><legend class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Rentang tanggal</legend><div class="flex items-center gap-2"><input wire:model.live="dateFrom" type="date" aria-label="Tanggal mulai" class="min-w-0 w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><span class="shrink-0 text-sm text-gray-400">s.d.</span><input wire:model.live="dateTo" type="date" aria-label="Tanggal akhir" class="min-w-0 w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"></div></fieldset>
@@ -68,7 +68,9 @@
                             Rp {{ number_format($invoice->grand_total, 0, ',', '.') }}
                         </td>
                         <td class="px-4 py-4">
-                            @if ($invoice->trashed())
+                            @if ($invoice->status === 'Cancelled')
+                                <span class="text-sm px-2.5 py-0.5 rounded bg-orange-700 text-white">Dibatalkan</span>
+                            @elseif ($invoice->trashed())
                                 <span class="text-sm px-2.5 py-0.5 rounded bg-red-700 text-white">Terhapus</span>
                             @elseif ($invoice->status === 'Draft')
                                 <span class="text-sm px-2.5 py-0.5 rounded bg-gray-600 text-white">Draf</span>
@@ -113,8 +115,10 @@
                                     class="z-50 w-44 bg-white rounded divide-y divide-gray-100 shadow dark:bg-gray-700 dark:divide-gray-600">
                                     @if ($invoice->trashed())
                                         <div class="px-4 py-2 text-sm text-gray-400">
-                                            Data sudah terhapus
+                                            {{ $invoice->status === 'Cancelled' ? 'Faktur sudah dibatalkan' : 'Data sudah terhapus' }}
                                         </div>
+                                        <button wire:click="openDetail({{ $invoice->id }})" @click="open = false"
+                                            class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 cursor-pointer">Detail</button>
                                     @else
                                         @php $locked = ! $invoice->isEditable(); @endphp
                                         <ul class="py-1 text-base text-gray-700 dark:text-gray-200">
@@ -176,6 +180,20 @@
                                                     </svg>Ubah
                                                 </button>
                                             </li>
+
+                                            @if (auth()->user()?->canCancelTransactions())
+                                                <li>
+                                                    <button wire:click="confirmCancelInvoice({{ $invoice->id }})"
+                                                        @click="open = false"
+                                                        class="flex items-center gap-2 w-full py-2 px-4 text-red-600 hover:bg-red-600 hover:text-white dark:text-red-300 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>Batalkan Faktur
+                                                    </button>
+                                                </li>
+                                            @endif
                                         </ul>
 
                                         <div class="py-1">
@@ -221,7 +239,7 @@
                 <div
                     class="flex items-center justify-between px-8 py-6 border-b border-gray-200 dark:border-zinc-700 shrink-0 bg-zinc-50 dark:bg-zinc-900">
                     <h3 class="text-lg font-semibold dark:text-white">
-                        Tambah Faktur Pembelian
+                        {{ $invoiceId ? 'Ubah Faktur Pembelian' : 'Tambah Faktur Pembelian' }}
                     </h3>
                     <button wire:click="$set('showModal', false)"
                         class="text-gray-400 hover:text-white cursor-pointer">
@@ -445,7 +463,7 @@
                                             </td>
                                             <td class="border border-gray-300 dark:border-zinc-600 px-4 py-3">
                                                 @php
-                                                    $grCodes = array_filter(array_map('trim', explode(',', (string) ($row['gr_codes'] ?? ''))));
+                                                    $grCodes = array_filter((array) ($row['gr_codes'] ?? []));
                                                 @endphp
                                                 @forelse ($grCodes as $grCode)
                                                     <span
@@ -676,14 +694,19 @@
                                 </span>
                             </div>
 
-                            <div class="flex justify-between text-sm">
-                                <div class="flex justify-between gap-4 text-sm">
-                                    <span class="text-gray-400">Goods Receive</span>
-                                    <span class="text-right font-mono text-gray-800 dark:text-white">
-                                        {{ $selectedInvoice->goodsReceives->pluck('code')->implode(', ') ?: '-' }}
-                                    </span>
-                                </div>
+                            <div class="flex justify-between gap-4 text-sm">
+                                <span class="shrink-0 text-gray-400">Goods Receive</span>
+                                <span class="flex flex-wrap justify-end gap-1">
+                                    @forelse ($selectedInvoice->goodsReceives as $goodsReceive)
+                                        <span
+                                            class="inline-block rounded-full bg-blue-100 px-2.5 py-0.5 font-mono text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">{{ $goodsReceive->code }}</span>
+                                    @empty
+                                        <span class="text-gray-800 dark:text-white">-</span>
+                                    @endforelse
+                                </span>
+                            </div>
 
+                            <div class="flex justify-between text-sm">
                                 <span class="text-gray-400">Pemasok</span>
                                 <span class="text-gray-800 dark:text-white">
                                     {{ $selectedInvoice->supplier?->name ?? '-' }}
@@ -845,6 +868,13 @@
                 </div>
             </div>
         </div>
+    @endif
+
+    @if ($showCancelInvoiceModal)
+        <x-cancel-transaction-modal title="Batalkan Faktur Pembelian?" confirm="cancelInvoice" close="closeCancelInvoice">
+            Jurnal faktur dibatalkan dan Penerimaan Barang dilepas sehingga bisa difakturkan ulang atau dibatalkan.
+            Pembatalan hanya bisa dilakukan selama faktur belum memiliki Pembayaran Utang.
+        </x-cancel-transaction-modal>
     @endif
 
     @if ($showPostModal)

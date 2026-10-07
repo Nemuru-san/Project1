@@ -40,9 +40,9 @@ it('offers every implemented ERP module in the role form with valid route keys',
         'sales.report.invoice-outstanding',
         'finance.master.chart-of-accounts',
         'finance.master.bank-accounts',
-        'finance.master.payment-terms',
         'finance.transaction.ar-payment',
         'finance.transaction.ar-dp-payment',
+        'transactions.cancel',
         'finance.report.journal-entry',
     ];
 
@@ -53,8 +53,8 @@ it('offers every implemented ERP module in the role form with valid route keys',
         'purchases.return.purchase-return-invoice',
         'sales.report.po-outstanding',
         'sales.report.invoice-outstanding',
-        'finance.master.payment-terms',
         'finance.transaction.ar-payment',
+        'transactions.cancel',
     ];
 
     $modulePermissions = $permissions->reject(fn (string $permission) => str_ends_with($permission, '.confirm')
@@ -87,7 +87,7 @@ it('renders the newly added permission groups in the role form', function () {
         ->assertSee('Retur Pembelian')
         ->assertSee('Faktur Retur Pembelian')
         ->assertSee('Pembayaran Piutang')
-        ->assertSee('Termin Pembayaran')
+        ->assertSee('Batalkan Transaksi')
         ->assertSee('Daftar Akun')
         ->assertSee('Rekening Bank')
         ->assertSee('Entri Jurnal')

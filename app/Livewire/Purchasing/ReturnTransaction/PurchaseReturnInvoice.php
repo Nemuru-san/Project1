@@ -35,6 +35,10 @@ class PurchaseReturnInvoice extends Component
 
     public ?int $postTargetId = null;
 
+    public bool $showCancelModal = false;
+
+    public ?int $cancelTargetId = null;
+
     public ?ReturnInvoice $selectedInvoice = null;
 
     public string $invoiceDate = '';
@@ -217,6 +221,63 @@ class PurchaseReturnInvoice extends Component
         }
     }
 
+    public function confirmCancel(int $id): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Faktur Retur.', type: 'error');
+
+            return;
+        }
+
+        ReturnInvoice::findOrFail($id);
+        $this->cancelTargetId = $id;
+        $this->showCancelModal = true;
+    }
+
+    public function closeCancel(): void
+    {
+        $this->showCancelModal = false;
+        $this->cancelTargetId = null;
+    }
+
+    /**
+     * Batalkan faktur retur: bila sudah diposting, kredit retur dikembalikan ke sisa utang faktur
+     * pembelian dan jurnalnya dibatalkan. Retur pembeliannya bisa difakturkan ulang.
+     */
+    public function cancelInvoice(): void
+    {
+        abort_unless(auth()->user()?->canCancelTransactions(), 403);
+        if (! $this->cancelTargetId) {
+            return;
+        }
+
+        DB::transaction(function () {
+            $returnInvoice = ReturnInvoice::lockForUpdate()->findOrFail($this->cancelTargetId);
+
+            if ($returnInvoice->status === ReturnInvoice::STATUS_POSTED) {
+                $purchaseInvoice = PurchaseInvoice::withTrashed()->lockForUpdate()->find($returnInvoice->purchase_invoice_id);
+                if ($purchaseInvoice) {
+                    $remaining = (int) $purchaseInvoice->remaining_amount + (int) $returnInvoice->grand_total;
+                    $purchaseInvoice->update([
+                        'remaining_amount' => $remaining,
+                        'payment_status' => (int) $purchaseInvoice->paid_amount <= 0
+                            ? PurchaseInvoice::PAYMENT_UNPAID
+                            : ($remaining > 0 ? PurchaseInvoice::PAYMENT_PARTIAL_PAID : PurchaseInvoice::PAYMENT_PAID),
+                    ]);
+                }
+                JournalEntry::where('source_type', JournalEntry::SOURCE_PURCHASE_RETURN_INVOICE)
+                    ->where('source_id', $returnInvoice->id)
+                    ->update(['status' => JournalEntry::STATUS_CANCELLED]);
+            }
+
+            $returnInvoice->update(['status' => ReturnInvoice::STATUS_CANCELLED]);
+            $returnInvoice->delete();
+        });
+
+        $this->closeCancel();
+        $this->dispatch('toast', message: 'Faktur Retur Pembelian berhasil dibatalkan.', type: 'success');
+    }
+
     public function delete(int $id): void
     {
         abort_unless(auth()->user()?->isSuperAdmin(), 403);
@@ -270,7 +331,7 @@ class PurchaseReturnInvoice extends Component
     {
         $invoices = ReturnInvoice::with(['supplier', 'purchaseReturn', 'purchaseInvoice'])
             ->when($this->search, fn ($query) => $query->where(fn ($query) => $query->where('credit_note_no', 'like', '%'.$this->search.'%')->orWhere('supplier_credit_no', 'like', '%'.$this->search.'%')->orWhereHas('supplier', fn ($supplier) => $supplier->where('name', 'like', '%'.$this->search.'%'))))
-            ->when($this->statusFilter, fn ($query) => $query->where('status', $this->statusFilter))
+            ->when($this->statusFilter === ReturnInvoice::STATUS_CANCELLED, fn ($query) => $query->withTrashed())->when($this->statusFilter, fn ($query) => $query->where('status', $this->statusFilter))
             ->when($this->dateFrom, fn ($query) => $query->whereDate('invoice_date', '>=', $this->dateFrom))
             ->when($this->dateTo, fn ($query) => $query->whereDate('invoice_date', '<=', $this->dateTo))
             ->latest('invoice_date')->latest('id')->paginate($this->perPage);

@@ -2,17 +2,21 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PurchaseReturnInvoice extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
 
     public const STATUS_DRAFT = 'Draft';
 
     public const STATUS_POSTED = 'Posted';
+
+    // Faktur retur batal: status ini + soft delete, sehingga returnya bisa difakturkan ulang.
+    public const STATUS_CANCELLED = 'Cancelled';
 
     protected $fillable = ['credit_note_no', 'supplier_credit_no', 'invoice_date', 'purchase_return_id', 'purchase_invoice_id', 'supplier_id', 'subtotal', 'tax_amount', 'grand_total', 'status', 'notes', 'posted_at', 'posted_by', 'created_by'];
 

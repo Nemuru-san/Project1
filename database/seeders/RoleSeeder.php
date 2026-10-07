@@ -80,6 +80,10 @@ class RoleSeeder extends Seeder
             'sales.report.po-outstanding',
             'sales.report.invoice-outstanding',
             'finance.transaction.ar-payment',
+            'inventory.transaction.stock-opname',
+            'inventory.transaction.stock-opname.approve',
+            'inventory.report.stock-valuation',
+            'transactions.cancel',
         ];
 
         $owner = Role::withTrashed()->firstOrCreate(

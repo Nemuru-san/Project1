@@ -16,6 +16,7 @@ use App\Models\ProductUnit;
 use App\Models\Role;
 use App\Models\SalesInvoice;
 use App\Models\SalesOrder;
+use App\Models\StockBalance;
 use App\Models\User;
 use App\Models\Warehouse;
 use Livewire\Livewire;
@@ -40,6 +41,8 @@ function verifiedSalesOrderFixture(): array
         'status' => 'draft', 'created_by' => $user->id,
     ]);
     $order->items()->create(['product_id' => $product->id, 'warehouse_id' => $warehouse->id, 'unit_id' => $unit->id, 'qty' => 10, 'conversion' => 1, 'unit_price' => 10000, 'discount_amount' => 0, 'line_total' => 100000]);
+    // Konfirmasi SO butuh stok fisik & AFS yang cukup.
+    StockBalance::create(['product_id' => $product->id, 'warehouse_id' => $warehouse->id, 'quantity' => 10]);
 
     return compact('role', 'user', 'customer', 'order');
 }

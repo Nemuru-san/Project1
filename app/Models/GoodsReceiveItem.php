@@ -21,6 +21,7 @@ class GoodsReceiveItem extends Model
         'qty_received',
         'qty_outstanding',
         'qty_base',
+        'unit_cost',
         'note',
     ];
 

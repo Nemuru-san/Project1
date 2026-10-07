@@ -150,6 +150,21 @@
                                                     </li>
                                                 @endif
 
+                                                @if (in_array($gr->status, ['Draft', 'Received'], true) && auth()->user()?->canCancelTransactions())
+                                                    <li>
+                                                        <button wire:click="confirmCancelGoodsReceive({{ $gr->id }})"
+                                                            @click="open = false"
+                                                            class="flex items-center gap-2 w-full py-2 px-4 text-red-600 hover:bg-red-600 hover:text-white dark:text-red-300 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer">
+                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                                viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                            </svg>
+                                                            Batalkan GR
+                                                        </button>
+                                                    </li>
+                                                @endif
+
                                                 <li>
                                                     <a href="{{ route('purchases.transaction.good-receive.print', $gr->id) }}"
                                                         target="_blank" @click="open = false"
@@ -649,7 +664,9 @@
                                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-zinc-800 dark:border-zinc-600 dark:text-white w-48">
                                         <option value="Draft">Draf</option>
                                         <option value="Received">Diterima</option>
-                                        <option value="Cancelled">Dibatalkan</option>
+                                        @if (auth()->user()?->canCancelTransactions())
+                                            <option value="Cancelled">Dibatalkan</option>
+                                        @endif
                                     </select>
 
                                     <button wire:click="updateStatus" wire:loading.attr="disabled"
@@ -676,6 +693,13 @@
                     </div>
                 </div>
             </div>
+        @endif
+
+        @if ($showCancelGoodsReceiveModal)
+            <x-cancel-transaction-modal title="Batalkan Penerimaan Barang?" confirm="cancelGoodsReceive" close="closeCancelGoodsReceive">
+                Barang yang sudah diterima akan dikeluarkan lagi dari stok. Pembatalan hanya bisa dilakukan
+                selama Penerimaan Barang belum memiliki Faktur Pembelian.
+            </x-cancel-transaction-modal>
         @endif
 
         @if ($showReceiveModal)

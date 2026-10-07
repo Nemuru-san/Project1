@@ -35,6 +35,10 @@ class SalesReturnInvoice extends Component
 
     public ?int $postTargetId = null;
 
+    public bool $showCancelModal = false;
+
+    public ?int $cancelTargetId = null;
+
     public ?ReturnInvoice $selectedInvoice = null;
 
     public string $invoiceDate = '';
@@ -174,6 +178,54 @@ class SalesReturnInvoice extends Component
         $journal->lines()->create(['chart_of_account_id' => $account('1300'), 'debit' => 0, 'credit' => $invoice->grand_total, 'description' => 'Pengurangan piutang pelanggan']);
     }
 
+    public function confirmCancel(int $id): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Faktur Retur.', type: 'error');
+
+            return;
+        }
+
+        ReturnInvoice::findOrFail($id);
+        $this->cancelTargetId = $id;
+        $this->showCancelModal = true;
+    }
+
+    public function closeCancel(): void
+    {
+        $this->showCancelModal = false;
+        $this->cancelTargetId = null;
+    }
+
+    /**
+     * Batalkan faktur retur: bila sudah diposting, nota kredit dikembalikan ke sisa piutang faktur
+     * penjualan dan jurnalnya dibatalkan. Retur penjualannya bisa difakturkan ulang.
+     */
+    public function cancelInvoice(): void
+    {
+        abort_unless(auth()->user()?->canCancelTransactions(), 403);
+        if (! $this->cancelTargetId) {
+            return;
+        }
+
+        DB::transaction(function () {
+            $returnInvoice = ReturnInvoice::lockForUpdate()->findOrFail($this->cancelTargetId);
+
+            if ($returnInvoice->status === ReturnInvoice::STATUS_POSTED) {
+                SalesInvoice::withTrashed()->whereKey($returnInvoice->sales_invoice_id)->increment('amount_due', $returnInvoice->grand_total);
+                JournalEntry::where('source_type', JournalEntry::SOURCE_SALES_RETURN_INVOICE)
+                    ->where('source_id', $returnInvoice->id)
+                    ->update(['status' => JournalEntry::STATUS_CANCELLED]);
+            }
+
+            $returnInvoice->update(['status' => ReturnInvoice::STATUS_CANCELLED]);
+            $returnInvoice->delete();
+        });
+
+        $this->closeCancel();
+        $this->dispatch('toast', message: 'Faktur Retur Penjualan berhasil dibatalkan.', type: 'success');
+    }
+
     public function delete(int $id): void
     {
         abort_unless(auth()->user()?->isSuperAdmin(), 403);
@@ -224,7 +276,7 @@ class SalesReturnInvoice extends Component
 
     public function render()
     {
-        $invoices = ReturnInvoice::with(['customer', 'salesReturn', 'salesInvoice'])->when($this->search, fn ($query) => $query->where(fn ($query) => $query->where('credit_note_no', 'like', '%'.$this->search.'%')->orWhere('customer_reference_no', 'like', '%'.$this->search.'%')->orWhereHas('customer', fn ($customer) => $customer->where('name', 'like', '%'.$this->search.'%'))))->when($this->statusFilter, fn ($query) => $query->where('status', $this->statusFilter))->when($this->dateFrom, fn ($query) => $query->whereDate('invoice_date', '>=', $this->dateFrom))->when($this->dateTo, fn ($query) => $query->whereDate('invoice_date', '<=', $this->dateTo))->latest('invoice_date')->latest('id')->paginate($this->perPage);
+        $invoices = ReturnInvoice::with(['customer', 'salesReturn', 'salesInvoice'])->when($this->search, fn ($query) => $query->where(fn ($query) => $query->where('credit_note_no', 'like', '%'.$this->search.'%')->orWhere('customer_reference_no', 'like', '%'.$this->search.'%')->orWhereHas('customer', fn ($customer) => $customer->where('name', 'like', '%'.$this->search.'%'))))->when($this->statusFilter === ReturnInvoice::STATUS_CANCELLED, fn ($query) => $query->withTrashed())->when($this->statusFilter, fn ($query) => $query->where('status', $this->statusFilter))->when($this->dateFrom, fn ($query) => $query->whereDate('invoice_date', '>=', $this->dateFrom))->when($this->dateTo, fn ($query) => $query->whereDate('invoice_date', '<=', $this->dateTo))->latest('invoice_date')->latest('id')->paginate($this->perPage);
         $return = $this->salesReturnId ? SalesReturn::find($this->salesReturnId) : null;
 
         return view('livewire.sales.return-transaction.sales-return-invoice', ['invoices' => $invoices, 'salesReturns' => SalesReturn::with(['customer', 'salesOrder'])->where('status', SalesReturn::STATUS_CONFIRMED)->whereDoesntHave('returnInvoice')->latest('return_date')->get(), 'salesInvoices' => $return ? SalesInvoice::where('sales_order_id', $return->sales_order_id)->where('status', SalesInvoice::STATUS_CONFIRMED)->get() : collect()]);

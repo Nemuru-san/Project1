@@ -13,6 +13,7 @@
             <option value="">Semua Status</option>
             <option value="Draft">Draf</option>
             <option value="Posted">Diposting</option>
+            <option value="Cancelled">Dibatalkan</option>
         </x-filter.select>
         <x-filter.date-range />
         <x-filter.per-page :show-reset="filled($search) || filled($statusFilter) || filled($dateFrom) || filled($dateTo)" />
@@ -51,7 +52,9 @@
                                         $expense->status === 'Draft',
                                     'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' =>
                                         $expense->status === 'Posted',
-                                ])>{{ $expense->status === 'Draft' ? 'Draf' : 'Diposting' }}</span>
+                                    'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' =>
+                                        $expense->status === 'Cancelled',
+                                ])>{{ ['Draft' => 'Draf', 'Posted' => 'Diposting', 'Cancelled' => 'Dibatalkan'][$expense->status] ?? $expense->status }}</span>
                         </td>
                         <td class="px-4 py-3 text-center">
                             <div class="inline-block" x-data="{ open: false, top: 0, left: 0, toggle(el) { const r = el.getBoundingClientRect();
@@ -91,6 +94,14 @@
                                                                 stroke-width="2"
                                                                 d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0Z" />
                                                         </svg>Posting Pengeluaran</button></li>
+                                            @endif
+                                            @if ($expense->status !== 'Cancelled' && auth()->user()?->canCancelTransactions())
+                                                <li><button type="button" wire:click="confirmCancel({{ $expense->id }})"
+                                                        @click="open = false"
+                                                        class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-600 hover:text-white dark:text-red-300"><svg
+                                                            class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>Batalkan Pengeluaran</button></li>
                                             @endif
                                             <li><button type="button" wire:click="openDetail({{ $expense->id }})"
                                                     @click="open = false"
@@ -373,6 +384,12 @@
                 </div>
             </div>
         </div>
+    @endif
+
+    @if ($showCancelModal)
+        <x-cancel-transaction-modal title="Batalkan Pengeluaran?" confirm="cancelExpense" close="closeCancel">
+            Jika pengeluaran sudah diposting, jurnal biayanya ikut dibatalkan sehingga tidak lagi tercatat di laporan.
+        </x-cancel-transaction-modal>
     @endif
 
     @if ($showPostModal)

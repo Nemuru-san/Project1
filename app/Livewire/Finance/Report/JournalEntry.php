@@ -190,6 +190,12 @@ class JournalEntry extends Component
                 ModelsJournalEntry::SOURCE_PURCHASE_INVOICE => 'Faktur Pembelian',
                 ModelsJournalEntry::SOURCE_AP_PAYMENT => 'Pembayaran Utang',
                 ModelsJournalEntry::SOURCE_EXPENSE => 'Pengeluaran',
+                ModelsJournalEntry::SOURCE_SALES_INVOICE => 'Faktur Penjualan',
+                ModelsJournalEntry::SOURCE_AR_PAYMENT => 'Pembayaran Piutang',
+                ModelsJournalEntry::SOURCE_AR_DP_PAYMENT => 'Penerimaan DP',
+                ModelsJournalEntry::SOURCE_DELIVERY_ORDER => 'HPP Surat Jalan',
+                ModelsJournalEntry::SOURCE_SALES_RETURN => 'Retur Penjualan (Persediaan)',
+                ModelsJournalEntry::SOURCE_STOCK_ADJUSTMENT => 'Penyesuaian Stok',
                 ModelsJournalEntry::SOURCE_MANUAL_JOURNAL => 'Jurnal Manual',
             ],
         ]);

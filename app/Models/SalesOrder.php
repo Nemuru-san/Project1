@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SalesOrder extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'order_no', 'date', 'order_type', 'sales_canvas_id', 'pre_order_id', 'salesman_id', 'customer_id',
@@ -96,6 +97,34 @@ class SalesOrder extends Model
         return $this->isEditable()
             ? null
             : 'Pesanan Penjualan yang sudah diproses tidak dapat diubah.';
+    }
+
+    /**
+     * SO bisa dibatalkan selama belum ada Surat Jalan aktif (selain yang dibatalkan)
+     * dan belum difakturkan.
+     */
+    public function canBeCancelled(): bool
+    {
+        return in_array($this->status, ['draft', 'verified'], true)
+            && ! $this->deliveryOrders()->where('status', '!=', DeliveryOrder::STATUS_CANCELLED)->exists()
+            && ! $this->salesInvoices()->exists();
+    }
+
+    public function cancelLockReason(): ?string
+    {
+        if ($this->canBeCancelled()) {
+            return null;
+        }
+
+        if ($this->status === 'cancelled') {
+            return 'Pesanan Penjualan sudah dibatalkan.';
+        }
+
+        if ($this->salesInvoices()->exists()) {
+            return 'Pesanan Penjualan tidak dapat dibatalkan karena sudah memiliki Faktur Penjualan.';
+        }
+
+        return 'Pesanan Penjualan tidak dapat dibatalkan karena sudah memiliki Surat Jalan.';
     }
 
     public function salesCanvas(): BelongsTo

@@ -183,7 +183,7 @@
                             </div>
                             <div>
                                 <label class="mb-1 block text-sm font-medium dark:text-white">Telepon</label>
-                                <input wire:model="phone" type="text" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                                <input wire:model="phone" type="text" inputmode="numeric" maxlength="20" x-on:beforeinput="if ($event.data && /\D/.test($event.data)) $event.preventDefault()" x-on:paste.prevent="document.execCommand('insertText', false, ($event.clipboardData.getData('text') || '').replace(/\D/g, ''))" placeholder="Hanya angka" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
                                 @error('phone') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                             </div>
                             <div>
@@ -289,7 +289,7 @@
                                         </div>
                                         <div>
                                             <label class="mb-1 block text-xs dark:text-gray-300">Telepon</label>
-                                            <input wire:model="pics.{{ $index }}.phone" type="text" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
+                                            <input wire:model="pics.{{ $index }}.phone" type="text" inputmode="numeric" maxlength="20" x-on:beforeinput="if ($event.data && /\D/.test($event.data)) $event.preventDefault()" x-on:paste.prevent="document.execCommand('insertText', false, ($event.clipboardData.getData('text') || '').replace(/\D/g, ''))" placeholder="Hanya angka" class="w-full rounded-lg border p-2.5 text-sm dark:border-gray-600 dark:bg-zinc-700 dark:text-white">
                                             @error("pics.$index.phone") <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                                         </div>
                                     </div>

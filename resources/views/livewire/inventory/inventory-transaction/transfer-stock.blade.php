@@ -90,6 +90,8 @@
                             @elseif ($transfer->status === 'approved')
                                 <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-blue-700 text-white">Disetujui
                                 </span>
+                            @elseif ($transfer->status === 'cancelled')
+                                <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-700 text-white">Dibatalkan</span>
                             @else
                                 <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-zinc-600 text-white">
                                     {{ ucfirst($transfer->status) }}
@@ -185,6 +187,16 @@
                                                     </svg>Detail
                                                 </button>
                                             </li>
+                                            @if (in_array($transfer->status, ['draft', 'approved'], true) && auth()->user()?->canCancelTransactions())
+                                                <li>
+                                                    <button wire:click="confirmCancel({{ $transfer->id }})" @click="open = false"
+                                                        class="flex items-center gap-2 w-full py-2 px-4 text-red-600 hover:bg-red-600 hover:text-white dark:text-red-300 cursor-pointer">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>Batalkan
+                                                    </button>
+                                                </li>
+                                            @endif
                                             @if ($transfer->status === 'draft')
                                                 <li>
                                                     <button wire:click="edit({{ $transfer->id }})"
@@ -560,6 +572,12 @@
     @endif
 
     {{-- APPROVE MODAL --}}
+    @if ($showCancelModal)
+        <x-cancel-transaction-modal title="Batalkan Transfer Stok?" confirm="cancelTransfer" close="closeCancel">
+            Jika sudah disetujui, barang dipindah kembali dari gudang tujuan ke gudang asal.
+        </x-cancel-transaction-modal>
+    @endif
+
     @if ($showApproveModal)
         <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
             <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-sm mx-4 p-6">

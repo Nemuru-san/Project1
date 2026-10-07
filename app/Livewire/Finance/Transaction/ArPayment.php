@@ -21,6 +21,8 @@ class ArPayment extends Component
 
     public string $search = '';
 
+    public string $statusFilter = '';
+
     public int $perPage = 10;
 
     public bool $showModal = false;
@@ -28,6 +30,20 @@ class ArPayment extends Component
     public bool $showPostModal = false;
 
     public ?int $postTargetId = null;
+
+    public bool $showDetailModal = false;
+
+    public ?ArPaymentModel $selectedPayment = null;
+
+    public bool $showDeleteModal = false;
+
+    public ?int $deleteTargetId = null;
+
+    public bool $showCancelModal = false;
+
+    public ?int $cancelTargetId = null;
+
+    public ?int $editingId = null;
 
     public string $code = '';
 
@@ -77,11 +93,39 @@ class ArPayment extends Component
         $this->resetPage();
     }
 
+    public function updatingStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
     public function openCreate(): void
     {
         abort_unless(auth()->user()?->hasPermission('finance.transaction.ar-payment'), 403);
         $this->resetForm();
         $this->code = $this->generateCode();
+        $this->showModal = true;
+    }
+
+    public function openEdit(int $id): void
+    {
+        abort_unless(auth()->user()?->hasPermission('finance.transaction.ar-payment'), 403);
+        $payment = ArPaymentModel::findOrFail($id);
+
+        if ($payment->status !== ArPaymentModel::STATUS_DRAFT) {
+            $this->dispatch('toast', message: 'Hanya pembayaran berstatus Draf yang dapat diubah.', type: 'error');
+
+            return;
+        }
+
+        $this->resetForm();
+        $this->editingId = $payment->id;
+        $this->code = $payment->code;
+        $this->paymentDate = $payment->payment_date->toDateString();
+        $this->salesInvoiceId = $payment->sales_invoice_id;
+        $this->bankAccountId = $payment->bank_account_id;
+        $this->amount = (int) $payment->amount;
+        $this->paymentMethod = $payment->payment_method;
+        $this->notes = $payment->notes ?? '';
         $this->showModal = true;
     }
 
@@ -102,16 +146,47 @@ class ArPayment extends Component
             return;
         }
 
-        ArPaymentModel::create([
-            'code' => $this->generateCode(), 'payment_date' => $this->paymentDate,
+        $data = [
+            'payment_date' => $this->paymentDate,
             'sales_order_id' => $invoice->sales_order_id, 'sales_invoice_id' => $invoice->id,
             'customer_id' => $invoice->customer_id,
             'bank_account_id' => $this->bankAccountId, 'amount' => $this->amount,
-            'payment_method' => $this->paymentMethod, 'status' => ArPaymentModel::STATUS_DRAFT,
-            'notes' => trim($this->notes) ?: null, 'created_by' => Auth::id(),
-        ]);
+            'payment_method' => $this->paymentMethod,
+            'notes' => trim($this->notes) ?: null,
+        ];
+
+        if ($this->editingId) {
+            $payment = ArPaymentModel::findOrFail($this->editingId);
+            if ($payment->status !== ArPaymentModel::STATUS_DRAFT) {
+                $this->addError('amount', 'Pembayaran yang sudah diposting tidak dapat diubah.');
+
+                return;
+            }
+            $payment->update($data);
+            $message = 'Pembayaran Piutang berhasil diperbarui.';
+        } else {
+            ArPaymentModel::create($data + [
+                'code' => $this->generateCode(), 'status' => ArPaymentModel::STATUS_DRAFT, 'created_by' => Auth::id(),
+            ]);
+            $message = 'Pembayaran Piutang berhasil disimpan sebagai draf.';
+        }
+
         $this->resetForm();
-        $this->dispatch('toast', message: 'Pembayaran Piutang berhasil disimpan sebagai draf.', type: 'success');
+        $this->dispatch('toast', message: $message, type: 'success');
+    }
+
+    public function openDetail(int $id): void
+    {
+        $this->selectedPayment = ArPaymentModel::withTrashed()
+            ->with(['salesInvoice' => fn ($query) => $query->withTrashed(), 'salesInvoice.salesOrder.preOrder', 'customer', 'bankAccount', 'creator'])
+            ->findOrFail($id);
+        $this->showDetailModal = true;
+    }
+
+    public function closeDetail(): void
+    {
+        $this->showDetailModal = false;
+        $this->selectedPayment = null;
     }
 
     public function confirmPost(int $id): void
@@ -133,7 +208,10 @@ class ArPayment extends Component
                 if (! $payment->sales_invoice_id) {
                     throw new \RuntimeException('Pembayaran lama belum terhubung ke Faktur Penjualan. Buat pembayaran baru dari faktur yang sudah dikonfirmasi.');
                 }
-                $invoice = SalesInvoice::lockForUpdate()->findOrFail($payment->sales_invoice_id);
+                $invoice = SalesInvoice::lockForUpdate()->find($payment->sales_invoice_id);
+                if (! $invoice) {
+                    throw new \RuntimeException('Faktur Penjualan untuk pembayaran ini sudah dibatalkan.');
+                }
                 $order = SalesOrder::lockForUpdate()->findOrFail($payment->sales_order_id);
                 if ($invoice->status !== SalesInvoice::STATUS_CONFIRMED) {
                     throw new \RuntimeException('Faktur Penjualan belum dikonfirmasi.');
@@ -173,9 +251,127 @@ class ArPayment extends Component
         $this->postTargetId = null;
     }
 
+    public function confirmCancel(int $id): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Pembayaran Piutang.', type: 'error');
+
+            return;
+        }
+
+        $payment = ArPaymentModel::findOrFail($id);
+        if ($payment->status === ArPaymentModel::STATUS_CANCELLED) {
+            $this->dispatch('toast', message: 'Pembayaran Piutang sudah dibatalkan.', type: 'error');
+
+            return;
+        }
+
+        $this->cancelTargetId = $id;
+        $this->showCancelModal = true;
+    }
+
+    public function closeCancel(): void
+    {
+        $this->showCancelModal = false;
+        $this->cancelTargetId = null;
+    }
+
+    /**
+     * Batalkan pembayaran: draf cukup ditandai batal; yang sudah diposting dikembalikan ke sisa
+     * tagihan faktur & SO dan jurnalnya dibatalkan, sehingga faktur bisa dibatalkan/diubah lagi.
+     */
+    public function cancelPayment(): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Pembayaran Piutang.', type: 'error');
+
+            return;
+        }
+        if (! $this->cancelTargetId) {
+            return;
+        }
+
+        try {
+            DB::transaction(function () {
+                $payment = ArPaymentModel::lockForUpdate()->findOrFail($this->cancelTargetId);
+                if ($payment->status === ArPaymentModel::STATUS_CANCELLED) {
+                    throw new \RuntimeException('Pembayaran Piutang sudah dibatalkan.');
+                }
+
+                if ($payment->status === ArPaymentModel::STATUS_POSTED) {
+                    $amount = (int) $payment->amount;
+                    $invoice = SalesInvoice::withTrashed()->lockForUpdate()->find($payment->sales_invoice_id);
+                    if ($invoice) {
+                        $invoice->update([
+                            'paid_amount' => max(0, (int) $invoice->paid_amount - $amount),
+                            'amount_due' => (int) $invoice->amount_due + $amount,
+                        ]);
+                    }
+                    SalesOrder::whereKey($payment->sales_order_id)->increment('amount_due', $amount);
+
+                    JournalEntry::where('source_type', JournalEntry::SOURCE_AR_PAYMENT)
+                        ->where('source_id', $payment->id)
+                        ->update(['status' => JournalEntry::STATUS_CANCELLED]);
+                }
+
+                $payment->update(['status' => ArPaymentModel::STATUS_CANCELLED]);
+            });
+
+            if ($this->selectedPayment?->id === $this->cancelTargetId) {
+                $this->openDetail($this->cancelTargetId);
+            }
+            $this->dispatch('toast', message: 'Pembayaran Piutang berhasil dibatalkan.', type: 'success');
+        } catch (\Throwable $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        }
+
+        $this->closeCancel();
+    }
+
+    public function confirmDelete(int $id): void
+    {
+        if (! auth()->user()?->isSuperAdmin()) {
+            $this->dispatch('toast', message: 'Hanya Super Admin yang dapat menghapus data.', type: 'error');
+
+            return;
+        }
+
+        if (ArPaymentModel::findOrFail($id)->status !== ArPaymentModel::STATUS_DRAFT) {
+            $this->dispatch('toast', message: 'Hanya pembayaran berstatus Draf yang dapat dihapus.', type: 'error');
+
+            return;
+        }
+
+        $this->deleteTargetId = $id;
+        $this->showDeleteModal = true;
+    }
+
+    public function delete(): void
+    {
+        if (! auth()->user()?->isSuperAdmin()) {
+            $this->dispatch('toast', message: 'Hanya Super Admin yang dapat menghapus data.', type: 'error');
+
+            return;
+        }
+        if (! $this->deleteTargetId) {
+            return;
+        }
+
+        $payment = ArPaymentModel::findOrFail($this->deleteTargetId);
+        if ($payment->status !== ArPaymentModel::STATUS_DRAFT) {
+            $this->dispatch('toast', message: 'Hanya pembayaran berstatus Draf yang dapat dihapus.', type: 'error');
+        } else {
+            $payment->delete();
+            $this->dispatch('toast', message: 'Draf Pembayaran Piutang berhasil dihapus.', type: 'success');
+        }
+
+        $this->showDeleteModal = false;
+        $this->deleteTargetId = null;
+    }
+
     private function resetForm(): void
     {
-        $this->reset(['showModal', 'salesInvoiceId', 'bankAccountId', 'amount', 'notes']);
+        $this->reset(['showModal', 'editingId', 'salesInvoiceId', 'bankAccountId', 'amount', 'notes']);
         $this->paymentDate = now()->toDateString();
         $this->paymentMethod = 'Transfer';
         $this->resetErrorBag();
@@ -199,20 +395,34 @@ class ArPayment extends Component
 
     public function resetFilters(): void
     {
-        $this->reset(['search']);
+        $this->reset(['search', 'statusFilter']);
         $this->resetPage();
     }
 
     public function render()
     {
+        $salesInvoices = SalesInvoice::with(['customer', 'salesOrder'])
+            ->where('status', SalesInvoice::STATUS_CONFIRMED)->where('amount_due', '>', 0)
+            ->latest('invoice_date')->get();
+
+        // Saat mengubah draf, faktur yang sedang dipakai tetap tampil walau sisa tagihannya sudah 0.
+        if ($this->editingId && $this->salesInvoiceId && ! $salesInvoices->contains('id', $this->salesInvoiceId)) {
+            if ($current = SalesInvoice::with(['customer', 'salesOrder'])->find($this->salesInvoiceId)) {
+                $salesInvoices->prepend($current);
+            }
+        }
+
         return view('livewire.finance.transaction.ar-payment', [
-            'payments' => ArPaymentModel::with(['salesInvoice', 'salesOrder', 'customer', 'bankAccount'])
+            'payments' => ArPaymentModel::with(['salesInvoice' => fn ($query) => $query->withTrashed(), 'salesOrder', 'customer', 'bankAccount'])
+                ->when($this->statusFilter, fn (Builder $q) => $q->where('status', $this->statusFilter))
                 ->when($this->search, fn (Builder $q) => $q->where(fn (Builder $q) => $q->where('code', 'like', '%'.$this->search.'%')->orWhereHas('salesInvoice', fn (Builder $invoice) => $invoice->where('invoice_no', 'like', '%'.$this->search.'%'))))
-                ->latest('payment_date')->paginate($this->perPage),
-            'salesInvoices' => SalesInvoice::with(['customer', 'salesOrder'])
-                ->where('status', SalesInvoice::STATUS_CONFIRMED)->where('amount_due', '>', 0)
-                ->latest('invoice_date')->get(),
+                ->latest('payment_date')->latest('id')->paginate($this->perPage),
+            'salesInvoices' => $salesInvoices,
             'bankAccounts' => BankAccount::where('is_active', true)->orderBy('name')->get(),
+            // Ringkasan tagihan faktur terpilih, termasuk DP dari Pre Order yang sudah memotong tagihan.
+            'selectedInvoice' => $this->salesInvoiceId
+                ? SalesInvoice::with('salesOrder.preOrder')->find($this->salesInvoiceId)
+                : null,
         ]);
     }
 }

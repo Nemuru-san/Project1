@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,11 +12,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SalesInvoice extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
 
     public const STATUS_DRAFT = 'Draft';
 
     public const STATUS_CONFIRMED = 'Confirmed';
+
+    // Faktur batal disimpan dengan status ini lalu di-soft-delete, sehingga tidak lagi
+    // dihitung sebagai faktur aktif oleh SO, Surat Jalan, maupun laporan piutang.
+    public const STATUS_CANCELLED = 'Cancelled';
 
     protected $fillable = [
         'invoice_no', 'invoice_date', 'due_date', 'sales_order_id', 'customer_id',
@@ -72,6 +77,50 @@ class SalesInvoice extends Model
         }
 
         return 'Faktur Penjualan sudah menerima pembayaran sehingga tidak dapat diubah lagi.';
+    }
+
+    /**
+     * Sama dengan daftar Faktur Penjualan: Super Admin, pembuat faktur, atau salesman pemilik SO /
+     * Sales Kanvasnya. Dipakai untuk melindungi halaman lihat & cetak faktur dari akses lewat URL.
+     */
+    public function isAccessibleBy(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+        if ($user->isSuperAdmin() || $this->created_by === $user->id) {
+            return true;
+        }
+
+        $salesmanId = $user->salesman()->where('is_active', true)->value('id');
+        if (! $salesmanId) {
+            return false;
+        }
+
+        $this->loadMissing('salesOrder.salesCanvas');
+
+        return $this->salesOrder?->salesman_id === $salesmanId
+            || $this->salesOrder?->salesCanvas?->salesman_id === $salesmanId;
+    }
+
+    /**
+     * Faktur bisa dibatalkan selama belum ada Pembayaran Piutang (draf maupun posting) dan retur.
+     */
+    public function cancelLockReason(): ?string
+    {
+        if ($this->trashed() || $this->status === self::STATUS_CANCELLED) {
+            return 'Faktur Penjualan sudah dibatalkan.';
+        }
+
+        if ((int) $this->paid_amount > 0 || $this->payments()->where('status', '!=', ArPayment::STATUS_CANCELLED)->exists()) {
+            return 'Faktur Penjualan tidak dapat dibatalkan karena sudah memiliki Pembayaran Piutang.';
+        }
+
+        if ($this->salesReturnInvoices()->exists()) {
+            return 'Faktur Penjualan tidak dapat dibatalkan karena sudah memiliki Faktur Retur.';
+        }
+
+        return null;
     }
 
     public function salesOrder(): BelongsTo

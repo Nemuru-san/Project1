@@ -49,6 +49,15 @@ class JournalEntry extends Model
 
     const SOURCE_MANUAL_JOURNAL = 'ManualJournal';
 
+    // HPP saat barang dikirim (Dr HPP / Cr Persediaan).
+    const SOURCE_DELIVERY_ORDER = 'DeliveryOrder';
+
+    // Barang retur penjualan kembali ke persediaan (Dr Persediaan / Cr HPP).
+    const SOURCE_SALES_RETURN = 'SalesReturn';
+
+    // Penyesuaian stok masuk/keluar & stok opname (lawan akun Selisih Persediaan).
+    const SOURCE_STOCK_ADJUSTMENT = 'StockAdjustment';
+
     public static function statusOptions(): array
     {
         return [

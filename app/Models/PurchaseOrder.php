@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PurchaseOrder extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'code',
@@ -52,6 +53,8 @@ class PurchaseOrder extends Model
 
     const STATUS_PAID = 'Paid';
 
+    const STATUS_CANCELLED = 'Cancelled';
+
     public static function statusOptions(): array
     {
         return [
@@ -61,7 +64,32 @@ class PurchaseOrder extends Model
             self::STATUS_PARTIALLY_RECEIVED,
             self::STATUS_PARITAL_PAID,
             self::STATUS_PAID,
+            self::STATUS_CANCELLED,
         ];
+    }
+
+    /**
+     * PO bisa dibatalkan selama belum ada Penerimaan Barang aktif (selain yang dibatalkan).
+     */
+    public function canBeCancelled(): bool
+    {
+        return in_array($this->status, [self::STATUS_DRAFT, self::STATUS_APPROVED], true)
+            && ! $this->isClosed()
+            && ! $this->goodsReceives()->where('status', '!=', GoodsReceive::STATUS_CANCELLED)->exists()
+            && ! $this->purchaseInvoices()->exists();
+    }
+
+    public function cancelLockReason(): ?string
+    {
+        if ($this->canBeCancelled()) {
+            return null;
+        }
+
+        if ($this->status === self::STATUS_CANCELLED) {
+            return 'Pesanan Pembelian sudah dibatalkan.';
+        }
+
+        return 'Pesanan Pembelian tidak dapat dibatalkan karena sudah memiliki Penerimaan Barang.';
     }
 
     public function items(): HasMany
@@ -154,7 +182,7 @@ class PurchaseOrder extends Model
     public function canBeClosed(): bool
     {
         return ! $this->isClosed()
-            && $this->status !== self::STATUS_DRAFT
+            && ! in_array($this->status, [self::STATUS_DRAFT, self::STATUS_CANCELLED], true)
             && $this->receivedQty() < $this->orderedQty();
     }
 
@@ -178,8 +206,21 @@ class PurchaseOrder extends Model
     {
         $paidAmount = (int) $this->purchaseInvoices()->sum('paid_amount');
 
-        // Belum ada pembayaran: status penerimaan dibiarkan apa adanya.
+        // Belum ada pembayaran: status penerimaan dibiarkan apa adanya, kecuali PO
+        // masih berstatus bayar karena pembayarannya baru saja dibatalkan.
         if ($paidAmount <= 0) {
+            if (in_array($this->status, [self::STATUS_PAID, self::STATUS_PARTIAL_PAID], true)) {
+                $receivedQty = $this->receivedQty();
+
+                $this->update([
+                    'status' => match (true) {
+                        $receivedQty <= 0 => self::STATUS_APPROVED,
+                        $receivedQty >= $this->orderedQty() => self::STATUS_RECEIVED,
+                        default => self::STATUS_PARTIALLY_RECEIVED,
+                    },
+                ]);
+            }
+
             return;
         }
 

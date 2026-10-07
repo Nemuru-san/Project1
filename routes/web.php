@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\TransactionReportController;
 use App\Models\DeliveryOrder;
 use App\Models\GoodsReceive;
 use App\Models\PurchaseInvoice;
@@ -24,6 +25,16 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified', 'module'])->group(function () {
     Route::view('dashboard', 'dashboard')
         ->name('dashboard');
+
+    // Laporan daftar transaksi (cetak / CSV), mengikuti izin halaman induknya.
+    Route::get('purchases/transaction/purchase-order/report', [TransactionReportController::class, 'purchaseOrders'])
+        ->name('purchases.transaction.purchase-order.report');
+    Route::get('purchases/transaction/purchase-invoice/report', [TransactionReportController::class, 'purchaseInvoices'])
+        ->name('purchases.transaction.purchase-invoice.report');
+    Route::get('sales/transaction/salesOrder/report', [TransactionReportController::class, 'salesOrders'])
+        ->name('sales.transaction.salesOrder.report');
+    Route::get('sales/transaction/salesInvoice/report', [TransactionReportController::class, 'salesInvoices'])
+        ->name('sales.transaction.salesInvoice.report');
 
     // Purchasing - Master
     Route::get('purchases/master/supplier', function () {
@@ -124,6 +135,12 @@ Route::middleware(['auth', 'verified', 'module'])->group(function () {
     Route::view('inventory/report/stock-movement', 'pages.inventory.report.stockMovement')
         ->name('inventory.report.stock-movement');
 
+    Route::view('inventory/report/stock-valuation', 'pages.inventory.report.stockValuation')
+        ->name('inventory.report.stock-valuation');
+
+    Route::view('inventory/transaction/stock-opname', 'pages.inventory.inventoryTransaction.stockOpname')
+        ->name('inventory.transaction.stock-opname');
+
     // Inventory - Transaction
     Route::get('inventory/transaction/transfer-stock', function () {
         return view('pages.inventory.inventoryTransaction.transferStock');
@@ -205,17 +222,17 @@ Route::middleware(['auth', 'verified', 'module'])->group(function () {
         return view('pages.sales.salesTransaction.salesInvoice');
     })->name('sales.transaction.salesInvoice');
     Route::get('sales/transaction/salesInvoice/{id}/invoice', function ($id) {
-        return view('prints.sales-invoice', [
-            'invoice' => SalesInvoice::forPrint($id),
-            'autoPrint' => false,
-        ]);
+        $invoice = SalesInvoice::forPrint($id);
+        abort_unless($invoice->isAccessibleBy(auth()->user()), 403);
+
+        return view('prints.sales-invoice', ['invoice' => $invoice, 'autoPrint' => false]);
     })->name('sales.transaction.salesInvoice.view');
 
     Route::get('sales/transaction/salesInvoice/{id}/print', function ($id) {
-        return view('prints.sales-invoice', [
-            'invoice' => SalesInvoice::forPrint($id),
-            'autoPrint' => true,
-        ]);
+        $invoice = SalesInvoice::forPrint($id);
+        abort_unless($invoice->isAccessibleBy(auth()->user()), 403);
+
+        return view('prints.sales-invoice', ['invoice' => $invoice, 'autoPrint' => true]);
     })->name('sales.transaction.salesInvoice.print');
 
     Route::view('sales/report/unfinished-sales-order', 'pages.sales.report.unfinishedSalesOrder')
@@ -277,6 +294,9 @@ Route::middleware(['auth', 'verified', 'module'])->group(function () {
     Route::get('user/action/role-user', function () {
         return view('pages.users.role-user');
     })->name('user.action.role');
+
+    Route::view('user/action/activity-log', 'pages.users.activity-log')->name('user.action.activity-log');
+    Route::view('user/setting/company-profile', 'pages.users.company-profile')->name('user.setting.company-profile');
 });
 
 require __DIR__.'/settings.php';

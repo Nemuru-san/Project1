@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 
 class Setting extends Model
 {
+    use LogsActivity;
+
     public const SALESMAN_FEE_PERCENT = 'salesman.acquisition_fee_percent';
 
     protected $primaryKey = 'key';

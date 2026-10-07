@@ -58,7 +58,7 @@ class StockMovementService
     private function goodsReceiveMovements($productId, $warehouseId, ?string $dateFrom, ?string $dateTo): Collection
     {
         return GoodsReceiveItem::query()
-            ->with(['goodsReceive', 'product', 'warehouse'])
+            ->with(['goodsReceive.supplier', 'product', 'warehouse', 'unit'])
             ->when($productId, fn ($query) => $query->where('product_id', $productId))
             ->when($warehouseId, fn ($query) => $query->where('warehouse_id', $warehouseId))
             ->whereHas('goodsReceive', function ($query) use ($dateFrom, $dateTo) {
@@ -80,13 +80,16 @@ class StockMovementService
                 (int) $item->qty_base,
                 0,
                 $item->note,
+                'Penerimaan dari '.($item->goodsReceive?->supplier?->name ?? '-'),
+                (int) $item->qty_received,
+                $item->unit?->name,
             ));
     }
 
     private function purchaseReturnMovements($productId, $warehouseId, ?string $dateFrom, ?string $dateTo): Collection
     {
         return PurchaseReturnItem::query()
-            ->with(['purchaseReturn', 'product', 'warehouse'])
+            ->with(['purchaseReturn.supplier', 'product', 'warehouse', 'unit'])
             ->when($productId, fn ($query) => $query->where('product_id', $productId))
             ->when($warehouseId, fn ($query) => $query->where('warehouse_id', $warehouseId))
             ->whereHas('purchaseReturn', function ($query) use ($dateFrom, $dateTo) {
@@ -108,13 +111,16 @@ class StockMovementService
                 0,
                 (int) $item->qty_base,
                 $item->reason ?? $item->purchaseReturn?->notes,
+                'Retur ke '.($item->purchaseReturn?->supplier?->name ?? '-'),
+                (int) $item->qty,
+                $item->unit?->name,
             ));
     }
 
     private function deliveryOrderMovements($productId, $warehouseId, ?string $dateFrom, ?string $dateTo): Collection
     {
         return DeliveryOrderItem::query()
-            ->with(['deliveryOrder', 'product', 'warehouse'])
+            ->with(['deliveryOrder.customer', 'product', 'warehouse', 'unit'])
             ->when($productId, fn ($query) => $query->where('product_id', $productId))
             ->when($warehouseId, fn ($query) => $query->where('warehouse_id', $warehouseId))
             ->whereHas('deliveryOrder', function ($query) use ($dateFrom, $dateTo) {
@@ -136,12 +142,15 @@ class StockMovementService
                 0,
                 (int) $item->qty_base,
                 $item->note ?? $item->deliveryOrder?->notes,
+                'Pengiriman ke '.($item->deliveryOrder?->customer?->name ?? '-'),
+                (int) $item->qty_delivered,
+                $item->unit?->name,
             ));
     }
 
     private function salesReturnMovements($productId, $warehouseId, ?string $dateFrom, ?string $dateTo): Collection
     {
-        return SalesReturnItem::query()->with(['salesReturn', 'product', 'warehouse'])
+        return SalesReturnItem::query()->with(['salesReturn.customer', 'product', 'warehouse', 'unit'])
             ->when($productId, fn ($query) => $query->where('product_id', $productId))
             ->when($warehouseId, fn ($query) => $query->where('warehouse_id', $warehouseId))
             ->whereHas('salesReturn', function ($query) use ($dateFrom, $dateTo) {
@@ -154,13 +163,16 @@ class StockMovementService
                 $item->product?->sku ?? '-', $item->product?->name ?? '-', $item->warehouse_id,
                 $item->warehouse?->name ?? '-', (int) $item->qty_base, 0,
                 $item->reason ?? $item->salesReturn?->notes,
+                'Retur dari '.($item->salesReturn?->customer?->name ?? '-'),
+                (int) $item->qty,
+                $item->unit?->name,
             ));
     }
 
     private function transferMovements($productId, $warehouseId, ?string $dateFrom, ?string $dateTo): Collection
     {
         return StockTransferItem::query()
-            ->with(['stockTransfer.warehouseFrom', 'stockTransfer.warehouseTo', 'product'])
+            ->with(['stockTransfer.warehouseFrom', 'stockTransfer.warehouseTo', 'product', 'unit'])
             ->when($productId, fn ($query) => $query->where('product_id', $productId))
             ->whereHas('stockTransfer', function ($query) use ($warehouseId, $dateFrom, $dateTo) {
                 $query->where('status', 'approved')
@@ -177,6 +189,7 @@ class StockMovementService
             ->flatMap(function (StockTransferItem $item) use ($warehouseId) {
                 $transfer = $item->stockTransfer;
                 $quantity = (int) round((float) $item->qty * (float) $item->conversion);
+                $route = 'Transfer dari '.($transfer->warehouseFrom?->name ?? '-').' ke '.($transfer->warehouseTo?->name ?? '-');
                 $rows = [];
 
                 if (! $warehouseId || (int) $warehouseId === (int) $transfer->warehouse_from_id) {
@@ -193,6 +206,9 @@ class StockMovementService
                         0,
                         $quantity,
                         $transfer->notes,
+                        $route,
+                        (int) round((float) $item->qty),
+                        $item->unit?->name,
                     );
                 }
 
@@ -210,6 +226,9 @@ class StockMovementService
                         $quantity,
                         0,
                         $transfer->notes,
+                        $route,
+                        (int) round((float) $item->qty),
+                        $item->unit?->name,
                     );
                 }
 
@@ -220,7 +239,7 @@ class StockMovementService
     private function adjustmentMovements($productId, $warehouseId, ?string $dateFrom, ?string $dateTo): Collection
     {
         return StockAdjustmentItem::query()
-            ->with(['adjustment.warehouse', 'product'])
+            ->with(['adjustment.warehouse', 'product', 'unit'])
             ->when($productId, fn ($query) => $query->where('product_id', $productId))
             ->whereHas('adjustment', function ($query) use ($warehouseId, $dateFrom, $dateTo) {
                 $query->where('status', 'approved')
@@ -247,6 +266,9 @@ class StockMovementService
                     $isIn ? $quantity : 0,
                     $isIn ? 0 : $quantity,
                     $adjustment->notes,
+                    $isIn ? 'Penyesuaian stok masuk' : 'Penyesuaian stok keluar',
+                    (int) round((float) $item->qty),
+                    $item->unit?->name,
                 );
             });
     }
@@ -264,6 +286,9 @@ class StockMovementService
         int $quantityIn,
         int $quantityOut,
         ?string $note,
+        ?string $description = null,
+        ?int $unitQuantity = null,
+        ?string $unitName = null,
     ): array {
         return [
             'date' => $date,
@@ -279,6 +304,11 @@ class StockMovementService
             'quantity_in' => $quantityIn,
             'quantity_out' => $quantityOut,
             'note' => $note,
+            // Ringkasan arah transaksi (mis. "Penerimaan dari PT X") untuk kartu stok.
+            'description' => $description ?? $type,
+            // Jumlah dalam satuan transaksi (mis. 2 Dus), pelengkap qty dasar.
+            'unit_quantity' => $unitQuantity,
+            'unit_name' => $unitName,
         ];
     }
 }

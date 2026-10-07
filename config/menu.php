@@ -48,11 +48,13 @@ return [
                 ['label' => 'Transfer Stok', 'route' => 'inventory.transaction.transfer-stock'],
                 ['label' => 'Penyesuaian Stok Masuk', 'route' => 'inventory.transaction.adjustment-in'],
                 ['label' => 'Penyesuaian Stok Keluar', 'route' => 'inventory.transaction.adjustment-out'],
+                ['label' => 'Stok Opname', 'route' => 'inventory.transaction.stock-opname'],
             ]],
             ['heading' => 'Laporan', 'prefix' => 'inventory.report.', 'items' => [
                 ['label' => 'Saldo Stok', 'route' => 'inventory.report.stock-balance'],
                 ['label' => 'Kartu Stok', 'route' => 'inventory.report.stock-card'],
                 ['label' => 'Pergerakan Stok', 'route' => 'inventory.report.stock-movement'],
+                ['label' => 'Nilai Persediaan', 'route' => 'inventory.report.stock-valuation'],
             ]],
         ],
     ],
@@ -115,6 +117,10 @@ return [
             ['heading' => 'Aksi', 'prefix' => 'user.action.', 'items' => [
                 ['label' => 'Pengguna', 'route' => 'user.action.user'],
                 ['label' => 'Peran Pengguna', 'route' => 'user.action.role'],
+                ['label' => 'Log Aktivitas', 'route' => 'user.action.activity-log'],
+            ]],
+            ['heading' => 'Pengaturan', 'prefix' => 'user.setting.', 'items' => [
+                ['label' => 'Profil Perusahaan', 'route' => 'user.setting.company-profile'],
             ]],
         ],
     ],

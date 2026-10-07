@@ -1,7 +1,7 @@
 @php
     $autoPrint = $autoPrint ?? false;
 
-    $company = config('company');
+    $company = \App\Support\CompanyProfile::get();
 
     // Baris kosong agar tinggi form tetap sama saat item sedikit (mengikuti form continuous).
     $minRows = 8;

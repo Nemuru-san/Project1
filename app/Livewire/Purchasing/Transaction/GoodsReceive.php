@@ -8,6 +8,7 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseReturn;
 use App\Models\StockBalance;
 use App\Models\Warehouse;
+use App\Services\Inventory\InventoryCostService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -55,6 +56,10 @@ class GoodsReceive extends Component
     public ?int $deleteTargetId = null;
 
     public ?int $receiveTargetId = null;
+
+    public bool $showCancelGoodsReceiveModal = false;
+
+    public ?int $cancelGoodsReceiveTargetId = null;
 
     public bool $showTrashed = false;
 
@@ -555,6 +560,12 @@ class GoodsReceive extends Component
         }
 
         if ($this->selectedStatus === GoodsReceiveModel::STATUS_CANCELLED) {
+            if (! auth()->user()?->canCancelTransactions()) {
+                $this->addError('selectedStatus', 'Anda tidak memiliki izin untuk membatalkan Penerimaan Barang.');
+
+                return;
+            }
+
             if ($goodsReceive->purchaseReturns()->whereIn('status', [PurchaseReturn::STATUS_DRAFT, PurchaseReturn::STATUS_CONFIRMED])->exists()) {
                 $this->addError('selectedStatus', 'Penerimaan Barang tidak dapat dibatalkan karena sudah memiliki Retur Pembelian aktif.');
 
@@ -647,6 +658,94 @@ class GoodsReceive extends Component
         $this->dispatch('toast', message: 'Status Goods Receive berhasil diubah.', type: 'success');
     }
 
+    public function confirmCancelGoodsReceive(int $id): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Penerimaan Barang.', type: 'error');
+
+            return;
+        }
+
+        $goodsReceive = GoodsReceiveModel::findOrFail($id);
+
+        if ($reason = $this->goodsReceiveCancelLockReason($goodsReceive)) {
+            $this->dispatch('toast', message: $reason, type: 'error');
+
+            return;
+        }
+
+        $this->cancelGoodsReceiveTargetId = $id;
+        $this->showCancelGoodsReceiveModal = true;
+    }
+
+    public function closeCancelGoodsReceive(): void
+    {
+        $this->showCancelGoodsReceiveModal = false;
+        $this->cancelGoodsReceiveTargetId = null;
+    }
+
+    /**
+     * Batalkan Penerimaan Barang selama belum difakturkan. Stok yang sudah masuk dikeluarkan lagi.
+     */
+    public function cancelGoodsReceive(): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Penerimaan Barang.', type: 'error');
+
+            return;
+        }
+
+        if (! $this->cancelGoodsReceiveTargetId) {
+            return;
+        }
+
+        try {
+            DB::transaction(function () {
+                $goodsReceive = GoodsReceiveModel::with('items')->lockForUpdate()->findOrFail($this->cancelGoodsReceiveTargetId);
+
+                if ($reason = $this->goodsReceiveCancelLockReason($goodsReceive)) {
+                    throw new \RuntimeException($reason);
+                }
+
+                if ($goodsReceive->status === GoodsReceiveModel::STATUS_RECEIVED) {
+                    $this->removeGoodsReceiveFromStock($goodsReceive);
+                }
+
+                $goodsReceive->update(['status' => GoodsReceiveModel::STATUS_CANCELLED]);
+                $this->updatePurchaseOrderStatus($goodsReceive->purchase_order_id);
+            });
+        } catch (\Throwable $e) {
+            $this->closeCancelGoodsReceive();
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+
+            return;
+        }
+
+        $this->closeCancelGoodsReceive();
+        $this->showDetailModal = false;
+        $this->selectedGR = null;
+        $this->dispatch('toast', message: 'Penerimaan Barang berhasil dibatalkan.', type: 'success');
+    }
+
+    private function goodsReceiveCancelLockReason(GoodsReceiveModel $goodsReceive): ?string
+    {
+        if (! in_array($goodsReceive->status, [GoodsReceiveModel::STATUS_DRAFT, GoodsReceiveModel::STATUS_RECEIVED], true)) {
+            return $goodsReceive->status === GoodsReceiveModel::STATUS_CANCELLED
+                ? 'Penerimaan Barang sudah dibatalkan.'
+                : 'Penerimaan Barang tidak dapat dibatalkan karena sudah memiliki Faktur Pembelian.';
+        }
+
+        if ($goodsReceive->purchaseInvoices()->exists()) {
+            return 'Penerimaan Barang tidak dapat dibatalkan karena sudah memiliki Faktur Pembelian.';
+        }
+
+        if ($goodsReceive->purchaseReturns()->whereIn('status', [PurchaseReturn::STATUS_DRAFT, PurchaseReturn::STATUS_CONFIRMED])->exists()) {
+            return 'Penerimaan Barang tidak dapat dibatalkan karena sudah memiliki Retur Pembelian aktif.';
+        }
+
+        return null;
+    }
+
     public function confirmReceive(int $id): void
     {
         if (! auth()->user()?->hasPermission('purchases.transaction.good-receive.receive')) {
@@ -681,7 +780,8 @@ class GoodsReceive extends Component
 
     private function addGoodsReceiveToStock(GoodsReceiveModel $goodsReceive): void
     {
-        $goodsReceive->loadMissing('items');
+        $goodsReceive->loadMissing('items.purchaseOrderItem');
+        $costs = app(InventoryCostService::class);
 
         foreach ($goodsReceive->items as $item) {
             $qtyBase = (int) $item->qty_base;
@@ -689,6 +789,11 @@ class GoodsReceive extends Component
             if ($qtyBase <= 0) {
                 continue;
             }
+
+            // Harga pokok rata-rata diperbarui sebelum stok bertambah.
+            $unitCost = $costs->purchaseUnitCost($item->purchaseOrderItem);
+            $costs->receive($item->product_id, $qtyBase, $unitCost);
+            $item->update(['unit_cost' => $unitCost]);
 
             $stockBalance = StockBalance::firstOrCreate(
                 [
@@ -724,6 +829,7 @@ class GoodsReceive extends Component
                 throw new \Exception('Stok tidak cukup untuk cancel Goods Receive item '.($item->product?->name ?? '-'));
             }
 
+            app(InventoryCostService::class)->reverseReceipt($item->product_id, $qtyBase, (float) $item->unit_cost);
             $stockBalance->decrement('quantity', $qtyBase);
         }
     }

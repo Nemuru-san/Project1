@@ -14,7 +14,7 @@ class CustomerFactory extends Factory
         return [
             'code' => 'CUST-'.fake()->unique()->numerify('#####'),
             'name' => fake()->company(),
-            'phone' => fake()->phoneNumber(),
+            'phone' => fake()->numerify('08##########'),
             'email' => fake()->companyEmail(),
             'tax_number' => null,
             'notes' => null,

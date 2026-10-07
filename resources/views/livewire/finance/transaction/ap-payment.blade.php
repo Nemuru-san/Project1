@@ -89,6 +89,8 @@
                                 <span class="text-sm px-2.5 py-0.5 rounded bg-gray-600 text-white">Draf</span>
                             @elseif ($payment->status === 'Posted')
                                 <span class="text-sm px-2.5 py-0.5 rounded bg-green-700 text-white">Diposting</span>
+                            @elseif ($payment->status === 'Cancelled')
+                                <span class="text-sm px-2.5 py-0.5 rounded bg-orange-700 text-white">Dibatalkan</span>
                             @else
                                 <span
                                     class="text-sm px-2.5 py-0.5 rounded bg-gray-700 text-white">{{ $payment->status }}</span>
@@ -142,6 +144,22 @@
                                                                 d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
                                                         Posting Pembayaran
+                                                    </button>
+                                                </li>
+                                            @endif
+
+                                            @if ($payment->status === 'Posted')
+                                                <li>
+                                                    <button wire:click="confirmCancelPayment({{ $payment->id }})"
+                                                        @click="open = false"
+                                                        class="flex items-center gap-2 w-full py-2 px-4 text-orange-700 hover:bg-orange-600 hover:text-white dark:text-orange-300 dark:hover:bg-orange-600 dark:hover:text-white cursor-pointer">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                                                        </svg>
+                                                        Batalkan Pembayaran
                                                     </button>
                                                 </li>
                                             @endif
@@ -563,6 +581,7 @@
                                         $statusClass = match ($selectedPayment->status) {
                                             'Draft' => 'bg-zinc-600 text-white',
                                             'Posted' => 'bg-green-700 text-white',
+                                            'Cancelled' => 'bg-orange-700 text-white',
                                             default => 'bg-zinc-600 text-white',
                                         };
                                     @endphp
@@ -642,6 +661,15 @@
                                 Posting Pembayaran
                             </button>
                         </div>
+                    @elseif ($selectedPayment->status === 'Posted')
+                        <div class="border-t dark:border-zinc-700 pt-5">
+                            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Ubah Status</h4>
+
+                            <button wire:click="confirmCancelPayment({{ $selectedPayment->id }})"
+                                class="px-4 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium cursor-pointer">
+                                Batalkan Pembayaran
+                            </button>
+                        </div>
                     @endif
                 </div>
 
@@ -691,6 +719,42 @@
                         <span wire:loading wire:target="postPayment">
                             Mem-post...
                         </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- CANCEL PAYMENT CONFIRM MODAL --}}
+    @if ($showCancelPaymentModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-sm mx-4 p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="p-2 bg-orange-900 rounded-full">
+                        <svg class="w-5 h-5 text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                        </svg>
+                    </div>
+
+                    <h3 class="text-base font-semibold dark:text-white">Batalkan Pembayaran Utang?</h3>
+                </div>
+
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">
+                    Nominal pembayaran akan dikembalikan ke sisa tagihan faktur dan jurnal pembayaran dibatalkan.
+                    Setelah itu faktur pembelian terkait dapat diubah kembali.
+                </p>
+
+                <div class="flex justify-end gap-2">
+                    <button wire:click="closeCancelPayment"
+                        class="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 cursor-pointer">
+                        Batal
+                    </button>
+
+                    <button wire:click="cancelPayment" wire:loading.attr="disabled"
+                        class="px-4 py-2 text-sm rounded-lg bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 cursor-pointer">
+                        <span wire:loading.remove wire:target="cancelPayment">Ya, Batalkan</span>
+                        <span wire:loading wire:target="cancelPayment">Membatalkan...</span>
                     </button>
                 </div>
             </div>

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Sales\Transaction;
 
+use App\Models\ArPayment;
 use App\Models\ChartOfAccount;
 use App\Models\Customer;
 use App\Models\DeliveryOrder;
@@ -43,6 +44,12 @@ class SalesInvoice extends Component
     public ?int $confirmTargetId = null;
 
     public ?int $deleteTargetId = null;
+
+    public bool $showCancelInvoiceModal = false;
+
+    public ?int $cancelInvoiceTargetId = null;
+
+    public bool $showCancelled = false;
 
     public ?int $editingId = null;
 
@@ -104,6 +111,11 @@ class SalesInvoice extends Component
     }
 
     public function updatingPerPage(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingShowCancelled(): void
     {
         $this->resetPage();
     }
@@ -457,7 +469,7 @@ class SalesInvoice extends Component
         $invoice = SalesInvoiceModel::with([
             'salesOrder.preOrder', 'salesOrder.salesCanvas', 'customer', 'creator', 'confirmer',
             'items.product', 'items.warehouse', 'items.unit', 'deliveryOrders',
-        ])->findOrFail($id);
+        ])->withTrashed()->findOrFail($id);
         $this->authorizeInvoice($invoice);
         $this->selectedInvoice = $invoice;
         $this->showDetailModal = true;
@@ -553,7 +565,10 @@ class SalesInvoice extends Component
         if (! $this->deleteTargetId) {
             return;
         }
-        $invoice = SalesInvoiceModel::withCount(['payments', 'salesReturnInvoices'])->findOrFail($this->deleteTargetId);
+        $invoice = SalesInvoiceModel::withCount([
+            'payments' => fn (Builder $payment) => $payment->where('status', '!=', ArPayment::STATUS_CANCELLED),
+            'salesReturnInvoices',
+        ])->findOrFail($this->deleteTargetId);
         $this->authorizeInvoice($invoice);
         if ($invoice->payments_count > 0 || $invoice->sales_return_invoices_count > 0) {
             $this->dispatch('toast', message: 'Faktur tidak dapat dihapus karena sudah memiliki pembayaran atau retur.', type: 'error');
@@ -587,6 +602,87 @@ class SalesInvoice extends Component
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
         $this->dispatch('toast', message: 'Faktur Penjualan berhasil dihapus.', type: 'success');
+    }
+
+    public function confirmCancelInvoice(int $id): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Faktur Penjualan.', type: 'error');
+
+            return;
+        }
+
+        $invoice = SalesInvoiceModel::findOrFail($id);
+
+        if ($reason = $invoice->cancelLockReason()) {
+            $this->dispatch('toast', message: $reason, type: 'error');
+
+            return;
+        }
+
+        $this->cancelInvoiceTargetId = $id;
+        $this->showCancelInvoiceModal = true;
+    }
+
+    public function closeCancelInvoice(): void
+    {
+        $this->showCancelInvoiceModal = false;
+        $this->cancelInvoiceTargetId = null;
+    }
+
+    /**
+     * Batalkan faktur selama belum ada Pembayaran Piutang: jurnal dibatalkan, fee salesman dihapus,
+     * dan Surat Jalan dilepas supaya bisa difakturkan ulang atau dibatalkan.
+     */
+    public function cancelInvoice(): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Faktur Penjualan.', type: 'error');
+
+            return;
+        }
+
+        if (! $this->cancelInvoiceTargetId) {
+            return;
+        }
+
+        $error = DB::transaction(function () {
+            $invoice = SalesInvoiceModel::lockForUpdate()->findOrFail($this->cancelInvoiceTargetId);
+
+            if ($reason = $invoice->cancelLockReason()) {
+                return $reason;
+            }
+
+            JournalEntry::where('source_type', JournalEntry::SOURCE_SALES_INVOICE)
+                ->where('source_id', $invoice->id)
+                ->update(['status' => JournalEntry::STATUS_CANCELLED]);
+
+            app(SalesmanFeeService::class)->removeForInvoice($invoice);
+
+            $deliveryOrderIds = $invoice->deliveryOrders()->pluck('delivery_orders.id')->all();
+            $invoice->deliveryOrders()->detach();
+            DeliveryOrder::query()
+                ->whereIn('id', $deliveryOrderIds)
+                ->where('status', DeliveryOrder::STATUS_INVOICED)
+                ->update(['status' => DeliveryOrder::STATUS_SHIPPED]);
+
+            $invoice->update(['status' => SalesInvoiceModel::STATUS_CANCELLED]);
+            $invoice->delete();
+
+            return null;
+        });
+
+        $this->closeCancelInvoice();
+
+        if ($error) {
+            $this->dispatch('toast', message: $error, type: 'error');
+
+            return;
+        }
+
+        $this->showDetailModal = false;
+        $this->selectedInvoice = null;
+        $this->dispatch('toast', message: 'Faktur Penjualan berhasil dibatalkan.', type: 'success');
     }
 
     private function totalsFromOrder(SalesOrder $order): array
@@ -705,6 +801,7 @@ class SalesInvoice extends Component
         return SalesOrder::query()
             ->with('customer')
             ->whereNotNull('verified_at')
+            ->where('status', '!=', 'cancelled')
             ->where(function (Builder $query) {
                 // SO yang masih punya Surat Jalan belum ditagih (pengiriman bertahap),
                 // atau SO tanpa Surat Jalan terkirim yang belum pernah difakturkan.
@@ -744,6 +841,10 @@ class SalesInvoice extends Component
         $salesmanId = auth()->user()?->salesman()->where('is_active', true)->value('id');
         $invoices = SalesInvoiceModel::query()
             ->with(['salesOrder', 'customer'])
+            // Faktur batal tersimpan sebagai soft-delete; tampilkan hanya bila diminta.
+            ->when($this->showCancelled, fn (Builder $query) => $query->withTrashed()->where(fn (Builder $query) => $query
+                ->whereNull('deleted_at')
+                ->orWhere('status', SalesInvoiceModel::STATUS_CANCELLED)))
             ->when(! auth()->user()?->isSuperAdmin(), fn (Builder $query) => $query->where(function (Builder $query) use ($salesmanId) {
                 $query->where('created_by', Auth::id())
                     ->orWhereHas('salesOrder', fn (Builder $order) => $order->where('salesman_id', $salesmanId ?? 0))

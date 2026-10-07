@@ -62,7 +62,7 @@ it('filters purchase orders by an inclusive transaction date range', function ()
 
     Livewire::test(PurchaseOrderComponent::class)
         ->assertDontSee('Data Tabel Pesanan Pembelian')
-        ->assertSee('Bersihkan Filter')
+        ->assertSee('Filter Purchase Order')
         ->set('dateFrom', '2026-07-05')
         ->set('dateTo', '2026-07-15')
         ->assertSee('PO-DATE-IN-RANGE')
@@ -93,7 +93,7 @@ it('filters goods receives by an inclusive transaction date range', function () 
 
     Livewire::test(GoodsReceiveComponent::class)
         ->assertDontSee('Data Tabel Penerimaan Barang')
-        ->assertSee('Tambah Transaksi')
+        ->assertSee('Tambah Penerimaan Barang')
         ->set('dateFrom', '2026-07-05')
         ->set('dateTo', '2026-07-15')
         ->assertSee('GR-DATE-IN-RANGE')
@@ -127,7 +127,7 @@ it('filters purchase invoices by an inclusive transaction date range', function 
 
     Livewire::test(PurchaseInvoiceComponent::class)
         ->assertDontSee('Data Tabel Faktur Pembelian')
-        ->assertSee('Tambah Transaksi')
+        ->assertSee('Tambah Faktur Pembelian')
         ->set('dateFrom', '2026-07-05')
         ->set('dateTo', '2026-07-15')
         ->assertSee('INV-DATE-IN-RANGE')
@@ -139,7 +139,7 @@ it('filters purchase invoices by an inclusive transaction date range', function 
         ->assertSee('INV-DATE-BEFORE')
         ->assertSee('INV-DATE-AFTER');
 });
-it('locks a posted purchase invoice from being edited or deleted', function () {
+it('locks a paid purchase invoice from being edited or deleted', function () {
     $role = Role::create([
         'name' => 'Pengelola Faktur Pembelian',
         'permissions' => ['purchases.transaction.purchase-invoice', 'purchases.transaction.purchase-invoice.delete'],
@@ -174,9 +174,10 @@ it('locks a posted purchase invoice from being edited or deleted', function () {
         'purchase_order_id' => $this->purchaseOrder->id,
         'sub_total' => 100000,
         'grand_total' => 100000,
-        'remaining_amount' => 100000,
+        'paid_amount' => 100000,
+        'remaining_amount' => 0,
         'status' => PurchaseInvoice::STATUS_POSTED,
-        'payment_status' => PurchaseInvoice::PAYMENT_UNPAID,
+        'payment_status' => PurchaseInvoice::PAYMENT_PAID,
         'created_by' => $this->user->id,
     ]);
     $invoice->items()->create([
@@ -208,7 +209,7 @@ it('locks a posted purchase invoice from being edited or deleted', function () {
         'created_by' => $this->user->id,
     ]);
 
-    // Faktur yang sudah diposting tidak boleh dibuka untuk diubah.
+    // Faktur yang sudah dibayar tidak boleh dibuka untuk diubah sebelum pembayarannya dibatalkan.
     Livewire::test(PurchaseInvoiceComponent::class)
         ->call('openEdit', $invoice->id)
         ->assertSet('invoiceId', null)

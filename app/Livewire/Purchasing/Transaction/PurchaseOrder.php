@@ -9,6 +9,7 @@ use App\Models\PurchaseOrder as PurchaseOrderModel;
 use App\Models\Supplier;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -47,6 +48,10 @@ class PurchaseOrder extends Component
     public bool $showCloseModal = false;
 
     public ?int $closeTargetId = null;
+
+    public bool $showCancelOrderModal = false;
+
+    public ?int $cancelOrderTargetId = null;
 
     public string $closeNote = '';
 
@@ -98,7 +103,10 @@ class PurchaseOrder extends Component
     {
         return [
             'date' => 'required|date|before_or_equal:today',
-            'supplier_id' => 'required|exists:suppliers,id',
+            // Pemasok nonaktif hanya lolos bila memang pemasok lama dari PO yang sedang diubah.
+            'supplier_id' => ['required', Rule::exists('suppliers', 'id')->where(fn ($query) => $query->whereNull('deleted_at')
+                ->where(fn ($query) => $query->where('is_active', true)
+                    ->when($this->editId, fn ($query) => $query->orWhere('id', PurchaseOrderModel::whereKey($this->editId)->value('supplier_id')))))],
             'purchase_note' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -576,6 +584,67 @@ class PurchaseOrder extends Component
         $this->dispatch('toast', message: 'Pesanan Pembelian berhasil ditutup.', type: 'success');
     }
 
+    public function confirmCancelOrder(int $id): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Pesanan Pembelian.', type: 'error');
+
+            return;
+        }
+
+        $purchaseOrder = PurchaseOrderModel::findOrFail($id);
+
+        if (! $purchaseOrder->canBeCancelled()) {
+            $this->dispatch('toast', message: $purchaseOrder->cancelLockReason(), type: 'error');
+
+            return;
+        }
+
+        $this->cancelOrderTargetId = $id;
+        $this->showCancelOrderModal = true;
+    }
+
+    public function closeCancelOrder(): void
+    {
+        $this->showCancelOrderModal = false;
+        $this->cancelOrderTargetId = null;
+    }
+
+    public function cancelOrder(): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Pesanan Pembelian.', type: 'error');
+
+            return;
+        }
+
+        if (! $this->cancelOrderTargetId) {
+            return;
+        }
+
+        $cancelled = DB::transaction(function () {
+            $purchaseOrder = PurchaseOrderModel::lockForUpdate()->findOrFail($this->cancelOrderTargetId);
+
+            if (! $purchaseOrder->canBeCancelled()) {
+                $this->dispatch('toast', message: $purchaseOrder->cancelLockReason(), type: 'error');
+
+                return false;
+            }
+
+            $purchaseOrder->update(['status' => PurchaseOrderModel::STATUS_CANCELLED]);
+
+            return true;
+        });
+
+        $this->closeCancelOrder();
+
+        if ($cancelled) {
+            $this->showDetail = false;
+            $this->selectedPO = null;
+            $this->dispatch('toast', message: 'Pesanan Pembelian berhasil dibatalkan.', type: 'success');
+        }
+    }
+
     public function openEdit(int $id): void
     {
         $po = PurchaseOrderModel::with(['items.product.prices.unit', 'items.unit'])->findOrFail($id);
@@ -932,7 +1001,12 @@ class PurchaseOrder extends Component
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 
-        $suppliers = Supplier::orderBy('name')->get();
+        // Pemasok nonaktif tidak bisa dipilih lagi, kecuali sudah terpasang di PO yang sedang diubah.
+        $suppliers = Supplier::query()
+            ->where(fn ($q) => $q->where('is_active', true)
+                ->when($this->supplier_id, fn ($q) => $q->orWhere('id', $this->supplier_id)))
+            ->orderBy('name')
+            ->get();
         $categories = ProductCategory::orderBy('name')->get();
 
         $products = Product::with(['category', 'prices.unit'])->active()

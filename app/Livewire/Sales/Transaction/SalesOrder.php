@@ -102,6 +102,13 @@ class SalesOrder extends Component
 
     public int $paidAmount = 0;
 
+    // DP terposting dari Pesanan Awal (hanya untuk SO bersumber Pre Order).
+    public int $dpAmount = 0;
+
+    public bool $showCancelOrderModal = false;
+
+    public ?int $cancelOrderTargetId = null;
+
     protected function rules(): array
     {
         $currentOrder = $this->editingId
@@ -232,6 +239,9 @@ class SalesOrder extends Component
         $this->customerAddressId = $order->customer_address_id;
         $this->tax = $order->is_taxed;
         $this->notes = $order->notes ?? '';
+        $this->dpAmount = $order->pre_order_id
+            ? (int) PreOrder::withTrashed()->find($order->pre_order_id)?->posted_dp_amount
+            : (int) $order->dp_amount;
         $this->items = $order->items->map(fn ($item) => $this->makeItem(
             $item->product,
             $item->warehouse_id,
@@ -256,6 +266,7 @@ class SalesOrder extends Component
 
         if ($this->sourceType !== 'pre_order') {
             $this->preOrderId = null;
+            $this->dpAmount = 0;
         }
 
         if (! $this->editingId) {
@@ -311,6 +322,7 @@ class SalesOrder extends Component
     {
         if ($this->sourceType !== 'pre_order' || ! $this->preOrderId) {
             $this->items = [];
+            $this->dpAmount = 0;
 
             return;
         }
@@ -325,6 +337,7 @@ class SalesOrder extends Component
         }
 
         $this->loadSource($preOrder);
+        $this->dpAmount = $preOrder->posted_dp_amount;
     }
 
     public function openProductPicker(): void
@@ -597,6 +610,11 @@ class SalesOrder extends Component
                 ]);
             }
 
+            // DP SO bersumber Pre Order = DP terposting Pesanan Awal (tidak melebihi total SO).
+            $dpAmount = $preOrder
+                ? min($preOrder->posted_dp_amount, $totals['grand_total'])
+                : (int) ($order->dp_amount ?? 0);
+
             $order->fill([
                 'order_no' => $order->exists ? $order->order_no : $this->generateCode(),
                 'date' => $this->date,
@@ -613,8 +631,8 @@ class SalesOrder extends Component
                 'discount_total' => $totals['discount'],
                 'tax_amount' => $totals['tax'],
                 'grand_total' => $totals['grand_total'],
-                'dp_amount' => (int) ($order->dp_amount ?? 0),
-                'amount_due' => max(0, $totals['grand_total'] - (int) ($order->dp_amount ?? 0)),
+                'dp_amount' => $dpAmount,
+                'amount_due' => max(0, $totals['grand_total'] - $dpAmount),
                 'notes' => trim($this->notes) ?: null,
                 'status' => 'draft',
                 'created_by' => $order->exists ? $order->created_by : Auth::id(),
@@ -769,6 +787,7 @@ class SalesOrder extends Component
             if ($order->status !== 'draft') {
                 throw ValidationException::withMessages(['status' => 'Pesanan Penjualan sudah diproses.']);
             }
+            $this->assertStockAvailable($order);
             $customer = Customer::lockForUpdate()->findOrFail($order->customer_id);
             app(CustomerCreditService::class)->assertAvailable($customer, (int) $order->amount_due);
             $order->forceFill(['status' => 'verified', 'verified_at' => now(), 'verified_by' => Auth::id()])->save();
@@ -776,6 +795,126 @@ class SalesOrder extends Component
         $this->showConfirmModal = false;
         $this->confirmTargetId = null;
         $this->dispatch('toast', message: 'Pesanan Penjualan berhasil dikonfirmasi.', type: 'success');
+    }
+
+    /**
+     * SO hanya bisa dikonfirmasi bila stok fisik (on hand) dan stok yang belum dibooking SO
+     * terkonfirmasi lain (AFS) cukup untuk seluruh barang per gudang.
+     */
+    private function assertStockAvailable(SalesOrderModel $order): void
+    {
+        $order->loadMissing(['items.product.baseUnit', 'items.warehouse']);
+        $stock = app(AvailableForSalesService::class);
+        $formatter = app(StockQuantityFormatter::class);
+
+        $shortages = $order->items
+            ->groupBy(fn ($item) => $item->product_id.'-'.$item->warehouse_id)
+            ->map(function ($items) use ($order, $stock, $formatter) {
+                $first = $items->first();
+                $needed = (int) $items->sum(fn ($item) => (int) $item->qty * (int) $item->conversion);
+                $onHand = $stock->quantityOnHand($first->product_id, $first->warehouse_id);
+                $available = $stock->availableToConfirm($first->product_id, $first->warehouse_id, $order->id);
+
+                if ($needed <= min($onHand, $available)) {
+                    return null;
+                }
+
+                return sprintf(
+                    '%s di %s: butuh %s, stok fisik %s, AFS %s',
+                    $first->product?->name ?? '-',
+                    $first->warehouse?->name ?? '-',
+                    $formatter->format($first->product, $needed),
+                    $formatter->format($first->product, $onHand),
+                    $formatter->format($first->product, max(0, $available)),
+                );
+            })
+            ->filter()
+            ->values();
+
+        if ($shortages->isNotEmpty()) {
+            throw ValidationException::withMessages([
+                'stock' => 'Stok tidak cukup untuk mengonfirmasi Pesanan Penjualan. '.$shortages->implode('; ').'.',
+            ]);
+        }
+    }
+
+    public function confirmCancelOrder(int $id): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Pesanan Penjualan.', type: 'error');
+
+            return;
+        }
+
+        $order = SalesOrderModel::findOrFail($id);
+
+        if (! $order->canBeCancelled()) {
+            $this->dispatch('toast', message: $order->cancelLockReason(), type: 'error');
+
+            return;
+        }
+
+        $this->cancelOrderTargetId = $id;
+        $this->showCancelOrderModal = true;
+    }
+
+    public function closeCancelOrder(): void
+    {
+        $this->showCancelOrderModal = false;
+        $this->cancelOrderTargetId = null;
+    }
+
+    /**
+     * Batalkan SO selama belum ada Surat Jalan. Booking stok otomatis lepas, dan Pesanan Awal /
+     * Sales Kanvas sumbernya kembali bisa dipakai untuk SO baru.
+     */
+    public function cancelOrder(): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Pesanan Penjualan.', type: 'error');
+
+            return;
+        }
+
+        if (! $this->cancelOrderTargetId) {
+            return;
+        }
+
+        $error = DB::transaction(function () {
+            $order = SalesOrderModel::lockForUpdate()->findOrFail($this->cancelOrderTargetId);
+
+            if (! $order->canBeCancelled()) {
+                return $order->cancelLockReason();
+            }
+
+            $order->update(['status' => 'cancelled']);
+
+            if ($order->pre_order_id) {
+                PreOrder::whereKey($order->pre_order_id)
+                    ->where('status', PreOrder::STATUS_SALES_ORDER)
+                    ->update(['status' => PreOrder::STATUS_CONFIRMED]);
+            }
+
+            if ($order->sales_canvas_id) {
+                SalesCanvas::whereKey($order->sales_canvas_id)
+                    ->where('status', SalesCanvas::STATUS_SALES_ORDER)
+                    ->update(['status' => SalesCanvas::STATUS_CONFIRMED]);
+            }
+
+            return null;
+        });
+
+        $this->closeCancelOrder();
+
+        if ($error) {
+            $this->dispatch('toast', message: $error, type: 'error');
+
+            return;
+        }
+
+        $this->showDetailModal = false;
+        $this->selectedOrder = null;
+        $this->dispatch('toast', message: 'Pesanan Penjualan berhasil dibatalkan.', type: 'success');
     }
 
     private function canManagePreOrders(): bool
@@ -875,7 +1014,7 @@ class SalesOrder extends Component
 
     private function resetForm(): void
     {
-        $this->reset(['showModal', 'showProductModal', 'showDeleteModal', 'editingId', 'deleteTargetId', 'orderNo', 'salesCanvasId', 'preOrderId', 'customerId', 'customerAddressId', 'tax', 'notes', 'items', 'productSearch', 'categoryFilter', 'selectedProductIds', 'scanCode', 'bankAccountId', 'paidAmount']);
+        $this->reset(['showModal', 'showProductModal', 'showDeleteModal', 'editingId', 'deleteTargetId', 'orderNo', 'salesCanvasId', 'preOrderId', 'customerId', 'customerAddressId', 'tax', 'notes', 'items', 'productSearch', 'categoryFilter', 'selectedProductIds', 'scanCode', 'bankAccountId', 'paidAmount', 'dpAmount']);
         $this->date = now()->format('Y-m-d');
         $this->orderType = 'regular';
         $this->sourceType = 'manual';

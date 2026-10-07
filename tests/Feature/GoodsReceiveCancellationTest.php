@@ -15,7 +15,8 @@ use App\Models\Warehouse;
 use Livewire\Livewire;
 
 it('cancels a received goods receive by reversing stock and recalculating purchase order status', function () {
-    $role = Role::create(['name' => 'Goods Receive Manager', 'permissions' => ['purchases.transaction.good-receive.receive']]);
+    // Pembatalan Penerimaan Barang khusus Owner.
+    $role = Role::create(['name' => 'Owner', 'permissions' => ['purchases.transaction.good-receive.receive', 'transactions.cancel']]);
     $user = User::factory()->for($role)->create();
     $this->actingAs($user);
 

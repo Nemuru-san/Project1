@@ -12,6 +12,7 @@
             <option value="">Semua status</option>
             <option value="Draft">Draf</option>
             <option value="Posted">Diposting</option>
+            <option value="Cancelled">Dibatalkan</option>
         </x-filter.select>
         <x-filter.date-range />
         <x-filter.per-page :show-reset="filled($search) || filled($statusFilter) || filled($dateFrom) || filled($dateTo)" />
@@ -48,7 +49,7 @@
                         <td class="px-4 py-3 text-right font-semibold">Rp
                             {{ number_format($invoice->grand_total, 0, ',', '.') }}</td>
                         <td class="px-4 py-3"><span
-                                class="rounded-full px-2.5 py-1 text-xs {{ $invoice->status === 'Posted' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700' }}">{{ $invoice->status === 'Posted' ? 'Diposting' : 'Draf' }}</span>
+                                class="rounded-full px-2.5 py-1 text-xs {{ ['Posted' => 'bg-green-100 text-green-700', 'Cancelled' => 'bg-red-100 text-red-700'][$invoice->status] ?? 'bg-gray-200 text-gray-700' }}">{{ ['Posted' => 'Diposting', 'Cancelled' => 'Dibatalkan'][$invoice->status] ?? 'Draf' }}</span>
                         </td>
                         <td class="px-4 py-3 text-center">
                             <div class="inline-block" x-data="{ open: false, top: 0, left: 0, toggle(el) { const r = el.getBoundingClientRect();
@@ -72,6 +73,9 @@
                                         <button wire:click="confirmPost({{ $invoice->id }})"
                                             class="w-full cursor-pointer px-4 py-2 text-left text-sm text-green-600 hover:bg-green-600 hover:text-white">✓
                                             Posting Faktur</button>
+                                        @endif @if (auth()->user()?->canCancelTransactions() && $invoice->status !== 'Cancelled')
+                                            <button wire:click="confirmCancel({{ $invoice->id }})" @click="open = false"
+                                                class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-600 hover:text-white">Batalkan Faktur Retur</button>
                                         @endif @if (auth()->user()?->isSuperAdmin() && $invoice->status === 'Draft')
                                             <button wire:click="delete({{ $invoice->id }})"
                                                 wire:confirm="Hapus faktur retur ini?"
@@ -209,6 +213,13 @@
             </div>
         </div>
     @endif
+    @if ($showCancelModal)
+        <x-cancel-transaction-modal title="Batalkan Faktur Retur Pembelian?" confirm="cancelInvoice" close="closeCancel">
+            Jika sudah diposting, nilai retur dikembalikan ke sisa tagihan faktur asal dan jurnalnya dibatalkan.
+            Retur Pembelian-nya bisa difakturkan ulang.
+        </x-cancel-transaction-modal>
+    @endif
+
     @if ($showPostModal)
         <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
             <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-zinc-800">

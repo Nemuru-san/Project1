@@ -218,7 +218,7 @@ it('menandai PO Partial Paid ketika pembayaran belum menutup nilai PO', function
         ->and($second->fresh()->payment_status)->toBe(PurchaseInvoice::PAYMENT_PAID);
 });
 
-it('menolak faktur pembelian kedua tanpa Penerimaan Barang', function () {
+it('menolak faktur pembelian tanpa Penerimaan Barang', function () {
     $user = partialInvoicingUser('Purchasing Duplicate');
     $this->actingAs($user);
 
@@ -238,19 +238,14 @@ it('menolak faktur pembelian kedua tanpa Penerimaan Barang', function () {
         'price' => 10000, 'conversion' => 1, 'qty_base' => 10, 'total_harga' => 100000, 'disc' => 0,
     ]);
 
+    // Faktur selalu menagih Penerimaan Barang; tanpa GR rincian kosong dan faktur ditolak.
     Livewire::test(PurchaseInvoiceComponent::class)
         ->call('openCreate')
         ->set('purchase_order_id', $purchaseOrder->id)
         ->call('save')
-        ->assertHasNoErrors();
+        ->assertHasErrors('itemRows');
 
-    Livewire::test(PurchaseInvoiceComponent::class)
-        ->call('openCreate')
-        ->set('purchase_order_id', $purchaseOrder->id)
-        ->call('save')
-        ->assertHasErrors('purchase_order_id');
-
-    expect(PurchaseInvoice::count())->toBe(1);
+    expect(PurchaseInvoice::count())->toBe(0);
 });
 
 it('bisa membuat faktur penjualan lanjutan untuk Surat Jalan kedua', function () {

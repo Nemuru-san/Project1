@@ -38,6 +38,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Weekly Login Reset
+    |--------------------------------------------------------------------------
+    |
+    | Semua user otomatis logout setiap Minggu 00:00 pada zona waktu ini
+    | (lihat App\Http\Middleware\EnforceWeeklyLogin).
+    |
+    */
+
+    'weekly_reset_timezone' => env('SESSION_WEEKLY_RESET_TIMEZONE', 'Asia/Jakarta'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Session Encryption
     |--------------------------------------------------------------------------
     |

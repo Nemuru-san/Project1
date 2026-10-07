@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PurchaseInvoice extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'code',
@@ -47,6 +48,10 @@ class PurchaseInvoice extends Model
 
     const STATUS_POSTED = 'Posted';
 
+    // Faktur batal disimpan dengan status ini lalu di-soft-delete, sehingga tidak lagi
+    // dihitung sebagai faktur aktif oleh PO, Penerimaan Barang, maupun laporan utang.
+    const STATUS_CANCELLED = 'Cancelled';
+
     const PAYMENT_UNPAID = 'Unpaid';
 
     const PAYMENT_PARTIAL_PAID = 'Partial Paid';
@@ -71,13 +76,12 @@ class PurchaseInvoice extends Model
     }
 
     /**
-     * Faktur hanya bisa diubah/dihapus selama masih Draf dan belum ada pembayaran.
-     * Begitu diposting atau dibayar, faktur terkunci permanen.
+     * Faktur bisa diubah/dihapus selama belum ada pembayaran yang diposting.
+     * Faktur yang sudah dibayar terkunci sampai pembayarannya dibatalkan.
      */
     public function isEditable(): bool
     {
-        return $this->status === self::STATUS_DRAFT
-            && $this->payment_status === self::PAYMENT_UNPAID
+        return $this->payment_status === self::PAYMENT_UNPAID
             && (int) $this->paid_amount <= 0;
     }
 
@@ -87,11 +91,31 @@ class PurchaseInvoice extends Model
             return null;
         }
 
-        if ($this->status !== self::STATUS_DRAFT) {
-            return 'Faktur Pembelian berstatus '.$this->status.' tidak dapat diubah lagi.';
+        return 'Faktur Pembelian sudah dibayar ('.$this->payment_status.'). Batalkan pembayarannya terlebih dahulu di menu Pembayaran Utang untuk mengubah faktur.';
+    }
+
+    /**
+     * Faktur bisa dibatalkan selama belum ada Pembayaran Utang aktif (draf maupun posting) dan retur.
+     */
+    public function cancelLockReason(): ?string
+    {
+        if ($this->trashed() || $this->status === self::STATUS_CANCELLED) {
+            return 'Faktur Pembelian sudah dibatalkan.';
         }
 
-        return 'Faktur Pembelian sudah dibayar ('.$this->payment_status.') sehingga tidak dapat diubah lagi.';
+        $hasPayment = (int) $this->paid_amount > 0 || $this->apPaymentDetails()
+            ->whereHas('apPayment', fn ($payment) => $payment->where('status', '!=', APPayment::STATUS_CANCELLED))
+            ->exists();
+
+        if ($hasPayment) {
+            return 'Faktur Pembelian tidak dapat dibatalkan karena sudah memiliki Pembayaran Utang.';
+        }
+
+        if ($this->purchaseReturnInvoices()->exists()) {
+            return 'Faktur Pembelian tidak dapat dibatalkan karena sudah memiliki Faktur Retur.';
+        }
+
+        return null;
     }
 
     public function items(): HasMany

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,11 +11,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ArDpPayment extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
 
     public const STATUS_DRAFT = 'Draft';
 
     public const STATUS_POSTED = 'Posted';
+
+    // DP batal / dikembalikan ke pelanggan; jurnal penerimaannya ikut dibatalkan.
+    public const STATUS_CANCELLED = 'Cancelled';
 
     protected $table = 'ar_dp_payments';
 

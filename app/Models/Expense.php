@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Expense extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'code',
@@ -32,6 +33,8 @@ class Expense extends Model
     public const STATUS_DRAFT = 'Draft';
 
     public const STATUS_POSTED = 'Posted';
+
+    public const STATUS_CANCELLED = 'Cancelled';
 
     protected static function booted(): void
     {

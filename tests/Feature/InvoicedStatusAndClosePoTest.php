@@ -21,6 +21,7 @@ use App\Models\SalesOrder;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Models\Warehouse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Livewire\Livewire;
 
@@ -34,7 +35,7 @@ function revisiUser(string $roleName): User
 /**
  * PO 10 pcs dengan Penerimaan Barang sesuai $receivedQtys (masing-masing Received).
  *
- * @return array{0: PurchaseOrder, 1: \Illuminate\Support\Collection<int, GoodsReceive>}
+ * @return array{0: PurchaseOrder, 1: Collection<int, GoodsReceive>}
  */
 function purchaseOrderWithReceipts(User $user, array $receivedQtys, string $status = PurchaseOrder::STATUS_PARTIALLY_RECEIVED, string $receiptPrefix = 'GR-00'): array
 {
@@ -75,7 +76,7 @@ function purchaseOrderWithReceipts(User $user, array $receivedQtys, string $stat
 /**
  * SO 10 pcs terkonfirmasi dengan Surat Jalan sesuai $deliveredQtys (masing-masing Dikirim).
  *
- * @return array{0: SalesOrder, 1: \Illuminate\Support\Collection<int, DeliveryOrder>}
+ * @return array{0: SalesOrder, 1: Collection<int, DeliveryOrder>}
  */
 function salesOrderWithDeliveries(User $user, array $deliveredQtys, string $deliveryPrefix = 'SJ-00'): array
 {
@@ -335,13 +336,13 @@ it('menunda rincian produk faktur pembelian sampai Penerimaan Barang dipilih', f
 
     expect($component->get('itemRows'))->toHaveCount(1)
         ->and((int) $component->get('itemRows')[0]['qty'])->toBe(4)
-        ->and($component->get('itemRows')[0]['gr_codes'])->toBe('GR-001');
+        ->and($component->get('itemRows')[0]['gr_codes'])->toBe(['GR-001']);
 
     // Batal memilih GR mengosongkan kembali rinciannya.
     $component->set('selectedGoodsReceiveIds', [])->assertSet('itemRows', []);
 });
 
-it('tetap menampilkan seluruh PO saat difakturkan tanpa Penerimaan Barang', function () {
+it('tidak memuat rincian maupun menawarkan PO yang belum punya Penerimaan Barang', function () {
     $user = revisiUser('Purchasing Direct Invoice');
     $this->actingAs($user);
 
@@ -351,8 +352,9 @@ it('tetap menampilkan seluruh PO saat difakturkan tanpa Penerimaan Barang', func
         ->call('openCreate')
         ->set('purchase_order_id', $purchaseOrder->id);
 
-    expect($component->get('itemRows'))->toHaveCount(1)
-        ->and((int) $component->get('itemRows')[0]['qty'])->toBe(10);
+    // Rincian produk baru muncul setelah GR dipilih, jadi PO tanpa GR tidak bisa difakturkan.
+    expect($component->get('itemRows'))->toBe([])
+        ->and($component->viewData('purchaseOrders')->pluck('id')->all())->not->toContain($purchaseOrder->id);
 });
 
 it('menyembunyikan PO yang sudah diterima penuh dari pilihan Penerimaan Barang', function () {

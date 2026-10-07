@@ -90,6 +90,41 @@ it('builds a stock card with opening and running balances from approved transact
         ->and($movement['balance'])->toBe(7);
 });
 
+it('groups stock card rows per transaction and keeps totals when filtering by type', function () {
+    $secondWarehouse = Warehouse::create(['name' => 'Gudang Kedua', 'desc' => '-', 'address' => '-']);
+    $in = StockAdjustment::create([
+        'adjustment_no' => 'ADJ-PERIOD-IN', 'date' => '2026-07-15', 'type' => 'in',
+        'warehouse_id' => $this->warehouse->id, 'status' => 'approved', 'created_by' => $this->user->id,
+    ]);
+    // Dua baris produk yang sama dalam satu transaksi digabung menjadi satu baris kartu stok.
+    $in->items()->create(['product_id' => $this->product->id, 'unit_id' => $this->unit->id, 'qty' => 2, 'conversion' => 2]);
+    $in->items()->create(['product_id' => $this->product->id, 'unit_id' => $this->unit->id, 'qty' => 1, 'conversion' => 1]);
+
+    $component = new StockCard;
+    $component->productFilter = (string) $this->product->id;
+    $component->dateFrom = '2026-07-01';
+    $component->dateTo = '2026-07-31';
+
+    $data = $component->render(app(StockMovementService::class))->getData();
+    $grouped = $data['movements']->firstWhere('reference', 'ADJ-PERIOD-IN');
+
+    expect($data['movements']->total())->toBe(2)
+        ->and($grouped['quantity_in'])->toBe(5)
+        ->and($grouped['details'])->toHaveCount(2)
+        ->and($grouped['description'])->toBe('Penyesuaian stok masuk')
+        ->and($grouped['balance'])->toBe(12)
+        ->and($data['totalIn'])->toBe(5)
+        ->and($data['totalOut'])->toBe(3)
+        ->and($data['closingBalance'])->toBe(12);
+
+    $component->typeFilter = 'out';
+    $filtered = $component->render(app(StockMovementService::class))->getData();
+
+    expect($filtered['movements']->pluck('reference')->all())->toBe(['ADJ-PERIOD-OUT'])
+        ->and($filtered['totalIn'])->toBe(5)
+        ->and($filtered['closingBalance'])->toBe(12);
+});
+
 it('summarizes stock movement and excludes draft transactions', function () {
     $component = new StockMovement;
     $component->productFilter = (string) $this->product->id;

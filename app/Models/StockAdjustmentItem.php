@@ -13,6 +13,7 @@ class StockAdjustmentItem extends Model
         'unit_id',
         'qty',
         'conversion',
+        'unit_cost',
     ];
 
     protected $casts = [

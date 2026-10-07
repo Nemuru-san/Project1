@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Purchasing\Transaction;
 
+use App\Models\APPayment;
 use App\Models\ChartOfAccount;
 use App\Models\GoodsReceive;
 use App\Models\JournalEntry;
@@ -61,6 +62,10 @@ class PurchaseInvoice extends Component
     public bool $showPostModal = false;
 
     public ?int $postTargetId = null;
+
+    public bool $showCancelInvoiceModal = false;
+
+    public ?int $cancelInvoiceTargetId = null;
 
     // Form state
     public ?int $invoiceId = null;
@@ -208,11 +213,17 @@ class PurchaseInvoice extends Component
             'items.unit',
             'purchaseOrder',
             'supplier',
-            'goodsReceives',
-        ])->findOrFail($id);
+            'goodsReceives.items',
+        ])->withCount('purchaseReturnInvoices')->findOrFail($id);
 
         if (! $invoice->isEditable()) {
             $this->dispatch('toast', message: $invoice->editLockReason(), type: 'error');
+
+            return;
+        }
+
+        if ($invoice->purchase_return_invoices_count > 0) {
+            $this->dispatch('toast', message: 'Faktur Pembelian sudah memiliki Faktur Retur sehingga tidak dapat diubah.', type: 'error');
 
             return;
         }
@@ -245,7 +256,12 @@ class PurchaseInvoice extends Component
                 'price' => (int) $item->price,
                 'discount' => (int) $item->discount,
                 'tax_amount' => (int) $item->tax_amount,
-                'gr_codes' => $invoice->goodsReceives->pluck('code')->implode(', ') ?: '-',
+                // Hanya GR yang memuat item PO ini, bukan seluruh GR pada faktur.
+                'gr_codes' => $invoice->goodsReceives
+                    ->filter(fn ($receive) => $receive->items->contains('purchase_order_item_id', $item->purchase_order_item_id))
+                    ->pluck('code')
+                    ->values()
+                    ->all(),
                 'total' => (int) $item->total,
 
                 'po_code' => $invoice->purchaseOrder?->code ?? '-',
@@ -331,77 +347,19 @@ class PurchaseInvoice extends Component
             ->format('Y-m-d');
     }
 
-    /**
-     * PO masih punya Penerimaan Barang yang bisa dipilih di form faktur ini.
-     */
-    private function hasSelectableGoodsReceives(int $purchaseOrderId): bool
-    {
-        return GoodsReceive::query()
-            ->where('purchase_order_id', $purchaseOrderId)
-            ->whereIn('status', GoodsReceive::STOCK_STATUSES)
-            ->where(function ($query) {
-                $query->whereDoesntHave('purchaseInvoices');
-
-                if ($this->invoiceId) {
-                    $query->orWhereHas('purchaseInvoices', fn ($invoice) => $invoice->where('purchase_invoices.id', $this->invoiceId));
-                }
-            })
-            ->exists();
-    }
-
     private function loadPurchaseOrder(int $purchaseOrderId): void
     {
-        $po = PurchaseOrder::with([
-            'supplier',
-            'items.product.category',
-            'items.unit',
-        ])
+        $po = PurchaseOrder::query()
             ->whereIn('status', self::ALLOWED_PURCHASE_ORDER_STATUSES)
             ->findOrFail($purchaseOrderId);
 
         $this->supplier_id = $po->supplier_id;
         $this->tax = (bool) $po->tax;
 
-        // PO yang punya Penerimaan Barang: rincian produk baru muncul setelah GR dipilih,
-        // karena yang ditagih adalah barang yang benar-benar diterima, bukan seluruh PO.
-        if ($this->hasSelectableGoodsReceives($po->id)) {
-            $this->itemRows = [];
-            $this->itemPage = 1;
-            $this->recalculateTotals();
-
-            return;
-        }
-
-        $this->itemRows = $po->items->map(function ($item) use ($po) {
-            $qty = (int) $item->qty;
-            $price = (int) ($item->price ?? 0);
-            $discount = (int) ($item->disc ?? 0);
-            $conversion = (int) ($item->conversion ?? 1);
-            $qtyBase = $qty * $conversion;
-            $total = max(0, ($qty * $price) - $discount);
-
-            return [
-                'purchase_order_item_id' => $item->id,
-                'product_id' => $item->product_id,
-                'unit_id' => $item->unit_id ?? null,
-                'conversion' => $conversion,
-                'qty' => $qty,
-                'qty_base' => $qtyBase,
-                'price' => $price,
-                'discount' => $discount,
-                'tax_amount' => 0,
-                'total' => $total,
-
-                'po_code' => $po->code,
-                'product_code' => $item->product?->name ?? $item->product?->code ?? '-',
-                'product_name' => $item->product?->sku ?? '-',
-                'category_name' => $item->product?->category?->desc ?? '-',
-                'unit_name' => $item->unit?->name ?? '-',
-            ];
-        })->toArray();
-
+        // Rincian produk baru dimuat setelah GR dipilih, karena yang ditagih adalah
+        // barang yang benar-benar diterima, bukan seluruh PO.
+        $this->itemRows = [];
         $this->itemPage = 1;
-
         $this->recalculateTotals();
     }
 
@@ -462,7 +420,7 @@ class PurchaseInvoice extends Component
                     'tax_amount' => 0,
                     'total' => max(0, ($qty * $price) - $discount),
                     'po_code' => $first->goodsReceive?->purchaseOrder?->code ?? PurchaseOrder::find($this->purchase_order_id)?->code ?? '-',
-                    'gr_codes' => $items->pluck('goodsReceive.code')->filter()->unique()->implode(', '),
+                    'gr_codes' => $items->pluck('goodsReceive.code')->filter()->unique()->values()->all(),
                     'product_code' => $first->product?->sku ?? '-',
                     'product_name' => $first->product?->name ?? '-',
                     'category_name' => $first->product?->category?->desc ?? $first->product?->category?->name ?? '-',
@@ -510,17 +468,12 @@ class PurchaseInvoice extends Component
         $this->recalculateTotals();
         $goodsReceiveIds = array_values(array_unique(array_map('intval', $this->selectedGoodsReceiveIds)));
 
-        // Satu PO boleh punya beberapa faktur selama tiap Penerimaan Barang hanya
-        // ditagih sekali (penerimaan bertahap). Faktur tanpa Penerimaan Barang
-        // menagih seluruh PO, jadi tetap dibatasi satu per PO.
+        // Faktur baru selalu menagih Penerimaan Barang tertentu. Satu PO boleh punya
+        // beberapa faktur selama tiap Penerimaan Barang hanya ditagih sekali.
         if (! $this->invoiceId && $goodsReceiveIds === []) {
-            $exists = ModelsPurchaseInvoice::where('purchase_order_id', $this->purchase_order_id)->exists();
+            $this->addError('selectedGoodsReceiveIds', 'Pilih minimal satu Penerimaan Barang.');
 
-            if ($exists) {
-                $this->addError('purchase_order_id', 'Pesanan Pembelian ini sudah memiliki Faktur Pembelian. Pilih Penerimaan Barang yang belum ditagih untuk membuat faktur lanjutan.');
-
-                return;
-            }
+            return;
         }
 
         if ($this->invoiceId && $goodsReceiveIds === []
@@ -865,7 +818,14 @@ class PurchaseInvoice extends Component
             return;
         }
 
-        $invoice = ModelsPurchaseInvoice::withCount(['apPaymentDetails', 'purchaseReturnInvoices'])
+        // Pembayaran yang sudah dibatalkan tidak lagi mengunci faktur.
+        $invoice = ModelsPurchaseInvoice::withCount([
+            'apPaymentDetails' => fn ($detail) => $detail->whereHas(
+                'apPayment',
+                fn ($payment) => $payment->where('status', '!=', APPayment::STATUS_CANCELLED)
+            ),
+            'purchaseReturnInvoices',
+        ])
             ->with('goodsReceives')
             ->findOrFail($this->deleteTargetId);
 
@@ -903,6 +863,85 @@ class PurchaseInvoice extends Component
         $this->deleteTargetId = null;
 
         $this->dispatch('toast', message: 'Faktur Pembelian berhasil dihapus.', type: 'success');
+    }
+
+    public function confirmCancelInvoice(int $id): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Faktur Pembelian.', type: 'error');
+
+            return;
+        }
+
+        $invoice = ModelsPurchaseInvoice::findOrFail($id);
+
+        if ($reason = $invoice->cancelLockReason()) {
+            $this->dispatch('toast', message: $reason, type: 'error');
+
+            return;
+        }
+
+        $this->cancelInvoiceTargetId = $id;
+        $this->showCancelInvoiceModal = true;
+    }
+
+    public function closeCancelInvoice(): void
+    {
+        $this->showCancelInvoiceModal = false;
+        $this->cancelInvoiceTargetId = null;
+    }
+
+    /**
+     * Batalkan faktur selama belum ada Pembayaran Utang: jurnal dibatalkan dan Penerimaan Barang
+     * dilepas supaya bisa difakturkan ulang atau dibatalkan.
+     */
+    public function cancelInvoice(): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Faktur Pembelian.', type: 'error');
+
+            return;
+        }
+
+        if (! $this->cancelInvoiceTargetId) {
+            return;
+        }
+
+        $error = DB::transaction(function () {
+            $invoice = ModelsPurchaseInvoice::with('goodsReceives')->lockForUpdate()->findOrFail($this->cancelInvoiceTargetId);
+
+            if ($reason = $invoice->cancelLockReason()) {
+                return $reason;
+            }
+
+            JournalEntry::where('source_type', JournalEntry::SOURCE_PURCHASE_INVOICE)
+                ->where('source_id', $invoice->id)
+                ->update(['status' => JournalEntry::STATUS_CANCELLED]);
+
+            $goodsReceiveIds = $invoice->goodsReceives->pluck('id')->all();
+            $invoice->goodsReceives()->detach();
+            GoodsReceive::query()
+                ->whereIn('id', $goodsReceiveIds)
+                ->where('status', GoodsReceive::STATUS_INVOICED)
+                ->update(['status' => GoodsReceive::STATUS_RECEIVED]);
+
+            $invoice->update(['status' => ModelsPurchaseInvoice::STATUS_CANCELLED]);
+            $invoice->delete();
+            $invoice->purchaseOrder?->refreshPaymentStatus();
+
+            return null;
+        });
+
+        $this->closeCancelInvoice();
+
+        if ($error) {
+            $this->dispatch('toast', message: $error, type: 'error');
+
+            return;
+        }
+
+        $this->closeDetail();
+        $this->dispatch('toast', message: 'Faktur Pembelian berhasil dibatalkan.', type: 'success');
     }
 
     private function generateCode(): string
@@ -1024,17 +1063,10 @@ class PurchaseInvoice extends Component
         $purchaseOrders = PurchaseOrder::query()
             ->with('supplier')
             ->whereIn('status', self::ALLOWED_PURCHASE_ORDER_STATUSES)
-            ->where(function ($query) {
-                // PO yang masih punya Penerimaan Barang belum ditagih (penerimaan bertahap),
-                // atau PO tanpa Penerimaan Barang yang belum pernah difakturkan.
-                $query->whereHas('goodsReceives', function ($goodsReceive) {
-                    $goodsReceive->where('status', GoodsReceive::STATUS_RECEIVED)
-                        ->whereDoesntHave('purchaseInvoices');
-                })->orWhere(function ($query) {
-                    $query->whereDoesntHave('goodsReceives', function ($goodsReceive) {
-                        $goodsReceive->where('status', GoodsReceive::STATUS_RECEIVED);
-                    })->whereDoesntHave('purchaseInvoices');
-                });
+            // Hanya PO yang masih punya Penerimaan Barang belum ditagih.
+            ->whereHas('goodsReceives', function ($goodsReceive) {
+                $goodsReceive->where('status', GoodsReceive::STATUS_RECEIVED)
+                    ->whereDoesntHave('purchaseInvoices');
             })
             ->orderByDesc('date')
             ->orderByDesc('id')

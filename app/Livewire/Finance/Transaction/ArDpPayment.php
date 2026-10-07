@@ -46,6 +46,10 @@ class ArDpPayment extends Component
 
     public ?int $postTargetId = null;
 
+    public bool $showCancelModal = false;
+
+    public ?int $cancelTargetId = null;
+
     public ?ArDpPaymentModel $selectedPayment = null;
 
     public string $code = '';
@@ -383,6 +387,87 @@ class ArDpPayment extends Component
         }
     }
 
+    public function confirmCancel(int $id): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Penerimaan DP.', type: 'error');
+
+            return;
+        }
+
+        $payment = ArDpPaymentModel::with('allocations.preOrder')->findOrFail($id);
+        if ($reason = $this->cancelLockReason($payment)) {
+            $this->dispatch('toast', message: $reason, type: 'error');
+
+            return;
+        }
+
+        $this->cancelTargetId = $id;
+        $this->showCancelModal = true;
+    }
+
+    public function closeCancel(): void
+    {
+        $this->showCancelModal = false;
+        $this->cancelTargetId = null;
+    }
+
+    /**
+     * Batalkan / kembalikan DP. DP terposting hanya bisa dibatalkan selama Pesanan Awalnya belum
+     * dijadikan Pesanan Penjualan, karena DP itu sudah memotong tagihan SO.
+     */
+    public function cancelPayment(): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Penerimaan DP.', type: 'error');
+
+            return;
+        }
+        if (! $this->cancelTargetId) {
+            return;
+        }
+
+        try {
+            DB::transaction(function () {
+                $payment = ArDpPaymentModel::with('allocations.preOrder')->lockForUpdate()->findOrFail($this->cancelTargetId);
+                if ($reason = $this->cancelLockReason($payment)) {
+                    throw new \RuntimeException($reason);
+                }
+
+                $wasPosted = $payment->status === ArDpPaymentModel::STATUS_POSTED;
+                $payment->update(['status' => ArDpPaymentModel::STATUS_CANCELLED]);
+
+                if ($wasPosted) {
+                    JournalEntry::where('source_type', JournalEntry::SOURCE_AR_DP_PAYMENT)
+                        ->where('source_id', $payment->id)
+                        ->update(['status' => JournalEntry::STATUS_CANCELLED]);
+
+                    $payment->allocations->pluck('preOrder')->filter()->each->syncDpPaymentStatus();
+                }
+            });
+
+            $this->dispatch('toast', message: 'Penerimaan DP berhasil dibatalkan.', type: 'success');
+        } catch (\Throwable $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        }
+
+        $this->closeCancel();
+    }
+
+    private function cancelLockReason(ArDpPaymentModel $payment): ?string
+    {
+        if ($payment->status === ArDpPaymentModel::STATUS_CANCELLED) {
+            return 'Penerimaan DP sudah dibatalkan.';
+        }
+
+        $converted = $payment->status === ArDpPaymentModel::STATUS_POSTED
+            && $payment->allocations->contains(fn ($allocation) => $allocation->preOrder?->status === PreOrder::STATUS_SALES_ORDER);
+
+        return $converted
+            ? 'DP tidak dapat dibatalkan karena Pesanan Awalnya sudah dijadikan Pesanan Penjualan. Batalkan Pesanan Penjualan terlebih dahulu.'
+            : null;
+    }
+
     public function confirmDelete(int $id): void
     {
         $payment = ArDpPaymentModel::findOrFail($id);
@@ -476,7 +561,18 @@ class ArDpPayment extends Component
             ? $this->eligiblePreOrdersQuery()->where('customer_id', $this->customerId)->latest('date')->latest('id')->get()
             : new Collection;
 
+        // Pesanan Awal yang masih Draf belum bisa menerima DP; tetap ditampilkan supaya
+        // pengguna tahu harus mengonfirmasinya dulu, bukan mengira datanya hilang.
+        $draftPreOrders = $this->customerId
+            ? PreOrder::query()
+                ->where('customer_id', $this->customerId)
+                ->where('status', PreOrder::STATUS_DRAFT)
+                ->where('dp_amount', '>', 0)
+                ->latest('date')->latest('id')->get()
+            : new Collection;
+
         return view('livewire.finance.transaction.ar-dp-payment', [
+            'draftPreOrders' => $draftPreOrders,
             'payments' => ArDpPaymentModel::query()->with(['allocations.preOrder', 'customer', 'bankAccount'])
                 ->when($this->showTrashed, fn (Builder $query) => $query->withTrashed())
                 ->when($this->statusFilter, fn (Builder $query) => $query->where('status', $this->statusFilter))

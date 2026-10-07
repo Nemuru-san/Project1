@@ -1,7 +1,7 @@
 @php
     $autoPrint = $autoPrint ?? false;
 
-    $company = config('company');
+    $company = \App\Support\CompanyProfile::get();
     $customer = $deliveryOrder->customer;
     $address = $deliveryOrder->customerAddress ?? $customer?->primaryAddress;
     $addressLines = collect([

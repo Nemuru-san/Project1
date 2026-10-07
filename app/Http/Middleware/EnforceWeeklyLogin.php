@@ -12,13 +12,18 @@ class EnforceWeeklyLogin
 {
     public const SESSION_KEY = 'authenticated_week_started_at';
 
+    public const EXPIRED_MESSAGE = 'Sesi mingguan telah berakhir. Silakan login kembali.';
+
     public function handle(Request $request, Closure $next): Response
     {
         if (! Auth::check()) {
             return $next($request);
         }
 
-        $currentWeek = now()->startOfWeek(Carbon::SUNDAY)->toDateString();
+        // Siklus mingguan dimulai Minggu 00:00 waktu lokal (default WIB), bukan UTC aplikasi.
+        $currentWeek = now(config('session.weekly_reset_timezone'))
+            ->startOfWeek(Carbon::SUNDAY)
+            ->toDateString();
         $authenticatedWeek = $request->session()->get(self::SESSION_KEY);
 
         if ($authenticatedWeek === null) {
@@ -35,9 +40,8 @@ class EnforceWeeklyLogin
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with(
-            'status',
-            'Sesi mingguan telah berakhir. Silakan login kembali.',
-        );
+        // Penanda di URL supaya pesan tetap tampil saat logout terjadi lewat request Livewire,
+        // karena flash session ikut terpakai oleh request AJAX sebelum halaman login dibuka.
+        return redirect()->route('login', ['expired' => 1])->with('status', self::EXPIRED_MESSAGE);
     }
 }

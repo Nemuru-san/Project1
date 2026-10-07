@@ -64,6 +64,10 @@ class TransferStock extends Component
 
     public ?int $approveTargetId = null;
 
+    public bool $showCancelModal = false;
+
+    public ?int $cancelTargetId = null;
+
     public bool $showDetail = false;
 
     public ?StockTransfer $selectedTransfer = null;
@@ -447,6 +451,86 @@ class TransferStock extends Component
         $this->approveTargetId = null;
 
         $this->dispatch('toast', message: 'Transfer stock berhasil di-approve.', type: 'success');
+    }
+
+    public function confirmCancel(int $id): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Transfer Stok.', type: 'error');
+
+            return;
+        }
+
+        if (StockTransfer::findOrFail($id)->status === 'cancelled') {
+            $this->dispatch('toast', message: 'Transfer Stok sudah dibatalkan.', type: 'error');
+
+            return;
+        }
+
+        $this->cancelTargetId = $id;
+        $this->showCancelModal = true;
+    }
+
+    public function closeCancel(): void
+    {
+        $this->showCancelModal = false;
+        $this->cancelTargetId = null;
+    }
+
+    /**
+     * Batalkan transfer: bila sudah disetujui, barang dipindah balik dari gudang tujuan ke gudang asal.
+     */
+    public function cancelTransfer(): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Transfer Stok.', type: 'error');
+
+            return;
+        }
+        if (! $this->cancelTargetId) {
+            return;
+        }
+
+        try {
+            DB::transaction(function () {
+                $transfer = StockTransfer::with('items.product')->lockForUpdate()->findOrFail($this->cancelTargetId);
+
+                if ($transfer->status === 'cancelled') {
+                    throw new \RuntimeException('Transfer Stok sudah dibatalkan.');
+                }
+
+                if ($transfer->status === 'approved') {
+                    foreach ($transfer->items as $item) {
+                        $qtyBase = (int) round((float) $item->qty * (float) $item->conversion);
+
+                        $toStock = StockBalance::where('warehouse_id', $transfer->warehouse_to_id)
+                            ->where('product_id', $item->product_id)
+                            ->lockForUpdate()
+                            ->first();
+
+                        if (! $toStock || $toStock->quantity < $qtyBase) {
+                            throw new \RuntimeException('Stok '.($item->product?->name ?? '-').' di gudang tujuan sudah terpakai sehingga transfer tidak dapat dibatalkan.');
+                        }
+
+                        $toStock->decrement('quantity', $qtyBase);
+
+                        $fromStock = StockBalance::firstOrCreate(
+                            ['warehouse_id' => $transfer->warehouse_from_id, 'product_id' => $item->product_id],
+                            ['quantity' => 0],
+                        );
+                        $fromStock->increment('quantity', $qtyBase);
+                    }
+                }
+
+                $transfer->update(['status' => 'cancelled']);
+            });
+
+            $this->dispatch('toast', message: 'Transfer Stok berhasil dibatalkan.', type: 'success');
+        } catch (\Throwable $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        }
+
+        $this->closeCancel();
     }
 
     private function generateCode(): string

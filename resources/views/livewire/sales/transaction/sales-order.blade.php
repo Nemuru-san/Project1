@@ -6,7 +6,7 @@
     </div>
 
     <section class="my-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-            <div class="flex flex-col gap-4 border-b border-gray-100 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between dark:border-zinc-700"><div><h2 class="text-base font-semibold text-gray-900 dark:text-white">Filter Pesanan Penjualan</h2><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Temukan pesanan penjualan berdasarkan kata kunci, status, atau rentang tanggal.</p></div><button wire:click="openCreate" type="button" class="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:w-auto"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>Tambah Pesanan Penjualan</button></div>
+            <div class="flex flex-col gap-4 border-b border-gray-100 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between dark:border-zinc-700"><div><h2 class="text-base font-semibold text-gray-900 dark:text-white">Filter Pesanan Penjualan</h2><p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Temukan pesanan penjualan berdasarkan kata kunci, status, atau rentang tanggal.</p></div><div class="flex flex-col gap-2 sm:flex-row sm:items-center"><x-report-buttons route="sales.transaction.salesOrder.report" :params="['search' => $search, 'status' => $statusFilter, 'date_from' => $dateFrom, 'date_to' => $dateTo]" /><button wire:click="openCreate" type="button" class="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:w-auto"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.5v15m7.5-7.5h-15" /></svg>Tambah Pesanan Penjualan</button></div></div>
             <div class="grid gap-4 p-4 sm:grid-cols-2 sm:px-5 xl:grid-cols-[minmax(18rem,1fr)_auto_auto_auto] xl:items-end">
                 <div class="sm:col-span-2 xl:col-span-1"><label for="goods-receive-search" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Pencarian</label><div class="relative"><svg class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg><input id="goods-receive-search" wire:model.live.debounce.300ms="search" type="search" placeholder="Cari nomor SO, customer, atau salesman..." class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 pl-10 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"></div></div>
                 <fieldset class="sm:col-span-2 xl:col-span-1"><legend class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">Rentang tanggal</legend><div class="flex items-center gap-2"><input wire:model.live="dateFrom" type="date" aria-label="Tanggal mulai" class="min-w-0 w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"><span class="shrink-0 text-sm text-gray-400">s.d.</span><input wire:model.live="dateTo" type="date" aria-label="Tanggal akhir" class="min-w-0 w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-primary-600 focus:ring-primary-600 dark:border-gray-600 dark:bg-zinc-800 dark:text-white"></div></fieldset>
@@ -38,7 +38,21 @@
                             {{ $order->order_no }}</td>
                         <td class="whitespace-nowrap px-4 py-3">{{ $order->date->format('d/m/Y') }}</td>
                         <td class="whitespace-nowrap px-4 py-3">
-                            {{ $order->order_type === 'direct' ? 'Penjualan Langsung / Scan' : ($order->preOrder?->pre_order_no ?? ($order->salesCanvas?->canvas_no ?? 'Manual')) }}</td>
+                            @if ($order->order_type === 'direct')
+                                Penjualan Langsung / Scan
+                            @elseif ($order->pre_order_id)
+                                <span
+                                    class="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-200">Pre
+                                    Order</span>
+                                <span class="ml-1 font-mono text-xs">{{ $order->preOrder?->pre_order_no ?? '-' }}</span>
+                            @elseif ($order->sales_canvas_id)
+                                <span
+                                    class="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-800 dark:bg-sky-900 dark:text-sky-200">Kanvas</span>
+                                <span class="ml-1 font-mono text-xs">{{ $order->salesCanvas?->canvas_no ?? '-' }}</span>
+                            @else
+                                Manual
+                            @endif
+                        </td>
                         <td class="px-4 py-3">{{ $order->customer?->name ?? '-' }}</td>
                         <td class="whitespace-nowrap px-4 py-3 text-right font-medium">Rp
                             {{ number_format($order->grand_total, 0, ',', '.') }}</td>
@@ -56,7 +70,10 @@
                                 <span class="rounded-full bg-blue-100 px-2.5 py-1 text-xs text-blue-700">Diproses</span>
                             @elseif($order->status === 'completed')
                                 <span
-                                class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs text-emerald-700">Selesai</span>@else<span
+                                class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs text-emerald-700">Selesai</span>
+                            @elseif($order->status === 'cancelled')
+                                <span
+                                class="rounded-full bg-red-100 px-2.5 py-1 text-xs text-red-700">Dibatalkan</span>@else<span
                                     class="rounded-full bg-yellow-100 px-2.5 py-1 text-xs text-yellow-700">Draf</span>
                             @endif
                         </td>
@@ -121,6 +138,17 @@
                                                                 stroke-width="2"
                                                                 d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
                                                         </svg>Checkout & Proses</button></li>
+                                            @endif
+                                            @if (in_array($order->status, ['draft', 'verified'], true) && auth()->user()?->canCancelTransactions())
+                                                <li><button type="button"
+                                                        wire:click="confirmCancelOrder({{ $order->id }})"
+                                                        @click="open=false"
+                                                        class="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-600 hover:text-white dark:text-red-300"><svg
+                                                            class="h-5 w-5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>Batalkan SO</button></li>
                                             @endif
                                             @php $locked = ! $order->isEditable(); @endphp
                                             <li><button @if (!$locked) wire:click="openEdit({{ $order->id }})" @endif
@@ -449,6 +477,23 @@
                                     </div>
                                 @endforeach
                             </div>
+                            @if ($sourceType === 'pre_order' && $preOrderId)
+                                {{-- DP terposting dari Pesanan Awal mengurangi tagihan SO. --}}
+                                @php $formDp = min($dpAmount, $totals['grand_total']); @endphp
+                                <div class="mt-4 grid gap-4 border-t border-gray-200 pt-4 sm:grid-cols-2 lg:grid-cols-4 dark:border-gray-700">
+                                    <div class="lg:col-start-3"><label
+                                            class="mb-2 block text-sm font-medium text-green-700 dark:text-green-400">DP dari Pre Order</label><input
+                                            value="- Rp {{ number_format($formDp, 0, ',', '.') }}" disabled
+                                            class="block w-full cursor-not-allowed rounded-lg border border-green-300 bg-green-50 p-2.5 text-sm text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-300">
+                                    </div>
+                                    <div><label class="mb-2 block text-sm font-medium dark:text-white">Sisa
+                                            Tagihan</label><input
+                                            value="Rp {{ number_format(max(0, $totals['grand_total'] - $formDp), 0, ',', '.') }}"
+                                            disabled
+                                            class="block w-full cursor-not-allowed rounded-lg border border-gray-300 bg-gray-100 p-2.5 text-sm font-semibold dark:border-gray-600 dark:bg-zinc-700 dark:text-gray-200">
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                         @if($orderType === 'direct')
                             @php $selectedCustomer = $customers->firstWhere('id', $customerId); @endphp
@@ -613,6 +658,14 @@
         </div>
     @endif
 
+    @if ($showCancelOrderModal)
+        <x-cancel-transaction-modal title="Batalkan Pesanan Penjualan?" confirm="cancelOrder" close="closeCancelOrder">
+            Booking stok SO ini akan dilepas. Jika SO berasal dari Pre Order atau Sales Kanvas, sumbernya kembali
+            bisa dipakai untuk SO baru (DP Pre Order tetap tersimpan). Pembatalan hanya bisa dilakukan selama SO
+            belum memiliki Surat Jalan.
+        </x-cancel-transaction-modal>
+    @endif
+
     @if ($showDetailModal && $selectedOrder)
         <div
             class="fixed inset-0 z-50 flex items-start justify-center overflow-hidden bg-black/60 p-4 backdrop-blur-sm">
@@ -639,7 +692,14 @@
                         <div>
                             <dt class="text-gray-400">Referensi</dt>
                             <dd class="font-medium dark:text-white">
-                                {{ $selectedOrder->preOrder?->pre_order_no ?? ($selectedOrder->salesCanvas?->canvas_no ?? 'Manual') }}
+                                @if ($selectedOrder->pre_order_id)
+                                    <span
+                                        class="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-200">Dari
+                                        Pre Order</span>
+                                    <span class="ml-1 font-mono">{{ $selectedOrder->preOrder?->pre_order_no ?? '-' }}</span>
+                                @else
+                                    {{ $selectedOrder->salesCanvas?->canvas_no ?? 'Manual' }}
+                                @endif
                             </dd>
                         </div>
                         <div>
@@ -724,6 +784,12 @@
                 @if ($confirmCreditSummary)
                     <x-credit-summary :summary="$confirmCreditSummary" class="mb-6" />
                 @endif
+                @foreach (['stock', 'credit_limit', 'status'] as $confirmErrorKey)
+                    @error($confirmErrorKey)
+                        <p class="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-300">
+                            {{ $message }}</p>
+                    @enderror
+                @endforeach
                 <div class="flex justify-end gap-3"><button wire:click="$set('showConfirmModal',false)"
                         class="rounded-lg border px-4 py-2">Batal</button><button wire:click="confirmOrder"
                         wire:loading.attr="disabled" wire:target="confirmOrder" type="button"

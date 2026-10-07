@@ -84,6 +84,8 @@
                             @elseif ($adjustment->status === 'approved')
                                 <span
                                     class="text-sm font-normal px-2.5 py-0.5 rounded bg-blue-700 text-white">Disetujui</span>
+                            @elseif ($adjustment->status === 'cancelled')
+                                <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-700 text-white">Dibatalkan</span>
                             @else
                                 <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-zinc-600 text-white">
                                     {{ ucfirst($adjustment->status) }}
@@ -150,6 +152,16 @@
                                                     </svg>Detail
                                                 </button>
                                             </li>
+                                            @if (in_array($adjustment->status, ['draft', 'approved'], true) && auth()->user()?->canCancelTransactions())
+                                                <li>
+                                                    <button wire:click="confirmCancel({{ $adjustment->id }})" @click="open = false"
+                                                        class="flex items-center gap-2 w-full py-2 px-4 text-red-600 hover:bg-red-600 hover:text-white dark:text-red-300 cursor-pointer">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>Batalkan
+                                                    </button>
+                                                </li>
+                                            @endif
                                             @if ($adjustment->status === 'draft')
                                                 <li>
                                                     <button wire:click="edit({{ $adjustment->id }})"
@@ -507,6 +519,12 @@
     @endif
 
     {{-- APPROVE MODAL --}}
+    @if ($showCancelModal)
+        <x-cancel-transaction-modal title="Batalkan Penyesuaian Stok Keluar?" confirm="cancelAdjustment" close="closeCancel">
+            Jika sudah disetujui, perubahan stok dikembalikan dan jurnal selisih persediaannya dibatalkan.
+        </x-cancel-transaction-modal>
+    @endif
+
     @if ($showApproveModal)
         <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
             <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-xl w-full max-w-sm mx-4 p-6">

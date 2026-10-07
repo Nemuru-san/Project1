@@ -4,9 +4,9 @@
 
     $autoPrint = $autoPrint ?? false;
 
-    $company = config('company');
-    $bank = collect(config('company.bank'))->filter()->isNotEmpty()
-        ? (object) config('company.bank')
+    $company = \App\Support\CompanyProfile::get();
+    $bank = collect($company['bank'])->filter()->isNotEmpty()
+        ? (object) $company['bank']
         : BankAccount::where('is_active', true)->where('account_type', 'bank')->orderBy('id')->first();
 
     $customer = $invoice->customer;

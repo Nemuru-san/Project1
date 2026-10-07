@@ -7,8 +7,8 @@ use App\Models\ProductCategory;
 use App\Models\ProductPrice;
 use App\Models\ProductUnit;
 use App\Models\StockAdjustment;
-use App\Models\StockBalance;
 use App\Models\Warehouse;
+use App\Services\Inventory\StockAdjustmentService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -41,6 +41,10 @@ class AdjustmentIn extends Component
     public ?int $deleteTargetId = null;
 
     public ?int $approveTargetId = null;
+
+    public bool $showCancelModal = false;
+
+    public ?int $cancelTargetId = null;
 
     public ?int $editingId = null;
 
@@ -302,40 +306,72 @@ class AdjustmentIn extends Component
             return;
         }
 
-        DB::transaction(function () {
-            $adjustment = StockAdjustment::with('items')
-                ->where('type', 'in')
-                ->findOrFail($this->approveTargetId);
+        try {
+            DB::transaction(function () {
+                $adjustment = StockAdjustment::where('type', 'in')->findOrFail($this->approveTargetId);
+                app(StockAdjustmentService::class)->approve($adjustment);
+            });
 
-            if ($adjustment->status !== 'draft') {
-                return;
-            }
+            $this->showApproveModal = false;
+            $this->approveTargetId = null;
 
-            foreach ($adjustment->items as $item) {
-                $qtyBase = $item->qty * $item->conversion;
+            $this->dispatch('toast', message: 'Penyesuaian stok masuk berhasil disetujui.', type: 'success');
+        } catch (\Throwable $e) {
+            $this->showApproveModal = false;
+            $this->approveTargetId = null;
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        }
+    }
 
-                $stock = StockBalance::firstOrCreate(
-                    [
-                        'warehouse_id' => $adjustment->warehouse_id,
-                        'product_id' => $item->product_id,
-                    ],
-                    [
-                        'quantity' => 0,
-                    ]
-                );
+    public function confirmCancel(int $id): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Penyesuaian Stok.', type: 'error');
 
-                $stock->increment('quantity', $qtyBase);
-            }
+            return;
+        }
 
-            $adjustment->update([
-                'status' => 'approved',
-            ]);
-        });
+        if (StockAdjustment::where('type', 'in')->findOrFail($id)->status === StockAdjustmentService::STATUS_CANCELLED) {
+            $this->dispatch('toast', message: 'Penyesuaian stok sudah dibatalkan.', type: 'error');
 
-        $this->showApproveModal = false;
-        $this->approveTargetId = null;
+            return;
+        }
 
-        $this->dispatch('toast', message: 'Penyesuaian stok masuk berhasil disetujui.', type: 'success');
+        $this->cancelTargetId = $id;
+        $this->showCancelModal = true;
+    }
+
+    public function closeCancel(): void
+    {
+        $this->showCancelModal = false;
+        $this->cancelTargetId = null;
+    }
+
+    /**
+     * Batalkan penyesuaian: bila sudah disetujui, stok dikembalikan dan jurnal selisih persediaan dibatalkan.
+     */
+    public function cancelAdjustment(): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Penyesuaian Stok.', type: 'error');
+
+            return;
+        }
+        if (! $this->cancelTargetId) {
+            return;
+        }
+
+        try {
+            DB::transaction(function () {
+                $adjustment = StockAdjustment::where('type', 'in')->findOrFail($this->cancelTargetId);
+                app(StockAdjustmentService::class)->cancel($adjustment);
+            });
+            $this->dispatch('toast', message: 'Penyesuaian stok masuk berhasil dibatalkan.', type: 'success');
+        } catch (\Throwable $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        }
+
+        $this->closeCancel();
     }
 
     public function confirmDelete(int $id): void

@@ -168,7 +168,7 @@ it('renders the salesman master page for authenticated users', function () {
     $this->actingAs($admin)
         ->get(route('sales.master.salesman'))
         ->assertOk()
-        ->assertSee('Data Tenaga Penjualan')
+        ->assertSee('Filter Salesman')
         ->assertSee('Buka aksi salesman')
         ->assertSee('Ubah')
         ->assertSee('Hapus');

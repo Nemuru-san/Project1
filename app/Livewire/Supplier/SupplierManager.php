@@ -136,8 +136,26 @@ class SupplierManager extends Component
             return;
         }
 
+        if ($supplier->hasTransactions()) {
+            $this->dispatch('toast', message: 'Pemasok sudah memiliki transaksi Pesanan Pembelian dan tidak dapat dihapus. Silakan nonaktifkan pemasok.', type: 'error');
+
+            return;
+        }
+
         $this->deleteTargetId = $id;
         $this->showDeleteModal = true;
+    }
+
+    public function toggleActive(int $id): void
+    {
+        $supplier = Supplier::findOrFail($id);
+        $supplier->update(['is_active' => ! $supplier->is_active]);
+
+        $this->dispatch(
+            'toast',
+            message: $supplier->is_active ? 'Pemasok berhasil diaktifkan.' : 'Pemasok berhasil dinonaktifkan.',
+            type: 'success'
+        );
     }
 
     public function delete(): void
@@ -152,7 +170,17 @@ class SupplierManager extends Component
             return;
         }
 
-        Supplier::findOrFail($this->deleteTargetId)->delete();
+        $supplier = Supplier::findOrFail($this->deleteTargetId);
+
+        if ($supplier->hasTransactions()) {
+            $this->showDeleteModal = false;
+            $this->deleteTargetId = null;
+            $this->dispatch('toast', message: 'Pemasok sudah memiliki transaksi Pesanan Pembelian dan tidak dapat dihapus. Silakan nonaktifkan pemasok.', type: 'error');
+
+            return;
+        }
+
+        $supplier->delete();
 
         $this->showDeleteModal = false;
         $this->deleteTargetId = null;
@@ -187,7 +215,7 @@ class SupplierManager extends Component
                     $s->name,
                     $s->address,
                     $s->contact,
-                    $s->trashed() ? 'Terhapus' : 'Aktif',
+                    $s->trashed() ? 'Terhapus' : ($s->is_active ? 'Aktif' : 'Nonaktif'),
                     $s->created_by,
                     $s->created_at?->format('d/m/Y'),
                 ]);
@@ -234,6 +262,8 @@ class SupplierManager extends Component
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 
-        return view('livewire.supplier.supplier-manager', compact('suppliers'));
+        $idsWithTransactions = Supplier::idsWithTransactions($suppliers->pluck('id')->all());
+
+        return view('livewire.supplier.supplier-manager', compact('suppliers', 'idsWithTransactions'));
     }
 }

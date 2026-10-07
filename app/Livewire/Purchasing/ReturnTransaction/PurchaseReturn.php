@@ -6,6 +6,7 @@ use App\Models\GoodsReceive;
 use App\Models\PurchaseReturn as PurchaseReturnModel;
 use App\Models\PurchaseReturnItem;
 use App\Models\StockBalance;
+use App\Services\Inventory\InventoryCostService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -223,6 +224,8 @@ class PurchaseReturn extends Component
                 if (! $stock || $available < $item->qty_base) {
                     throw ValidationException::withMessages(['return' => "Stok {$item->product?->name} di {$item->warehouse?->name} tidak cukup. Tersedia {$available}, dibutuhkan {$item->qty_base}."]);
                 }
+                // Barang keluar ke pemasok dengan biaya saat diterima; jurnalnya dibuat oleh Faktur Retur.
+                app(InventoryCostService::class)->reverseReceipt($item->product_id, (int) $item->qty_base, $this->returnUnitCost($item));
                 $stock->decrement('quantity', $item->qty_base);
             }
 
@@ -236,19 +239,27 @@ class PurchaseReturn extends Component
 
     public function cancel(int $id): void
     {
-        abort_unless(auth()->user()?->isSuperAdmin(), 403);
+        abort_unless(auth()->user()?->canCancelTransactions(), 403);
         DB::transaction(function () use ($id) {
             $return = PurchaseReturnModel::with('items')->lockForUpdate()->findOrFail($id);
             if ($return->status !== PurchaseReturnModel::STATUS_CONFIRMED || $return->returnInvoice()->exists()) {
                 throw ValidationException::withMessages(['return' => 'Retur tidak dapat dibatalkan karena statusnya tidak valid atau sudah memiliki Faktur Retur.']);
             }
             foreach ($return->items as $item) {
+                app(InventoryCostService::class)->receive($item->product_id, (int) $item->qty_base, $this->returnUnitCost($item));
                 $stock = StockBalance::firstOrCreate(['warehouse_id' => $item->warehouse_id, 'product_id' => $item->product_id], ['quantity' => 0]);
                 StockBalance::whereKey($stock->id)->lockForUpdate()->firstOrFail()->increment('quantity', $item->qty_base);
             }
             $return->update(['status' => PurchaseReturnModel::STATUS_CANCELLED]);
         });
         $this->dispatch('toast', message: 'Retur dibatalkan dan stok dikembalikan.', type: 'success');
+    }
+
+    private function returnUnitCost(PurchaseReturnItem $item): float
+    {
+        $costs = app(InventoryCostService::class);
+
+        return (float) ($item->goodsReceiveItem?->unit_cost ?: $costs->averageCost($item->product_id));
     }
 
     public function delete(int $id): void

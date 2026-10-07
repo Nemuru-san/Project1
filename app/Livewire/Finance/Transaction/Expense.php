@@ -43,6 +43,10 @@ class Expense extends Component
 
     public ?int $postTargetId = null;
 
+    public bool $showCancelModal = false;
+
+    public ?int $cancelTargetId = null;
+
     public ?int $deleteTargetId = null;
 
     public ?ExpenseModel $selectedExpense = null;
@@ -360,6 +364,61 @@ class Expense extends Component
             $this->showPostModal = false;
             $this->postTargetId = null;
         }
+    }
+
+    public function confirmCancel(int $id): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Pengeluaran.', type: 'error');
+
+            return;
+        }
+
+        if (ExpenseModel::findOrFail($id)->status === ExpenseModel::STATUS_CANCELLED) {
+            $this->dispatch('toast', message: 'Pengeluaran sudah dibatalkan.', type: 'error');
+
+            return;
+        }
+
+        $this->cancelTargetId = $id;
+        $this->showCancelModal = true;
+    }
+
+    public function closeCancel(): void
+    {
+        $this->showCancelModal = false;
+        $this->cancelTargetId = null;
+    }
+
+    /**
+     * Batalkan pengeluaran; bila sudah diposting, jurnal biayanya ikut dibatalkan.
+     */
+    public function cancelExpense(): void
+    {
+        if (! auth()->user()?->canCancelTransactions()) {
+            $this->dispatch('toast', message: 'Anda tidak memiliki izin untuk membatalkan Pengeluaran.', type: 'error');
+
+            return;
+        }
+        if (! $this->cancelTargetId) {
+            return;
+        }
+
+        DB::transaction(function () {
+            $expense = ExpenseModel::lockForUpdate()->findOrFail($this->cancelTargetId);
+            if ($expense->status === ExpenseModel::STATUS_CANCELLED) {
+                return;
+            }
+
+            JournalEntry::where('source_type', JournalEntry::SOURCE_EXPENSE)
+                ->where('source_id', $expense->id)
+                ->update(['status' => JournalEntry::STATUS_CANCELLED]);
+
+            $expense->update(['status' => ExpenseModel::STATUS_CANCELLED]);
+        });
+
+        $this->closeCancel();
+        $this->dispatch('toast', message: 'Pengeluaran berhasil dibatalkan.', type: 'success');
     }
 
     public function confirmDelete(int $id): void

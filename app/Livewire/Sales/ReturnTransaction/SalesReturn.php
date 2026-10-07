@@ -3,9 +3,11 @@
 namespace App\Livewire\Sales\ReturnTransaction;
 
 use App\Models\DeliveryOrder;
+use App\Models\JournalEntry;
 use App\Models\SalesReturn as SalesReturnModel;
 use App\Models\SalesReturnItem;
 use App\Models\StockBalance;
+use App\Services\Inventory\InventoryCostService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -152,11 +154,23 @@ class SalesReturn extends Component
             if ($return->status !== SalesReturnModel::STATUS_DRAFT) {
                 throw ValidationException::withMessages(['return' => 'Hanya retur Draf yang dapat dikonfirmasi.']);
             }
+            $costs = app(InventoryCostService::class);
+            $value = 0;
             foreach ($return->items as $item) {
+                // Barang retur kembali dengan biaya saat dikirim; bila tidak ada, pakai rata-rata saat ini.
+                $unitCost = (float) ($item->deliveryOrderItem?->unit_cost ?: $costs->averageCost($item->product_id));
+                $costs->receive($item->product_id, (int) $item->qty_base, $unitCost);
+                $item->update(['unit_cost' => $unitCost]);
+                $value += (int) round((int) $item->qty_base * $unitCost);
+
                 $stock = StockBalance::firstOrCreate(['warehouse_id' => $item->warehouse_id, 'product_id' => $item->product_id], ['quantity' => 0]);
                 StockBalance::whereKey($stock->id)->lockForUpdate()->firstOrFail()->increment('quantity', $item->qty_base);
             }
             $return->update(['status' => SalesReturnModel::STATUS_CONFIRMED, 'confirmed_at' => now(), 'confirmed_by' => Auth::id()]);
+            $costs->postJournal(JournalEntry::SOURCE_SALES_RETURN, $return->id, $return->return_date ?? now(), 'Retur Penjualan '.$return->return_no, [
+                [InventoryCostService::INVENTORY_ACCOUNT, $value, 0, 'Barang retur kembali ke persediaan'],
+                [InventoryCostService::COGS_ACCOUNT, 0, $value, 'Pembalik harga pokok penjualan'],
+            ]);
         });
         $this->showConfirmModal = false;
         $this->confirmTargetId = null;
@@ -165,19 +179,22 @@ class SalesReturn extends Component
 
     public function cancel(int $id): void
     {
-        abort_unless(auth()->user()?->isSuperAdmin(), 403);
+        abort_unless(auth()->user()?->canCancelTransactions(), 403);
         DB::transaction(function () use ($id) {
             $return = SalesReturnModel::with('items')->lockForUpdate()->findOrFail($id);
             if ($return->status !== SalesReturnModel::STATUS_CONFIRMED || $return->returnInvoice()->exists()) {
                 throw ValidationException::withMessages(['return' => 'Retur tidak dapat dibatalkan karena sudah memiliki Faktur Retur atau status tidak valid.']);
             }
+            $costs = app(InventoryCostService::class);
             foreach ($return->items as $item) {
                 $stock = StockBalance::where('warehouse_id', $item->warehouse_id)->where('product_id', $item->product_id)->lockForUpdate()->first();
                 if (! $stock || $stock->quantity < $item->qty_base) {
                     throw ValidationException::withMessages(['return' => 'Stok tidak cukup untuk membatalkan retur.']);
                 }
+                $costs->reverseReceipt($item->product_id, (int) $item->qty_base, (float) $item->unit_cost);
                 $stock->decrement('quantity', $item->qty_base);
             }
+            $costs->cancelJournal(JournalEntry::SOURCE_SALES_RETURN, $return->id);
             $return->update(['status' => SalesReturnModel::STATUS_CANCELLED]);
         });
         $this->dispatch('toast', message: 'Retur dibatalkan dan stok dikurangi kembali.', type: 'success');

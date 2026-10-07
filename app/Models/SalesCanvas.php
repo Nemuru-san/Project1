@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SalesCanvas extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
 
     public const STATUS_DRAFT = 'draft';
 
@@ -83,9 +84,12 @@ class SalesCanvas extends Model
         return $this->hasMany(SalesCanvasItem::class);
     }
 
+    /**
+     * SO aktif dari kanvas ini. SO yang dibatalkan melepas kanvas supaya bisa dipakai ulang.
+     */
     public function salesOrder(): HasOne
     {
-        return $this->hasOne(SalesOrder::class);
+        return $this->hasOne(SalesOrder::class)->where('status', '!=', 'cancelled');
     }
 
     public function creator(): BelongsTo

@@ -58,6 +58,10 @@
                                 <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-red-700 text-white">
                                     Terhapus
                                 </span>
+                            @elseif (! $supplier->is_active)
+                                <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-gray-500 text-white">
+                                    Nonaktif
+                                </span>
                             @else
                                 <span class="text-sm font-normal px-2.5 py-0.5 rounded bg-green-700 text-white">
                                     Aktif
@@ -108,11 +112,36 @@
                                                     </svg>Ubah
                                                 </button>
                                             </li>
+
+                                            <li>
+                                                <button wire:click="toggleActive({{ $supplier->id }})"
+                                                    @click="open = false"
+                                                    class="flex items-center gap-2 w-full py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white cursor-pointer">
+                                                    @if ($supplier->is_active)
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                        </svg>Nonaktifkan
+                                                    @else
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>Aktifkan
+                                                    @endif
+                                                </button>
+                                            </li>
                                         </ul>
+                                        @php($hasTransactions = in_array($supplier->id, $idsWithTransactions, true))
                                         <div class="py-1">
-                                            <button wire:click="confirmDelete({{ $supplier->id }})" @disabled(! auth()->user()->isSuperAdmin())
+                                            <button wire:click="confirmDelete({{ $supplier->id }})"
+                                                @disabled(! auth()->user()->isSuperAdmin() || $hasTransactions)
+                                                @if ($hasTransactions) title="Pemasok sudah memiliki transaksi, hanya bisa dinonaktifkan" @endif
                                                 @click="open = false"
-                                                class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white">
+                                                class="flex items-center gap-2 w-full py-2 px-4 text-base text-gray-700 hover:bg-red-600 hover:text-white dark:text-gray-200 dark:hover:bg-red-600 dark:hover:text-white cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-700 dark:disabled:hover:text-gray-200">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"

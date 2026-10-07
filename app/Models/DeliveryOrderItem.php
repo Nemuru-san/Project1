@@ -11,7 +11,7 @@ class DeliveryOrderItem extends Model
     protected $fillable = [
         'delivery_order_id', 'sales_order_item_id', 'product_id', 'warehouse_id',
         'unit_id', 'conversion', 'qty_order', 'qty_delivered', 'qty_outstanding',
-        'qty_base', 'note',
+        'qty_base', 'unit_cost', 'note',
     ];
 
     protected function casts(): array
