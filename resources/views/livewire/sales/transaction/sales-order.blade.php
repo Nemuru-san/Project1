@@ -314,7 +314,7 @@
                                     <option value="">Tanpa alamat pengiriman</option>
                                     @foreach ($customerAddresses as $address)
                                         <option value="{{ $address->id }}">{{ $address->code }} -
-                                            {{ $address->label }}</option>
+                                            {{ $address->address }}</option>
                                     @endforeach
                                 </select>
                                 @error('customerAddressId')

@@ -640,7 +640,7 @@ class SalesCanvas extends Component
             'unit_options' => $product->prices->map(fn ($price) => [
                 'unit_id' => $price->unit_id,
                 'unit_name' => $price->unit?->name ?? '-',
-                'unit_code' => $price->unit?->code,
+                'unit_code' => $price->unit?->name,
                 'conversion' => (int) $price->conversion,
                 'price' => (int) $price->price,
             ])->values()->all(),

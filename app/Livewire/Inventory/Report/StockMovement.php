@@ -135,7 +135,7 @@ class StockMovement extends Component
         return view('livewire.inventory.report.stock-movement', [
             'rows' => $paginatedRows,
             'products' => Product::query()->orderBy('name')->get(['id', 'sku', 'name']),
-            'warehouses' => Warehouse::query()->orderBy('name')->get(['id', 'name']),
+            'warehouses' => Warehouse::query()->orderBy('name')->get(['id', 'desc']),
         ]);
     }
 }
